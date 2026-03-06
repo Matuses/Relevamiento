@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -50,6 +51,7 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
 .role-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px;letter-spacing:0.06em;}
 .role-badge.supervisor{background:rgba(14,165,233,0.2);color:#7DD3FC;}
 .role-badge.tecnico{background:rgba(22,163,74,0.2);color:#86EFAC;}
+.role-badge.trade{background:rgba(168,85,247,0.2);color:#D8B4FE;}
 .topbar-user{font-size:13px;color:rgba(255,255,255,0.6);}
 .topbar-user strong{color:white;}
 .btn-logout{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);color:white;border-radius:8px;padding:6px 14px;font-family:'Bricolage Grotesque',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:background 0.2s;}
@@ -252,8 +254,9 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
 
 <script>
 const USERS = {
-  'SUPERVISOR': { pass: 'Suralnor0407', role: 'supervisor', label: 'Supervisor' },
-  'TECNICO':    { pass: 'Emcala2024',   role: 'tecnico',    label: 'Técnico'    }
+  'SUPERVISOR': { pass: 'Suralnor0407', role: 'supervisor', label: 'Supervisor'      },
+  'TECNICO':    { pass: 'Emcala2024',   role: 'tecnico',    label: 'Técnico'         },
+  'TRADE':      { pass: 'Trade2024',    role: 'trade',      label: 'Trade Marketing' }
 };
 const SCRIPT_URL  = 'https://script.google.com/macros/s/AKfycbyuKwoNm1lg_m8To20FKNuzxNcMmHDZV4nTCz6to4ACk28ZmmuucnHSv2iMfBwpuLGQ/exec';
 const CSV_REGISTROS   = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS3ztm-Wc9LNH9rkL33QKZeYmsPMg9-KoqN-diIbHQFbLdj_It-5e4JEd83z__zHrW4YZKJtR57bRaS/pub?gid=0&single=true&output=csv';
@@ -327,7 +330,14 @@ function updateMap(data) {
   valid.forEach(r=>{
     const lat=parseFloat(r.lat.replace(',','.')), lng=parseFloat(r.lng.replace(',','.'));
     const color=ageColor(r.ts);
-    const icon=L.divIcon({html:`<div style="width:14px;height:14px;background:${color};border:2.5px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3)"></div>`,className:'',iconSize:[14,14],iconAnchor:[7,7]});
+    const priAprobada = getPrioridadAprobada(r.ot, r.cliente);
+    const priSugerida = getPrioridadSugerida(r.ot, r.cliente);
+    const priShow = priAprobada || priSugerida;
+    const isAlta = priAprobada && (priAprobada==='1'||priAprobada==='2');
+    const isSugerida = !priAprobada && priSugerida;
+    const excl = isAlta ? `<div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);color:#DC2626;font-size:13px;font-weight:900;line-height:1;text-shadow:0 1px 3px rgba(0,0,0,0.4)">!</div>` : '';
+    const numBadge = priShow ? `<div style="position:absolute;top:-18px;left:50%;transform:translateX(-50%);background:${priAprobada?'#0F2A4A':'#94A3B8'};color:white;font-size:10px;font-weight:800;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1.5px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.3);${isSugerida?'opacity:0.7':''}}">${priShow}</div>` : '';
+    const icon=L.divIcon({html:`<div style="position:relative;width:14px;height:14px">${excl}${numBadge}<div style="width:14px;height:14px;background:${color};border:2.5px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3)"></div></div>`,className:'',iconSize:[14,14],iconAnchor:[7,7]});
     const seg = seguimientos[r.cliente];
     const segLabel = seg ? `<br><small style="color:#059669;font-weight:600">${ESTADO_META[seg.estado]?.icon||''} ${ESTADO_META[seg.estado]?.label||seg.estado}</small>` : '';
     const mk=L.marker([lat,lng],{icon})
@@ -382,18 +392,30 @@ function parseSeguimientos(text) {
   const lines=text.trim().split('\n'); if(lines.length<2) return {};
   const h=splitCSV(lines[0]).map(s=>s.trim().toLowerCase());
   const col=n=>h.findIndex(s=>s.includes(n));
-  const iTs=col('timestamp'),iCli=col('cliente'),iProm=col('promotor'),
-        iEst=col('estado'),iCom=col('comentario'),iTec=col('tecnico');
+  const iTs=col('timestamp'),iOt=col('ot'),iCli=col('cliente'),iProm=col('promotor'),
+        iEst=col('estado'),iCom=col('comentario'),iTec=col('tecnico'),
+        iPriSug=col('prioridad_sugerida'),iPriApr=col('prioridad_aprobada'),iAprPor=col('aprobado_por');
   const map={};
-  // el último seguimiento por cliente gana
+  // el último seguimiento por OT gana (agrupamos por ot, fallback cliente)
   lines.slice(1).forEach(line=>{
     const c=splitCSV(line);
     const cli=(c[iCli]||'').trim();
-    if(!cli) return;
+    const ot=(c[iOt]||'').trim();
+    const key=ot||cli;
+    if(!key) return;
     const ts=c[iTs]||'';
     let fecha='';
     if(ts){const d=new Date(ts);if(!isNaN(d)) fecha=d.toLocaleDateString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',day:'2-digit',month:'2-digit',year:'numeric'})+' '+d.toLocaleTimeString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',hour:'2-digit',minute:'2-digit'});}
-    map[cli]={estado:(c[iEst]||'').trim(),comentario:(c[iCom]||'').trim(),tecnico:(c[iTec]||'').trim(),ts,fecha};
+    const prev=map[key]||{};
+    map[key]={
+      estado:(c[iEst]||prev.estado||'').trim(),
+      comentario:(c[iCom]||prev.comentario||'').trim(),
+      tecnico:(c[iTec]||prev.tecnico||'').trim(),
+      prioridad_sugerida:(c[iPriSug]||prev.prioridad_sugerida||'').trim(),
+      prioridad_aprobada:(c[iPriApr]||prev.prioridad_aprobada||'').trim(),
+      aprobado_por:(c[iAprPor]||prev.aprobado_por||'').trim(),
+      ts, fecha, ot, cli
+    };
   });
   return map;
 }
@@ -404,10 +426,21 @@ function splitCSV(line){
   res.push(cur.trim());return res;
 }
 
-function getEstadoKey(cli) {
-  const seg = seguimientos[cli];
+function getSegByOt(ot, cli) {
+  return seguimientos[ot] || seguimientos[cli] || null;
+}
+function getEstadoKey(ot, cli) {
+  const seg = getSegByOt(ot, cli);
   if (!seg) return '';
   return seg.estado.toLowerCase().replace(/ /g,'-');
+}
+function getPrioridadAprobada(ot, cli) {
+  const seg = getSegByOt(ot, cli);
+  return seg ? (seg.prioridad_aprobada||'') : '';
+}
+function getPrioridadSugerida(ot, cli) {
+  const seg = getSegByOt(ot, cli);
+  return seg ? (seg.prioridad_sugerida||'') : '';
 }
 
 function populateFilter() {
@@ -426,10 +459,12 @@ function applyFilters() {
   filtered=allData.filter(r=>{
     if(nombre&&r.nombre!==nombre) return false;
     if(estado){
-      const eKey=getEstadoKey(r.cliente);
+      const eKey=getEstadoKey(r.ot,r.cliente);
       if(estado==='sin-estado'&&eKey!=='') return false;
       if(estado!=='sin-estado'&&eKey!==estado) return false;
     }
+    // Técnico solo ve solicitudes con prioridad aprobada
+    if(currentRole==='tecnico' && !getPrioridadAprobada(r.ot,r.cliente)) return false;
     if((desde||hasta)&&r.ts){
       const d=new Date(r.ts);
       if(desde&&d<new Date(desde)) return false;
@@ -455,14 +490,19 @@ function renderList(data) {
     const color=ageColor(r.ts);
     const initials=(r.cliente||'?').replace(/[^A-Z0-9]/gi,'').slice(0,3).toUpperCase();
     const hasGeo=r.lat&&r.lng&&parseFloat(r.lat)!==0;
-    const eKey=getEstadoKey(r.cliente);
+    const eKey=getEstadoKey(r.ot,r.cliente);
     const em=ESTADO_META[eKey]||ESTADO_META[''];
+    const priA=getPrioridadAprobada(r.ot,r.cliente);
+    const priS=getPrioridadSugerida(r.ot,r.cliente);
+    const priShow=priA||priS;
+    const isAlta=priA&&(priA==='1'||priA==='2');
+    const priBadge=priShow?`<span style="margin-left:4px;font-size:10px;font-weight:800;padding:2px 7px;border-radius:100px;background:${priA?'#0F2A4A':'#E2E8F0'};color:${priA?'white':'#64748B'}">${isAlta?'⚠️ ':''} P${priShow}${!priA?' (sugerida)':''}</span>`:'';
     return `<div class="reg-item" onclick='openModal(${JSON.stringify(r).replace(/'/g,"&#39;")})'>
       <div class="reg-avatar" style="background:${color}">${initials}</div>
       <div class="reg-info">
-        <div class="reg-nombre">OT ${r.ot||'—'}</div>
+        <div class="reg-nombre">OT ${r.ot||'—'} ${isAlta?'<span style="color:#DC2626">❗</span>':''}</div>
         <div class="reg-sub">${r.cliente||'Sin cliente'} · 👤 ${r.nombre}</div>
-        <span class="estado-pill ${em.cls}">${em.icon} ${em.label}</span>
+        <span class="estado-pill ${em.cls}">${em.icon} ${em.label}</span>${priBadge}
       </div>
       <div class="reg-meta">
         <div class="reg-fecha">${r.fecha}</div>
@@ -480,18 +520,23 @@ function openModal(r) {
   document.getElementById('modalTs').textContent=r.fecha+(r.hora?' · '+r.hora:'');
   const lat=parseFloat((r.lat||'').replace(',','.')),lng=parseFloat((r.lng||'').replace(',','.'));
   const hasGeo=!isNaN(lat)&&!isNaN(lng)&&lat!==0;
-  const seg=seguimientos[r.cliente]||null;
+  const seg=getSegByOt(r.ot,r.cliente);
   const eKey=seg?(seg.estado.toLowerCase().replace(/ /g,'-')||''):'';
   const em=ESTADO_META[eKey]||ESTADO_META[''];
 
-  // Sección seguimiento
+  // Sección seguimiento según rol
+  const seg2 = getSegByOt(r.ot, r.cliente);
+  const priA = seg2 ? seg2.prioridad_aprobada||'' : '';
+  const priS = seg2 ? seg2.prioridad_sugerida||'' : '';
   let segHTML='';
+
   if(currentRole==='tecnico') {
+    // Técnico: carga estado y comentario
     segHTML=`
       <div class="modal-sec">🔧 Seguimiento técnico</div>
       <div class="seguimiento-section">
         <div class="seg-title">✏️ Actualizar estado</div>
-        ${seg?`<div class="seg-last">Último estado: <strong>${em.icon} ${em.label}</strong>${seg.comentario?`<br>"${seg.comentario}"`:''}${seg.fecha?`<span class="seg-ts">${seg.tecnico} · ${seg.fecha}</span>`:''}</div>`:''}
+        ${seg2?`<div class="seg-last">Último estado: <strong>${em.icon} ${em.label}</strong>${seg2.comentario?`<br>"${seg2.comentario}"`:''}${seg2.fecha?`<span class="seg-ts">${seg2.tecnico} · ${seg2.fecha}</span>`:''}</div>`:''}
         <div class="seg-form">
           <label>Estado</label>
           <select id="segEstado">
@@ -500,23 +545,54 @@ function openModal(r) {
             <option value="requiere-visita" ${eKey==='requiere-visita'?'selected':''}>🔧 Requiere visita</option>
             <option value="sin-contacto" ${eKey==='sin-contacto'?'selected':''}>📵 Sin contacto</option>
           </select>
-          <label>Comentario</label>
-          <textarea id="segComentario" placeholder="Describí el estado actual del servicio...">${seg?seg.comentario:''}</textarea>
-          <button class="btn-guardar" id="btnGuardar" onclick="guardarSeguimiento('${r.cliente}','${r.nombre}','${r.ot}')">
-            💾 Guardar seguimiento
+          <label>Comentario / Devolución</label>
+          <textarea id="segComentario" placeholder="Describí el estado actual del servicio...">${seg2?seg2.comentario:''}</textarea>
+          <button class="btn-guardar" id="btnGuardar" onclick="guardarSeguimiento('${r.cliente}','${r.nombre}','${r.ot}','tecnico')">
+            💾 Guardar devolución
           </button>
           <div class="save-ok" id="saveOk">✅ Guardado correctamente</div>
         </div>
       </div>`;
-  } else {
-    // supervisor: solo lectura
+
+  } else if(currentRole==='supervisor') {
+    // Supervisor: sugiere prioridad + ve estado
     segHTML=`
-      <div class="modal-sec">📋 Estado del seguimiento</div>
-      <div class="seguimiento-section readonly">
-        <div class="seg-title readonly">Estado actual</div>
-        ${seg
-          ?`<div class="seg-last"><strong>${em.icon} ${em.label}</strong>${seg.comentario?`<br>"${seg.comentario}"`:''}${seg.fecha?`<span class="seg-ts">${seg.tecnico} · ${seg.fecha}</span>`:''}</div>`
-          :`<div class="seg-last" style="color:var(--muted)">Sin seguimiento cargado aún.</div>`}
+      <div class="modal-sec">📋 Seguimiento</div>
+      <div class="seguimiento-section">
+        <div class="seg-title">⭐ Sugerir prioridad</div>
+        ${seg2&&seg2.comentario?`<div class="seg-last"><strong>${em.icon} ${em.label}</strong><br>"${seg2.comentario}"${seg2.fecha?`<span class="seg-ts">${seg2.tecnico} · ${seg2.fecha}</span>`:''}</div>`:''}
+        <div class="seg-form">
+          <label>Prioridad sugerida ${priA?`<span style="color:var(--success)">· Aprobada: P${priA} por ${seg2.aprobado_por}</span>`:''}</label>
+          <select id="segPriSug">
+            <option value="">Sin prioridad</option>
+            ${[1,2,3,4,5].map(n=>`<option value="${n}" ${priS==n?'selected':''}>${n==='1'||n===1?'⚠️ ':n==='2'||n===2?'⚠️ ':''}P${n}</option>`).join('')}
+          </select>
+          <button class="btn-guardar" id="btnGuardar" onclick="guardarSeguimiento('${r.cliente}','${r.nombre}','${r.ot}','supervisor')">
+            💾 Guardar prioridad
+          </button>
+          <div class="save-ok" id="saveOk">✅ Guardado correctamente</div>
+        </div>
+      </div>`;
+
+  } else if(currentRole==='trade') {
+    // Trade Marketing: aprueba prioridad
+    segHTML=`
+      <div class="modal-sec">✅ Aprobación de prioridad</div>
+      <div class="seguimiento-section" style="background:#F5F3FF;border-color:#DDD6FE;">
+        <div class="seg-title" style="color:#7C3AED;">🔐 Trade Marketing</div>
+        ${priS?`<div class="seg-last">Prioridad sugerida por supervisor: <strong>P${priS}</strong></div>`:'<div class="seg-last" style="color:var(--muted)">Sin prioridad sugerida aún.</div>'}
+        ${seg2&&seg2.comentario?`<div class="seg-last"><strong>${em.icon} ${em.label}</strong><br>"${seg2.comentario}"</div>`:''}
+        <div class="seg-form">
+          <label>Aprobar prioridad</label>
+          <select id="segPriApr" style="border-color:#DDD6FE;">
+            <option value="">Sin prioridad</option>
+            ${[1,2,3,4,5].map(n=>`<option value="${n}" ${priA==n?'selected':''}>${n==='1'||n===1?'⚠️ ':n==='2'||n===2?'⚠️ ':''}P${n}</option>`).join('')}
+          </select>
+          <button class="btn-guardar" id="btnGuardar" style="background:#7C3AED;" onclick="guardarSeguimiento('${r.cliente}','${r.nombre}','${r.ot}','trade')">
+            ✅ Aprobar prioridad
+          </button>
+          <div class="save-ok" id="saveOk">✅ Aprobado correctamente</div>
+        </div>
       </div>`;
   }
 
@@ -551,26 +627,41 @@ function openModal(r) {
   }
 }
 
-async function guardarSeguimiento(cliente, promotor, ot) {
-  const estado=document.getElementById('segEstado').value;
-  const comentario=document.getElementById('segComentario').value.trim();
+async function guardarSeguimiento(cliente, promotor, ot, tipoRol) {
   const btn=document.getElementById('btnGuardar');
   btn.disabled=true; btn.textContent='Guardando...';
+
+  const key = ot||cliente;
+  const prev = seguimientos[key]||{};
+  let payload = {tipo:'seguimiento', timestamp:new Date().toISOString(), ot, cliente, promotor,
+    estado: prev.estado||'', comentario: prev.comentario||'', tecnico: prev.tecnico||'',
+    prioridad_sugerida: prev.prioridad_sugerida||'', prioridad_aprobada: prev.prioridad_aprobada||'',
+    aprobado_por: prev.aprobado_por||''};
+
+  if(tipoRol==='tecnico') {
+    payload.estado    = document.getElementById('segEstado').value;
+    payload.comentario= document.getElementById('segComentario').value.trim();
+    payload.tecnico   = currentUser;
+  } else if(tipoRol==='supervisor') {
+    payload.prioridad_sugerida = document.getElementById('segPriSug').value;
+  } else if(tipoRol==='trade') {
+    payload.prioridad_aprobada = document.getElementById('segPriApr').value;
+    payload.aprobado_por       = currentUser;
+  }
+
   try {
-    await fetch(SCRIPT_URL,{
-      method:'POST', mode:'no-cors',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({tipo:'seguimiento',timestamp:new Date().toISOString(),ot,cliente,promotor,estado,comentario,tecnico:currentUser})
-    });
+    fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     // Actualizar local
-    seguimientos[cliente]={estado,comentario,tecnico:currentUser,ts:new Date().toISOString(),fecha:new Date().toLocaleDateString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',day:'2-digit',month:'2-digit',year:'numeric'})+' '+new Date().toLocaleTimeString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',hour:'2-digit',minute:'2-digit'})};
+    const ts=new Date().toISOString();
+    const fecha=new Date().toLocaleDateString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',day:'2-digit',month:'2-digit',year:'numeric'})+' '+new Date().toLocaleTimeString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',hour:'2-digit',minute:'2-digit'});
+    seguimientos[key]={...prev, ...payload, ts, fecha};
     btn.style.display='none';
     document.getElementById('saveOk').style.display='block';
     renderList(filtered);
     updateMap(filtered);
     setTimeout(()=>closeModalDirect(),1200);
   } catch(e) {
-    btn.disabled=false; btn.textContent='💾 Guardar seguimiento';
+    btn.disabled=false; btn.textContent='💾 Guardar';
   }
 }
 
