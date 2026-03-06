@@ -612,20 +612,7 @@
       return;
     }
 
-    // Obtener número de OT correlativo
-    let otNumber = '181652000001';
-    try {
-      const countRes = await fetch(SCRIPT_URL + '?t=' + Date.now());
-      const countData = await countRes.json();
-      const next = 181652000001 + (countData.count || 0);
-      otNumber = String(next);
-    } catch(e) {
-      // Si falla, usar timestamp como fallback
-      otNumber = '181652' + Date.now().toString().slice(-6);
-    }
-
     const payload = {
-      ot: otNumber,
       timestamp: new Date().toISOString(),
       promotor: document.getElementById('promotor').value,
       rol: 'promotor',
@@ -649,7 +636,6 @@
 
     // Mostrar éxito inmediatamente
     const summary = `
-OT: ${payload.ot}
 PROMOTOR: ${payload.promotor}
 CÓDIGO CLIENTE: ${payload.cliente}
 MARCA HELADERA: ${payload.marca}
