@@ -854,7 +854,7 @@
 <script>
   // ── CONFIG ──
   const CREDENTIALS = { user: 'SUPERVISOR', pass: 'Suralnor0407' };
-  const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSKI65iEIVRmbOsy0r33v8R_qT2ilepOWvaRy11nkb5RlZpqHJvi2Qw7JkSqplcwSzzLx8aHpHNEan2/pub?gid=2106954971&single=true&output=csv';
+  const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS3ztm-Wc9LNH9rkL33QKZeYmsPMg9-KoqN-diIbHQFbLdj_It-5e4JEd83z__zHrW4YZKJtR57bRaS/pub?gid=0&single=true&output=csv';
 
   let allData = [];
   let filtered = [];
@@ -904,7 +904,7 @@
     // Si no hay filtro de fecha, mostrar solo hoy; si hay filtro, usar los datos que llegan
     const desde = document.getElementById('filterDesde').value;
     const hasta = document.getElementById('filterHasta').value;
-    const hoy = new Date().toLocaleDateString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' });
+    const hoy = new Date().toLocaleDateString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', day:'2-digit', month:'2-digit', year:'numeric' });
     
     const dataFiltrada = (!desde && !hasta) ? data.filter(r => r.fecha === hoy) : data;
     const label = (!desde && !hasta) ? ' puntos hoy' : ' puntos';
@@ -1101,13 +1101,12 @@
   }
 
   function updateStats() {
-    const hoy = new Date().toLocaleDateString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' });
-    const promotores = new Set(allData.filter(r => r.rol.toLowerCase().includes('promotor')).map(r => r.nombre));
-    const merchands  = new Set(allData.filter(r => r.rol.toLowerCase().includes('merchand')).map(r => r.nombre));
+    const hoy = new Date().toLocaleDateString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', day:'2-digit', month:'2-digit', year:'numeric' });
+    const promotores = new Set(allData.map(r => r.nombre));
     document.getElementById('statTotal').textContent = allData.length;
     document.getElementById('statHoy').textContent = allData.filter(r => r.fecha === hoy).length;
     document.getElementById('statPromotores').textContent = promotores.size;
-    document.getElementById('statMerchands').textContent = merchands.size;
+    document.getElementById('statMerchands').textContent = new Set(allData.filter(r => r.rol.toLowerCase().includes('merchand')).map(r => r.nombre)).size;
   }
 
   function renderList(data) {
@@ -1162,12 +1161,14 @@
 
     document.getElementById('modalBody').innerHTML = `
       <div class="modal-grid">
-        <div class="modal-field"><label>Rol</label><p>${r.rol}</p></div>
+        <div class="modal-field"><label>Promotor</label><p>${r.nombre}</p></div>
         <div class="modal-field"><label>Código Cliente</label><p>${r.cliente}</p></div>
+        <div class="modal-field"><label>Marca Heladera</label><p>${r.marca || '—'}</p></div>
+        <div class="modal-field"><label>EDF</label><p>${r.edf || '—'}</p></div>
         <div class="modal-field"><label>Fecha</label><p>${r.fecha}</p></div>
         <div class="modal-field"><label>Hora</label><p>${r.hora}</p></div>
-        <div class="modal-field"><label>Precisión GPS</label><p>${r.precision && r.precision !== 'N/A' ? '±' + r.precision + 'm' : 'N/A'}</p></div>
-        <div class="modal-field"><label>Coordenadas</label><p style="font-family:'DM Mono',monospace;font-size:12px">${r.lat}, ${r.lng}</p></div>
+        <div class="modal-field"><label>Coordenadas</label><p style="font-family:'DM Mono',monospace;font-size:12px">${r.lat && r.lng ? r.lat + ', ' + r.lng : 'Sin GPS'}</p></div>
+        <div class="modal-field"><label>Falla Sugerida</label><p>${r.falla || '—'}</p></div>
       </div>
 
       ${mapsUrl ? `
