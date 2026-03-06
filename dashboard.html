@@ -269,6 +269,14 @@ function initMap() {
   }).addTo(leafMap);
 }
 
+function ageColor(ts) {
+  if (!ts) return '#94A3B8';
+  const days = (Date.now() - new Date(ts)) / (1000*60*60*24);
+  if (days <= 15) return '#16A34A';   // verde
+  if (days <= 20) return '#D97706';   // amarillo
+  return '#DC2626';                   // rojo
+}
+
 function colorMap(data) {
   const m = {}; let i = 0;
   data.forEach(r => { if (!m[r.nombre]) m[r.nombre] = COLORS[i++ % COLORS.length]; });
@@ -283,28 +291,29 @@ function updateMap(data) {
     return !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0;
   });
   document.getElementById('mapCount').textContent = valid.length + ' punto' + (valid.length !== 1 ? 's' : '');
-  const cm = colorMap(data);
   const bounds = [];
   valid.forEach(r => {
     const lat = parseFloat(r.lat.replace(',','.')), lng = parseFloat(r.lng.replace(',','.'));
-    const color = cm[r.nombre] || '#1E88E5';
+    const color = ageColor(r.ts);
     const icon = L.divIcon({
-      html: `<div style="width:13px;height:13px;background:${color};border:2.5px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.3)"></div>`,
-      className: '', iconSize:[13,13], iconAnchor:[6,6]
+      html: `<div style="width:14px;height:14px;background:${color};border:2.5px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.35)"></div>`,
+      className: '', iconSize:[14,14], iconAnchor:[7,7]
     });
     const mk = L.marker([lat,lng],{icon})
-      .bindPopup(`<strong>${r.nombre}</strong><br>${r.cliente||''}<br><small style="color:#888">${r.fecha} ${r.hora}</small>`)
+      .bindPopup(`<strong>${r.cliente||'Sin cliente'}</strong><br><small style="color:#555">${r.nombre}</small><br><small style="color:#888">${r.fecha} ${r.hora}</small>`)
       .addTo(leafMap);
     mk.on('click', () => openModal(r));
     markers.push(mk);
     bounds.push([lat,lng]);
   });
   if (bounds.length) leafMap.fitBounds(bounds, {padding:[40,40]});
-  // leyenda
-  const nombres = [...new Set(data.map(r=>r.nombre))];
-  document.getElementById('mapLegend').innerHTML = nombres.map(n =>
-    `<div class="legend-item"><div class="legend-dot" style="background:${cm[n]||'#888'}"></div>${n}</div>`
-  ).join('');
+  // leyenda fija por antigüedad
+  document.getElementById('mapLegend').innerHTML = `
+    <div class="legend-item"><div class="legend-dot" style="background:#16A34A"></div>Hasta 15 días</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#D97706"></div>15 – 20 días</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#DC2626"></div>21+ días</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#94A3B8"></div>Sin fecha</div>
+  `;
 }
 
 // DATA
@@ -401,16 +410,15 @@ function renderList(data) {
     el.innerHTML = '<div class="empty-state"><div class="ico">📭</div><p>No hay registros.</p></div>';
     return;
   }
-  const cm = colorMap(allData);
   el.innerHTML = [...data].reverse().map(r => {
-    const color = cm[r.nombre]||'#1E88E5';
-    const initials = r.nombre.split(' ').slice(0,2).map(w=>w[0]).join('');
+    const color = ageColor(r.ts);
+    const initials = (r.cliente||'?').replace(/[^A-Z0-9]/gi,'').slice(0,3).toUpperCase();
     const hasGeo = r.lat && r.lng && parseFloat(r.lat) !== 0;
     return `<div class="reg-item" onclick='openModal(${JSON.stringify(r).replace(/'/g,"&#39;")})'>
       <div class="reg-avatar" style="background:${color}">${initials}</div>
       <div class="reg-info">
-        <div class="reg-nombre">${r.nombre}</div>
-        <div class="reg-cliente">${r.cliente||'—'}</div>
+        <div class="reg-nombre">${r.cliente||'Sin cliente'}</div>
+        <div class="reg-cliente">👤 ${r.nombre}</div>
       </div>
       <div class="reg-meta">
         <div class="reg-fecha">${r.fecha}</div>
@@ -431,6 +439,7 @@ function openModal(r) {
   document.getElementById('modalBody').innerHTML = `
     <div class="modal-sec">Detalle del registro</div>
     <div class="modal-grid">
+      <div class="mf"><label>Promotor</label><p>${r.nombre}</p></div>
       <div class="mf"><label>Código Cliente</label><p>${r.cliente||'—'}</p></div>
       <div class="mf"><label>Marca Heladera</label><p>${r.marca||'—'}</p></div>
       <div class="mf"><label>EDF</label><p>${r.edf||'—'}</p></div>
