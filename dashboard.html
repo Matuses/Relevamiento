@@ -502,7 +502,7 @@ function openModal(r) {
           </select>
           <label>Comentario</label>
           <textarea id="segComentario" placeholder="Describí el estado actual del servicio...">${seg?seg.comentario:''}</textarea>
-          <button class="btn-guardar" id="btnGuardar" onclick="guardarSeguimiento('${r.cliente}','${r.nombre}')">
+          <button class="btn-guardar" id="btnGuardar" onclick="guardarSeguimiento('${r.cliente}','${r.nombre}','${r.ot}')">
             💾 Guardar seguimiento
           </button>
           <div class="save-ok" id="saveOk">✅ Guardado correctamente</div>
@@ -551,7 +551,7 @@ function openModal(r) {
   }
 }
 
-async function guardarSeguimiento(cliente, promotor) {
+async function guardarSeguimiento(cliente, promotor, ot) {
   const estado=document.getElementById('segEstado').value;
   const comentario=document.getElementById('segComentario').value.trim();
   const btn=document.getElementById('btnGuardar');
@@ -560,7 +560,7 @@ async function guardarSeguimiento(cliente, promotor) {
     await fetch(SCRIPT_URL,{
       method:'POST', mode:'no-cors',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({tipo:'seguimiento',timestamp:new Date().toISOString(),cliente,promotor,estado,comentario,tecnico:currentUser})
+      body:JSON.stringify({tipo:'seguimiento',timestamp:new Date().toISOString(),ot,cliente,promotor,estado,comentario,tecnico:currentUser})
     });
     // Actualizar local
     seguimientos[cliente]={estado,comentario,tecnico:currentUser,ts:new Date().toISOString(),fecha:new Date().toLocaleDateString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',day:'2-digit',month:'2-digit',year:'numeric'})+' '+new Date().toLocaleTimeString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',hour:'2-digit',minute:'2-digit'})};
