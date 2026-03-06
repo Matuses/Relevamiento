@@ -331,7 +331,7 @@ function updateMap(data) {
     const seg = seguimientos[r.cliente];
     const segLabel = seg ? `<br><small style="color:#059669;font-weight:600">${ESTADO_META[seg.estado]?.icon||''} ${ESTADO_META[seg.estado]?.label||seg.estado}</small>` : '';
     const mk=L.marker([lat,lng],{icon})
-      .bindPopup(`<strong>${r.cliente||'Sin cliente'}</strong><br><small style="color:#555">👤 ${r.nombre}</small>${segLabel}<br><small style="color:#888">${r.fecha} ${r.hora}</small>`)
+      .bindPopup(`<strong style="color:#0F2A4A">OT ${r.ot||'—'}</strong><br><small style="color:#555">${r.cliente||'Sin cliente'}</small><br><small style="color:#555">👤 ${r.nombre}</small>${segLabel}<br><small style="color:#888">${r.fecha} ${r.hora}</small>`)
       .addTo(leafMap);
     mk.on('click',()=>openModal(r));
     markers.push(mk); bounds.push([lat,lng]);
@@ -366,14 +366,14 @@ function parseRegistros(text) {
   const lines=text.trim().split('\n'); if(lines.length<2) return [];
   const h=splitCSV(lines[0]).map(s=>s.trim().toLowerCase());
   const col=n=>h.findIndex(s=>s.includes(n));
-  const iTs=col('timestamp'),iProm=col('promotor'),iRol=col('rol'),iCli=col('cliente'),
+  const iOt=col('ot'),iTs=col('timestamp'),iProm=col('promotor'),iRol=col('rol'),iCli=col('cliente'),
         iMarca=col('marca'),iEdf=col('edf'),iFalla=col('falla'),
         iLat=col('lat'),iLng=col('lng'),iFoto=col('foto'),iNotas=col('notas');
   return lines.slice(1).map((line,i)=>{
     const c=splitCSV(line); const ts=c[iTs]||'';
     let fecha='',hora='';
     if(ts){const d=new Date(ts);if(!isNaN(d)){fecha=d.toLocaleDateString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',day:'2-digit',month:'2-digit',year:'numeric'});hora=d.toLocaleTimeString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',hour:'2-digit',minute:'2-digit'});}}
-    return {nro:i+1,ts,fecha,hora,nombre:(c[iProm]||'').trim().toUpperCase(),rol:(c[iRol]||'promotor').trim(),cliente:(c[iCli]||'').trim(),marca:(c[iMarca]||'').trim(),edf:(c[iEdf]||'').trim(),falla:(c[iFalla]||'').trim(),lat:c[iLat]||'',lng:c[iLng]||'',foto:c[iFoto]||'',notas:c[iNotas]||''};
+    return {nro:i+1,ot:(c[iOt]||'').trim(),ts,fecha,hora,nombre:(c[iProm]||'').trim().toUpperCase(),rol:(c[iRol]||'promotor').trim(),cliente:(c[iCli]||'').trim(),marca:(c[iMarca]||'').trim(),edf:(c[iEdf]||'').trim(),falla:(c[iFalla]||'').trim(),lat:c[iLat]||'',lng:c[iLng]||'',foto:c[iFoto]||'',notas:c[iNotas]||''};
   }).filter(r=>r.nombre);
 }
 
@@ -460,8 +460,8 @@ function renderList(data) {
     return `<div class="reg-item" onclick='openModal(${JSON.stringify(r).replace(/'/g,"&#39;")})'>
       <div class="reg-avatar" style="background:${color}">${initials}</div>
       <div class="reg-info">
-        <div class="reg-nombre">${r.cliente||'Sin cliente'}</div>
-        <div class="reg-sub">👤 ${r.nombre}</div>
+        <div class="reg-nombre">OT ${r.ot||'—'}</div>
+        <div class="reg-sub">${r.cliente||'Sin cliente'} · 👤 ${r.nombre}</div>
         <span class="estado-pill ${em.cls}">${em.icon} ${em.label}</span>
       </div>
       <div class="reg-meta">
@@ -476,7 +476,7 @@ function renderList(data) {
 // MODAL
 function openModal(r) {
   if(typeof r==='string') r=JSON.parse(r);
-  document.getElementById('modalNombre').textContent=r.cliente||'Sin cliente';
+  document.getElementById('modalNombre').textContent='OT ' + (r.ot||'—');
   document.getElementById('modalTs').textContent=r.fecha+(r.hora?' · '+r.hora:'');
   const lat=parseFloat((r.lat||'').replace(',','.')),lng=parseFloat((r.lng||'').replace(',','.'));
   const hasGeo=!isNaN(lat)&&!isNaN(lng)&&lat!==0;
@@ -523,8 +523,9 @@ function openModal(r) {
   document.getElementById('modalBody').innerHTML=`
     <div class="modal-sec">Detalle del registro</div>
     <div class="modal-grid">
-      <div class="mf"><label>Promotor</label><p>${r.nombre}</p></div>
+      <div class="mf"><label>N° OT</label><p style="font-family:'DM Mono',monospace;font-size:13px;font-weight:800;color:var(--navy)">${r.ot||'—'}</p></div>
       <div class="mf"><label>Código Cliente</label><p>${r.cliente||'—'}</p></div>
+      <div class="mf full"><label>Promotor</label><p>${r.nombre}</p></div>
       <div class="mf"><label>Marca Heladera</label><p>${r.marca||'—'}</p></div>
       <div class="mf"><label>EDF</label><p>${r.edf||'—'}</p></div>
       <div class="mf"><label>GPS</label><p style="font-family:'DM Mono',monospace;font-size:12px">${hasGeo?lat.toFixed(5)+', '+lng.toFixed(5):'Sin coordenadas'}</p></div>
