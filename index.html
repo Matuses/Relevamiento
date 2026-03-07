@@ -286,17 +286,27 @@ let currentUser=null, currentRole=null, currentPass=null;
 document.getElementById('loginUser').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('loginPass').focus(); });
 document.getElementById('loginPass').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
 
+function jsonp(url) {
+  return new Promise((resolve, reject) => {
+    const cb = 'cb_' + Date.now();
+    const script = document.createElement('script');
+    script.src = url + '&callback=' + cb;
+    window[cb] = (data) => { delete window[cb]; document.body.removeChild(script); resolve(data); };
+    script.onerror = () => { delete window[cb]; document.body.removeChild(script); reject(new Error('JSONP error')); };
+    document.body.appendChild(script);
+  });
+}
+
 async function doLogin() {
   const u = document.getElementById('loginUser').value.trim().toUpperCase();
   const p = document.getElementById('loginPass').value;
   const btn = document.querySelector('.btn-primary');
   btn.textContent = 'Verificando...'; btn.disabled = true;
   try {
-    const res = await fetch(`${SCRIPT_URL}?action=login&usuario=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`);
-    const data = await res.json();
+    const data = await jsonp(`${SCRIPT_URL}?action=login&usuario=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`);
     if (data.ok) {
       currentUser = u; currentRole = data.rol;
-      currentPass = p; // guardamos para autenticar peticiones de datos
+      currentPass = p;
       document.getElementById('loginScreen').style.display = 'none';
       document.getElementById('dashboard').style.display = 'block';
       document.getElementById('loginError').style.display = 'none';
@@ -305,6 +315,7 @@ async function doLogin() {
       document.getElementById('roleBadge').className = 'role-badge ' + data.rol;
       initMap(); loadData();
     } else {
+      document.getElementById('loginError').textContent = 'Usuario o contraseña incorrectos.';
       document.getElementById('loginError').style.display = 'block';
       document.getElementById('loginPass').value = '';
       document.getElementById('loginPass').focus();
@@ -378,9 +389,7 @@ function updateMap(data) {
 async function loadData() {
   document.getElementById('registrosList').innerHTML='<div class="loading-state"><div class="spin"></div><p>Cargando registros...</p></div>';
   try {
-    const url = `${SCRIPT_URL}?action=datos&usuario=${encodeURIComponent(currentUser)}&password=${encodeURIComponent(currentPass)}&t=${Date.now()}`;
-    const res = await fetch(url);
-    const data = await res.json();
+    const data = await jsonp(`${SCRIPT_URL}?action=datos&usuario=${encodeURIComponent(currentUser)}&password=${encodeURIComponent(currentPass)}&t=${Date.now()}`);
     if (!data.ok) {
       document.getElementById('registrosList').innerHTML='<div class="empty-state"><div class="ico">🔒</div><p>No autorizado.</p></div>';
       return;
