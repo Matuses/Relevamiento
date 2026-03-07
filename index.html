@@ -353,13 +353,13 @@ function ageColor(ts) {
 function updateMap(data) {
   markers.forEach(m=>leafMap.removeLayer(m)); markers=[];
   const valid = data.filter(r=>{
-    const lat=parseFloat((r.lat||'').replace(',','.')), lng=parseFloat((r.lng||'').replace(',','.'));
+    const lat=parseFloat((r.lat||'').toString().replace(',','.')), lng=parseFloat((r.lng||'').toString().replace(',','.'));
     return !isNaN(lat)&&!isNaN(lng)&&lat!==0&&lng!==0;
   });
   document.getElementById('mapCount').textContent = valid.length+' punto'+(valid.length!==1?'s':'');
   const bounds=[];
   valid.forEach(r=>{
-    const lat=parseFloat(r.lat.replace(',','.')), lng=parseFloat(r.lng.replace(',','.'));
+    const lat=parseFloat(r.lat.toString().replace(',','.')), lng=parseFloat(r.lng.toString().replace(',','.'));
     const color=ageColor(r.ts);
     const priAprobada = getPrioridadAprobada(r.ot, r.cliente);
     const priSugerida = getPrioridadSugerida(r.ot, r.cliente);
@@ -415,7 +415,7 @@ function parseRegistros(rows) {
     const ts=(c[iTs]||'').toString();
     let fecha='',hora='';
     if(ts){const d=new Date(ts);if(!isNaN(d)){fecha=d.toLocaleDateString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',day:'2-digit',month:'2-digit',year:'numeric'});hora=d.toLocaleTimeString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',hour:'2-digit',minute:'2-digit'});}}
-    return {nro:i+1,ot:(c[iOt]||'').toString().trim(),ts,fecha,hora,nombre:(c[iProm]||'').toString().trim().toUpperCase(),rol:(c[iRol]||'promotor').toString().trim(),cliente:(c[iCli]||'').toString().trim(),marca:(c[iMarca]||'').toString().trim(),edf:(c[iEdf]||'').toString().trim(),falla:(c[iFalla]||'').toString().trim(),lat:(c[iLat]||'').toString(),lng:(c[iLng]||'').toString(),foto:(c[iFoto]||'').toString(),notas:(c[iNotas]||'').toString()};
+    return {nro:i+1,ot:(c[iOt]||'').toString().trim(),ts,fecha,hora,nombre:(c[iProm]||'').toString().trim().toUpperCase(),rol:(c[iRol]||'promotor').toString().trim(),cliente:(c[iCli]||'').toString().trim(),marca:(c[iMarca]||'').toString().trim(),edf:(c[iEdf]||'').toString().trim(),falla:(c[iFalla]||'').toString().trim(),lat:(c[iLat]!==undefined&&c[iLat]!==''?c[iLat].toString():''),lng:(c[iLng]!==undefined&&c[iLng]!==''?c[iLng].toString():''),foto:(c[iFoto]||'').toString(),notas:(c[iNotas]||'').toString()};
   }).filter(r=>r.nombre);
 }
 
