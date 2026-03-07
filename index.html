@@ -395,8 +395,10 @@ async function loadData() {
       document.getElementById('registrosList').innerHTML='<div class="empty-state"><div class="ico">🔒</div><p>No autorizado.</p></div>';
       return;
     }
+    console.log('registros raw:', JSON.stringify(data.registros[1]));
     allData = parseRegistros(data.registros);
     seguimientos = parseSeguimientos(data.seguimientos);
+    console.log('allData[0]:', JSON.stringify(allData[0]));
     populateFilter();
     applyFilters();
   } catch(e) {
