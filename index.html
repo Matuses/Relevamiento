@@ -339,6 +339,7 @@ function initMap() {
   if (leafMap) return;
   leafMap = L.map('map').setView([-34.62,-58.38],10);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © CARTO',maxZoom:19}).addTo(leafMap);
+  setTimeout(()=>leafMap.invalidateSize(),300);
 }
 
 function ageColor(ts) {
@@ -376,7 +377,7 @@ function updateMap(data) {
     mk.on('click',()=>openModal(r));
     markers.push(mk); bounds.push([lat,lng]);
   });
-  if(bounds.length) leafMap.fitBounds(bounds,{padding:[40,40]});
+  if(bounds.length) { leafMap.invalidateSize(); leafMap.fitBounds(bounds,{padding:[40,40]}); } else { leafMap.invalidateSize(); leafMap.setView([-34.62,-58.38],10); }
   document.getElementById('mapLegend').innerHTML=`
     <div class="legend-item"><div class="legend-dot" style="background:#16A34A"></div>Hasta 15 días</div>
     <div class="legend-item"><div class="legend-dot" style="background:#D97706"></div>15–20 días</div>
