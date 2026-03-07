@@ -54,6 +54,23 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
 .role-badge.supervisor{background:rgba(14,165,233,0.2);color:#7DD3FC;}
 .role-badge.tecnico{background:rgba(22,163,74,0.2);color:#86EFAC;}
 .role-badge.trade{background:rgba(168,85,247,0.2);color:#D8B4FE;}
+  .topbar-center{display:flex;gap:4px;align-items:center;}
+  .tab-btn{background:transparent;border:none;color:rgba(255,255,255,0.6);font-size:13px;font-weight:600;padding:6px 14px;border-radius:8px;cursor:pointer;transition:all 0.2s;}
+  .tab-btn:hover{background:rgba(255,255,255,0.1);color:white;}
+  .tab-btn.active{background:rgba(255,255,255,0.15);color:white;}
+  #vistaTabla{display:none;padding:16px 24px;overflow:auto;}
+  .tabla-filters{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px;align-items:flex-end;}
+  .tabla-filters input,.tabla-filters select{padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;color:var(--text);background:white;min-width:140px;}
+  .tabla-filters label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:4px;}
+  .btn-export{margin-left:auto;background:var(--navy);color:white;border:none;padding:9px 18px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;}
+  .btn-export:hover{background:#1a3a5c;}
+  .excel-table{width:100%;border-collapse:collapse;font-size:13px;}
+  .excel-table th{background:#0F2A4A;color:white;padding:10px 14px;text-align:left;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;position:sticky;top:0;z-index:2;}
+  .excel-table td{padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle;}
+  .excel-table tr:hover td{background:#F0F4FF;}
+  .excel-table tr:nth-child(even) td{background:#F8FAFC;}
+  .excel-table tr:nth-child(even):hover td{background:#F0F4FF;}
+  .tabla-wrap{border:1px solid var(--border);border-radius:12px;overflow:auto;max-height:calc(100vh - 220px);}
 .topbar-user{font-size:13px;color:rgba(255,255,255,0.6);}
 .topbar-user strong{color:white;}
 .btn-logout{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);color:white;border-radius:8px;padding:6px 14px;font-family:'Bricolage Grotesque',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:background 0.2s;}
@@ -103,8 +120,8 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
 .estado-pill{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;margin-top:3px;}
 .estado-pill.en-proceso{background:#FEF3C7;color:#92400E;}
 .estado-pill.resuelto{background:#D1FAE5;color:#065F46;}
-.estado-pill.requiere-visita{background:#EDE9FE;color:#4C1D95;}
-.estado-pill.sin-contacto{background:#FEE2E2;color:#991B1B;}
+.estado-pill.pendiente{background:#FEF3C7;color:#B45309;}
+.estado-pill.retiro{background:#EDE9FE;color:#6D28D9;}
 .estado-pill.sin-estado{background:#F1F5F9;color:#64748B;}
 
 .empty-state{padding:48px 24px;text-align:center;color:var(--muted);font-size:14px;}
@@ -202,6 +219,10 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
       <img src="data:image/jpeg;base64,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" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.2);">
       <div class="topbar-title">Suralnor <span>·</span> Emcala</div>
     </div>
+    <div class="topbar-center" id="tabBar" style="display:none;">
+      <button class="tab-btn active" id="tabMapa" onclick="switchTab('mapa')">🗺 Mapa</button>
+      <button class="tab-btn" id="tabTabla" onclick="switchTab('tabla')">📊 Tabla</button>
+    </div>
     <div class="topbar-right">
       <span class="role-badge" id="roleBadge"></span>
       <span class="topbar-user"><strong id="userLabel"></strong></span>
@@ -218,10 +239,9 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
       <select id="filterEstado" onchange="applyFilters()">
         <option value="">Todos</option>
         <option value="sin-estado">Sin estado</option>
-        <option value="en-proceso">En proceso</option>
-        <option value="resuelto">Resuelto</option>
-        <option value="requiere-visita">Requiere visita</option>
-        <option value="sin-contacto">Sin contacto</option>
+        <option value="resuelto">✅ Resuelto</option>
+        <option value="pendiente">⏳ Pendiente</option>
+        <option value="retiro">📦 Retiro</option>
       </select>
       <div class="filter-sep"></div>
       <label>Desde</label>
@@ -254,6 +274,37 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
   </div>
 </div>
 
+<!-- VISTA TABLA (solo Trade) -->
+<div id="vistaTabla">
+  <div class="tabla-filters">
+    <div><label>Cliente</label><input type="text" id="tFiltCliente" placeholder="Buscar cliente..." oninput="renderTabla()"></div>
+    <div><label>OT</label><input type="text" id="tFiltOT" placeholder="Buscar OT..." oninput="renderTabla()"></div>
+    <div><label>Promotor</label><select id="tFiltPromotor" onchange="renderTabla()"><option value="">Todos</option></select></div>
+    <div><label>Estado</label>
+      <select id="tFiltEstado" onchange="renderTabla()">
+        <option value="">Todos</option>
+        <option value="sin-estado">Sin estado</option>
+        <option value="resuelto">✅ Resuelto</option>
+        <option value="pendiente">⏳ Pendiente</option>
+        <option value="retiro">📦 Retiro</option>
+      </select>
+    </div>
+    <div><label>Desde</label><input type="date" id="tFiltDesde" onchange="renderTabla()"></div>
+    <div><label>Hasta</label><input type="date" id="tFiltHasta" onchange="renderTabla()"></div>
+    <button class="btn-export" onclick="exportarExcel()">⬇️ Exportar Excel</button>
+  </div>
+  <div class="tabla-wrap">
+    <table class="excel-table">
+      <thead><tr>
+        <th>OT</th><th>Fecha</th><th>Cliente</th><th>Promotor</th>
+        <th>Marca</th><th>EDF</th><th>Falla</th><th>Estado</th>
+        <th>Prioridad</th><th>Técnico</th><th>Comentario</th>
+      </tr></thead>
+      <tbody id="tablaBody"></tbody>
+    </table>
+  </div>
+</div>
+
 <!-- MODAL -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
   <div class="modal">
@@ -272,11 +323,10 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyuKwoNm1lg_m8To20FKNuzxNcMmHDZV4nTCz6to4ACk28ZmmuucnHSv2iMfBwpuLGQ/exec';
 
 const ESTADO_META = {
-  'en-proceso':      { label:'En proceso',     cls:'en-proceso',     icon:'🔄' },
-  'resuelto':        { label:'Resuelto',        cls:'resuelto',       icon:'✅' },
-  'requiere-visita': { label:'Requiere visita', cls:'requiere-visita',icon:'🔧' },
-  'sin-contacto':    { label:'Sin contacto',    cls:'sin-contacto',   icon:'📵' },
-  '':                { label:'Sin estado',      cls:'sin-estado',     icon:'⬜' }
+  'resuelto':  { label:'Resuelto',  cls:'resuelto',  icon:'✅' },
+  'pendiente': { label:'Pendiente', cls:'pendiente', icon:'⏳' },
+  'retiro':    { label:'Retiro',    cls:'retiro',    icon:'📦' },
+  '':          { label:'Sin estado',cls:'sin-estado',icon:'⬜' }
 };
 
 let allData=[], seguimientos={}, filtered=[], leafMap=null, markers=[], modalLeaf=null;
@@ -332,6 +382,94 @@ function doLogout() {
   document.getElementById('dashboard').style.display = 'none';
   document.getElementById('loginUser').value = '';
   document.getElementById('loginPass').value = '';
+}
+
+function switchTab(tab) {
+  const esMapa = tab === 'mapa';
+  document.getElementById('tabMapa').classList.toggle('active', esMapa);
+  document.getElementById('tabTabla').classList.toggle('active', !esMapa);
+  document.querySelector('.filters-bar').style.display = esMapa ? '' : 'none';
+  document.querySelector('.main').style.display = esMapa ? '' : 'none';
+  document.getElementById('vistaTabla').style.display = esMapa ? 'none' : 'block';
+  if (!esMapa) renderTabla();
+}
+
+function getTablaData() {
+  const cliente = (document.getElementById('tFiltCliente').value||'').toLowerCase();
+  const ot      = (document.getElementById('tFiltOT').value||'').toLowerCase();
+  const prom    = document.getElementById('tFiltPromotor').value;
+  const estado  = document.getElementById('tFiltEstado').value;
+  const desde   = document.getElementById('tFiltDesde').value;
+  const hasta   = document.getElementById('tFiltHasta').value;
+
+  return allData.filter(r => {
+    if (cliente && !(r.cliente||'').toLowerCase().includes(cliente)) return false;
+    if (ot      && !(r.ot||'').toLowerCase().includes(ot)) return false;
+    if (prom    && r.nombre !== prom) return false;
+    const seg = getSegByOt(r.ot, r.cliente);
+    const eKey = seg ? (seg.estado||'').toLowerCase().replace(/ /g,'-') : '';
+    if (estado === 'sin-estado' && eKey !== '') return false;
+    if (estado && estado !== 'sin-estado' && eKey !== estado) return false;
+    if (desde && r.ts && r.ts < desde) return false;
+    if (hasta && r.ts && r.ts.slice(0,10) > hasta) return false;
+    return true;
+  });
+}
+
+function renderTabla() {
+  const data = getTablaData();
+  const ESTADOS = {'resuelto':'✅ Resuelto','pendiente':'⏳ Pendiente','retiro':'📦 Retiro','':'Sin estado'};
+  const body = document.getElementById('tablaBody');
+  if (!data.length) {
+    body.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:32px;color:var(--muted)">Sin registros</td></tr>';
+    return;
+  }
+  body.innerHTML = data.map(r => {
+    const seg = getSegByOt(r.ot, r.cliente);
+    const eKey = seg ? (seg.estado||'').toLowerCase().replace(/ /g,'-') : '';
+    const priA = seg ? (seg.prioridad_aprobada||'') : '';
+    const priS = seg ? (seg.prioridad_sugerida||'') : '';
+    const em = ESTADOS[eKey]||'Sin estado';
+    return `<tr>
+      <td><strong>${r.ot||'—'}</strong></td>
+      <td>${r.fecha||'—'}</td>
+      <td>${r.cliente||'—'}</td>
+      <td>${r.nombre||'—'}</td>
+      <td>${r.marca||'—'}</td>
+      <td>${r.edf||'—'}</td>
+      <td>${r.falla||'—'}</td>
+      <td>${em}</td>
+      <td>${priA ? '✅ P'+priA : priS ? '⏳ P'+priS+' (sug.)' : '—'}</td>
+      <td>${seg&&seg.tecnico ? seg.tecnico : '—'}</td>
+      <td>${seg&&seg.comentario ? seg.comentario : '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function exportarExcel() {
+  const data = getTablaData();
+  const ESTADOS = {'resuelto':'Resuelto','pendiente':'Pendiente','retiro':'Retiro','':'Sin estado'};
+  const headers = ['OT','Fecha','Cliente','Promotor','Marca','EDF','Falla','Estado','Prioridad','Técnico','Comentario'];
+  const rows = data.map(r => {
+    const seg = getSegByOt(r.ot, r.cliente);
+    const eKey = seg ? (seg.estado||'').toLowerCase().replace(/ /g,'-') : '';
+    const priA = seg ? (seg.prioridad_aprobada||'') : '';
+    const priS = seg ? (seg.prioridad_sugerida||'') : '';
+    return [
+      r.ot||'', r.fecha||'', r.cliente||'', r.nombre||'',
+      r.marca||'', r.edf||'', r.falla||'',
+      ESTADOS[eKey]||'Sin estado',
+      priA ? 'P'+priA+' (aprobada)' : priS ? 'P'+priS+' (sugerida)' : '',
+      seg&&seg.tecnico ? seg.tecnico : '',
+      seg&&seg.comentario ? seg.comentario : ''
+    ];
+  });
+  const csv = [headers, ...rows].map(r => r.map(c => '"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'suralnor_registros_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
 }
 
 // MAPA
@@ -395,10 +533,8 @@ async function loadData() {
       document.getElementById('registrosList').innerHTML='<div class="empty-state"><div class="ico">🔒</div><p>No autorizado.</p></div>';
       return;
     }
-    console.log('registros raw:', JSON.stringify(data.registros[1]));
     allData = parseRegistros(data.registros);
     seguimientos = parseSeguimientos(data.seguimientos);
-    console.log('allData[0]:', JSON.stringify(allData[0]));
     populateFilter();
     applyFilters();
   } catch(e) {
@@ -475,11 +611,12 @@ function getPrioridadSugerida(ot, cli) {
 }
 
 function populateFilter() {
-  const sel=document.getElementById('filterNombre');
-  sel.innerHTML='<option value="">Todos</option>';
-  [...new Set(allData.map(r=>r.nombre))].sort().forEach(n=>{
-    const o=document.createElement('option');o.value=o.textContent=n;sel.appendChild(o);
-  });
+  const names=[...new Set(allData.map(r=>r.nombre))].sort();
+  const opts='<option value="">Todos</option>'+names.map(n=>`<option value="${n}">${n}</option>`).join('');
+  document.getElementById('filterNombre').innerHTML=opts;
+  const tp=document.getElementById('tFiltPromotor');
+  if(tp) tp.innerHTML=opts;
+  if(currentRole==='trade') document.getElementById('tabBar').style.display='flex';
 }
 
 function applyFilters() {
@@ -571,10 +708,9 @@ function openModal(r) {
         <div class="seg-form">
           <label>Estado</label>
           <select id="segEstado">
-            <option value="en-proceso" ${eKey==='en-proceso'?'selected':''}>🔄 En proceso</option>
-            <option value="resuelto" ${eKey==='resuelto'?'selected':''}>✅ Resuelto</option>
-            <option value="requiere-visita" ${eKey==='requiere-visita'?'selected':''}>🔧 Requiere visita</option>
-            <option value="sin-contacto" ${eKey==='sin-contacto'?'selected':''}>📵 Sin contacto</option>
+            <option value="resuelto"  ${eKey==='resuelto' ?'selected':''}>✅ Resuelto</option>
+            <option value="pendiente" ${eKey==='pendiente'?'selected':''}>⏳ Pendiente</option>
+            <option value="retiro"    ${eKey==='retiro'   ?'selected':''}>📦 Retiro</option>
           </select>
           <label>Comentario / Devolución</label>
           <textarea id="segComentario" placeholder="Describí el estado actual del servicio...">${seg2?seg2.comentario:''}</textarea>
