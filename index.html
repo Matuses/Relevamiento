@@ -4,83 +4,121 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Dashboard – Suralnor / Emcala</title>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-:root { --navy:#0F2A4A; --accent:#0EA5E9; --danger:#DC2626; --warn:#D97706; --success:#16A34A; --bg:#F5F7FA; --border:#E2E8F0; }
-body{font-family:'Bricolage Grotesque',sans-serif; background:var(--bg); margin:0;}
-#loginScreen{height:100vh; display:flex; align-items:center; justify-content:center; background:var(--navy);}
-.login-box{background:white; padding:40px; border-radius:24px; width:100%; max-width:350px; text-align:center;}
-.main{padding:20px; max-width:1200px; margin:0 auto; display:grid; grid-template-columns: 1fr 350px; gap:20px;}
-.stats-grid{grid-column:1/-1; display:grid; grid-template-columns:repeat(3, 1fr); gap:15px; margin-bottom:10px;}
-.stat-card{background:white; padding:15px; border-radius:12px; border-left:4px solid var(--navy); box-shadow:0 2px 8px rgba(0,0,0,0.05);}
-.filters-bar{grid-column:1/-1; background:white; padding:15px; border-radius:12px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
-.card{background:white; border-radius:12px; overflow:hidden; border:1px solid var(--border);}
-#map{height:400px;}
-.table-scroll{height:500px; overflow-y:auto;}
-.reg-item{padding:12px 15px; border-bottom:1px solid var(--border); cursor:pointer; display:flex; align-items:center; gap:10px;}
-.reg-item:hover{background:#F8FAFC;}
-.avatar{width:32px; height:32px; border-radius:50%; color:white; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800;}
-.modal-overlay{position:fixed; inset:0; background:rgba(0,0,0,0.5); display:none; align-items:center; justify-content:center; z-index:1000;}
-.modal-overlay.show{display:flex;}
-.modal{background:white; padding:25px; border-radius:20px; width:90%; max-width:500px;}
-.btn-maps{display:block; text-align:center; background:var(--navy); color:white; padding:12px; border-radius:10px; text-decoration:none; margin-top:10px; font-weight:600;}
-@media(max-width:900px){ .main{grid-template-columns:1fr;} .stats-grid{grid-template-columns:1fr;} }
+:root {
+  --bg:#F5F7FA; --card:#FFFFFF; --border:#E2E8F0;
+  --navy:#0F2A4A; --blue:#1B5FA8; --accent:#0EA5E9;
+  --text:#0F2A4A; --muted:#64748B; --success:#16A34A;
+  --warn:#D97706; --danger:#DC2626;
+  --radius:14px;
+  --shadow:0 1px 4px rgba(15,42,74,0.08),0 4px 16px rgba(15,42,74,0.06);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* LOGIN ORIGINAL RESTAURADO */
+#loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--navy);padding:24px;position:relative;overflow:hidden;}
+.login-box{background:white;border-radius:24px;padding:48px 40px;width:100%;max-width:400px;box-shadow:0 8px 32px rgba(15,42,74,0.13);position:relative;z-index:1;}
+.login-logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:32px;}
+.login-logo-text{font-size:18px;font-weight:700;color:var(--navy);}
+.login-logo-text span{color:var(--accent);}
+.lf{margin-bottom:16px;}
+.lf label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:8px;text-align:center;}
+.lf input{width:100%;padding:12px 16px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;background:var(--bg);outline:none;}
+.btn-primary{width:100%;background:var(--navy);color:white;border:none;border-radius:10px;padding:14px;font-weight:600;cursor:pointer;}
+
+/* DASHBOARD */
+#dashboard{display:none;}
+.topbar{background:var(--navy);color:white;padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.topbar-title{font-size:16px;font-weight:700;}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.role-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px;background:rgba(14,165,233,0.2);color:#7DD3FC;}
+.btn-logout{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);color:white;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:13px;}
+
+.main{padding:24px 28px;display:grid;grid-template-columns:1fr 360px;gap:20px;max-width:1400px;margin:0 auto;}
+
+/* KPI CARDS */
+.stats-grid{grid-column:1/-1;display:grid;grid-template-columns:repeat(3, 1fr);gap:16px;}
+.stat-card{background:white;border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);border-left:4px solid var(--navy);}
+.stat-card label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;}
+.stat-card p{font-size:24px;font-weight:800;margin:4px 0;}
+
+.filters-bar{grid-column:1/-1;background:white;border:1px solid var(--border);border-radius:var(--radius);padding:14px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.card{background:white;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+#map{height:420px;}
+.table-scroll{overflow-y:auto;max-height:500px;}
+.reg-item{display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid var(--border);cursor:pointer;}
+.avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:11px;}
+
+@media(max-width:900px){ .main{grid-template-columns:1fr;} .stats-grid{grid-template-columns:1fr 1fr;} }
 </style>
 </head>
 <body>
 
 <div id="loginScreen">
   <div class="login-box">
-    <h2 style="color:var(--navy)">Suralnor</h2>
-    <input type="text" id="loginUser" placeholder="Usuario" style="width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd">
-    <input type="password" id="loginPass" placeholder="Clave" style="width:100%; padding:10px; margin-bottom:20px; border-radius:8px; border:1px solid #ddd">
-    <button onclick="doLogin()" style="width:100%; padding:12px; background:var(--navy); color:white; border:none; border-radius:8px; cursor:pointer">Entrar</button>
+    <div class="login-logo">
+      <img src="data:image/jpeg;base64,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" style="width:64px;height:64px;border-radius:50%;object-fit:cover;">
+      <div class="login-logo-text">Suralnor <span>·</span> Emcala</div>
+    </div>
+    <div class="lf"><label>Usuario</label><input type="text" id="loginUser"></div>
+    <div class="lf"><label>Contraseña</label><input type="password" id="loginPass"></div>
+    <button class="btn-primary" onclick="doLogin()">Ingresar →</button>
   </div>
 </div>
 
-<div id="dashboard" style="display:none">
-  <div style="background:var(--navy); color:white; padding:15px 20px; display:flex; justify-content:space-between; align-items:center">
-    <strong>Suralnor · Emcala</strong>
-    <span id="userLabel"></span>
+<div id="dashboard">
+  <div class="topbar">
+    <div class="topbar-left">
+      <img src="data:image/jpeg;base64,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" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
+      <div class="topbar-title">Suralnor <span>·</span> Emcala</div>
+    </div>
+    <div class="topbar-right">
+      <span class="role-badge" id="roleBadge"></span>
+      <strong id="userLabel" style="margin-right:15px"></strong>
+      <button class="btn-logout" onclick="doLogout()">Salir</button>
+    </div>
   </div>
 
   <div class="main">
     <div class="stats-grid">
-      <div class="stat-card" style="border-color:var(--danger)"><label style="font-size:11px; color:var(--muted)">⚠️ CRÍTICOS</label><p id="kpiCriticos" style="margin:5px 0; font-size:22px">0</p></div>
-      <div class="stat-card" style="border-color:var(--warn)"><label style="font-size:11px; color:var(--muted)">⏳ PENDIENTES</label><p id="kpiPendientes" style="margin:5px 0; font-size:22px">0</p></div>
-      <div class="stat-card" style="border-color:var(--success)"><label style="font-size:11px; color:var(--muted)">📊 EFICACIA</label><p id="kpiEficacia" style="margin:5px 0; font-size:22px">0%</p></div>
+      <div class="stat-card" style="border-left-color: var(--danger);"><label>⚠️ Casos Críticos</label><p id="kpiCriticos">0</p></div>
+      <div class="stat-card" style="border-left-color: var(--warn);"><label>⏳ Pendientes</label><p id="kpiPendientes">0</p></div>
+      <div class="stat-card" style="border-left-color: var(--success);"><label>📊 Eficacia</label><p id="kpiEficacia">0%</p></div>
     </div>
 
     <div class="filters-bar">
-      <select id="fNombre" onchange="applyFilters()"><option value="">Promotor: Todos</option></select>
-      <select id="fEstado" onchange="applyFilters()"><option value="">Estado: Todos</option><option value="resuelto">Resuelto</option><option value="pendiente">Pendiente</option></select>
-      <select id="fPrioridad" onchange="applyFilters()"><option value="">Prioridad: Todas</option><option value="1">P1</option><option value="2">P2</option><option value="3">P3</option></select>
-      <button onclick="loadData()" style="cursor:pointer">↻</button>
+      <label>Filtros:</label>
+      <select id="filterNombre" onchange="applyFilters()"><option value="">Todos</option></select>
+      <select id="filterEstado" onchange="applyFilters()">
+        <option value="">Estado: Todos</option>
+        <option value="resuelto">Resuelto</option>
+        <option value="pendiente">Pendiente</option>
+      </select>
+      <select id="filterPrioridad" onchange="applyFilters()">
+        <option value="">Prioridad: Todas</option>
+        <option value="1">P1</option><option value="2">P2</option><option value="3">P3</option>
+      </select>
+      <button onclick="loadData()" style="background:var(--navy); color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer;">↻</button>
     </div>
 
     <div class="card"><div id="map"></div></div>
 
     <div class="card">
-      <div style="padding:15px; border-bottom:1px solid var(--border)"><strong>📋 Lista de Prioridades</strong></div>
+      <div class="card-header"><h3>📋 Lista por Prioridad</h3><span id="listCount" class="badge-count">0</span></div>
       <div class="table-scroll" id="registrosList"></div>
     </div>
   </div>
 </div>
 
-<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
-  <div class="modal">
-    <h3 id="mTitle"></h3>
-    <div id="mBody"></div>
-    <button onclick="closeModal()" style="width:100%; padding:10px; margin-top:15px; cursor:pointer">Cerrar</button>
-  </div>
-</div>
-
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyuKwoNm1lg_m8To20FKNuzxNcMmHDZV4nTCz6to4ACk28ZmmuucnHSv2iMfBwpuLGQ/exec';
+const SCRIPT_URL = 'TU_URL_DE_SCRIPT_AQUI/exec';
+
 let allData=[], seguimientos={}, filtered=[], leafMap=null, markers=[];
-let currentUser='', currentRole='';
+let currentUser=null, currentRole=null;
 
 function jsonp(url) {
   return new Promise(resolve => {
@@ -96,13 +134,14 @@ async function doLogin() {
   const u = document.getElementById('loginUser').value.trim().toUpperCase();
   const p = document.getElementById('loginPass').value;
   const d = await jsonp(`${SCRIPT_URL}?action=login&usuario=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`);
-  if(d.ok){
+  if(d.ok) {
     currentUser=u; currentRole=d.rol;
     document.getElementById('loginScreen').style.display='none';
     document.getElementById('dashboard').style.display='block';
-    document.getElementById('userLabel').textContent = d.label + " (" + d.rol.toUpperCase() + ")";
+    document.getElementById('userLabel').textContent = d.label;
+    document.getElementById('roleBadge').textContent = d.rol.toUpperCase();
     initMap(); loadData();
-  } else alert("Error de acceso");
+  } else { alert("Usuario o clave incorrectos"); }
 }
 
 function initMap() { 
@@ -111,22 +150,23 @@ function initMap() {
 }
 
 async function loadData() {
-  const d = await jsonp(`${SCRIPT_URL}?action=datos&usuario=${encodeURIComponent(currentUser)}&password=${encodeURIComponent('NA')}`);
-  if(d.ok){
-    allData = d.registros.slice(1).map(c => ({ ot:c[0], ts:c[1], nombre:c[2], cliente:c[4], marca:c[5], falla:c[7], lat:c[8], lng:c[9] }));
-    const hS = d.seguimientos[0].map(s=>(s||'').toLowerCase());
+  const d = await jsonp(`${SCRIPT_URL}?action=datos&usuario=${encodeURIComponent(currentUser)}&password=NA`);
+  if(d.ok) {
+    allData = d.registros.slice(1).map(c => ({ ot:c[0], ts:c[1], nombre:c[2], cliente:c[4], lat:c[8], lng:c[9] }));
     d.seguimientos.slice(1).forEach(c => {
-      const k = c[hS.indexOf('ot')] || c[hS.indexOf('cliente')];
-      seguimientos[k] = { estado:c[hS.indexOf('estado')], priA:c[hS.indexOf('prioridad_aprobada')], com:c[hS.indexOf('comentario')] };
+      const k = c[1] || c[2]; // OT o Cliente
+      seguimientos[k] = { estado:c[4], priA:c[8] };
     });
-    populateFilters(); applyFilters();
+    const names = [...new Set(allData.map(r=>r.nombre))].sort();
+    document.getElementById('filterNombre').innerHTML = '<option value="">Promotor: Todos</option>' + names.map(n=>`<option value="${n}">${n}</option>`).join('');
+    applyFilters();
   }
 }
 
 function applyFilters() {
-  const n = document.getElementById('fNombre').value;
-  const e = document.getElementById('fEstado').value;
-  const p = document.getElementById('fPrioridad').value;
+  const n = document.getElementById('filterNombre').value;
+  const e = document.getElementById('filterEstado').value;
+  const p = document.getElementById('filterPrioridad').value;
 
   filtered = allData.filter(r => {
     const s = seguimientos[r.ot] || seguimientos[r.cliente] || {};
@@ -138,7 +178,7 @@ function applyFilters() {
 
   updateKPIs(filtered);
   renderList(filtered);
-  updateMap(filtered);
+  updateMarkers(filtered);
 }
 
 function updateKPIs(data) {
@@ -150,7 +190,6 @@ function updateKPIs(data) {
 }
 
 function renderList(data) {
-  // ORDEN POR PRIORIDAD (P1 -> P2 -> P3 -> Resto)
   const ordenada = [...data].sort((a,b) => {
     const pA = (seguimientos[a.ot]||seguimientos[a.cliente]||{}).priA || "99";
     const pB = (seguimientos[b.ot]||seguimientos[b.cliente]||{}).priA || "99";
@@ -161,43 +200,26 @@ function renderList(data) {
     const s = seguimientos[r.ot] || seguimientos[r.cliente] || {};
     const color = (Date.now() - new Date(r.ts))/86400000 > 20 ? 'var(--danger)' : 'var(--success)';
     return `
-      <div class="reg-item" onclick='openModal(${JSON.stringify(r)})'>
+      <div class="reg-item">
         <div class="avatar" style="background:${color}">${(r.cliente||'?').slice(0,2)}</div>
-        <div style="flex:1">
-          <strong>OT ${r.ot} ${s.priA ? '[P'+s.priA+']' : ''}</strong><br>
-          <small>${r.cliente} · 👤 ${r.nombre}</small>
-        </div>
+        <div><strong>OT ${r.ot} ${s.priA?'[P'+s.priA+']':''}</strong><br><small>${r.cliente}</small></div>
       </div>`;
   }).join('');
+  document.getElementById('listCount').textContent = data.length;
 }
 
-function updateMap(data) {
+function updateMarkers(data) {
   markers.forEach(m => leafMap.removeLayer(m)); markers = [];
   data.forEach(r => {
     const lat = parseFloat(String(r.lat).replace(',','.')), lng = parseFloat(String(r.lng).replace(',','.'));
     if(!isNaN(lat) && lat !== 0) {
       const color = (Date.now() - new Date(r.ts))/86400000 > 20 ? 'red' : 'green';
-      const m = L.circleMarker([lat, lng], {radius:6, color:'white', weight:2, fillColor:color, fillOpacity:1}).addTo(leafMap);
-      markers.push(m);
+      markers.push(L.circleMarker([lat, lng], {radius:6, fillColor:color, color:'white', weight:2, fillOpacity:1}).addTo(leafMap));
     }
   });
 }
 
-function openModal(r) {
-  document.getElementById('mTitle').textContent = 'Detalle OT ' + r.ot;
-  document.getElementById('mBody').innerHTML = `
-    <p><strong>Cliente:</strong> ${r.cliente}</p>
-    <p><strong>Falla:</strong> ${r.falla}</p>
-    <a class="btn-maps" href="https://www.google.com/maps?q=${r.lat},${r.lng}" target="_blank">📍 Ver en Maps</a>
-  `;
-  document.getElementById('modalOverlay').classList.add('show');
-}
-
-function closeModal() { document.getElementById('modalOverlay').classList.remove('show'); }
-function populateFilters() {
-  const names = [...new Set(allData.map(r=>r.nombre))].sort();
-  document.getElementById('fNombre').innerHTML = '<option value="">Promotor: Todos</option>' + names.map(n=>`<option value="${n}">${n}</option>`).join('');
-}
+function doLogout() { location.reload(); }
 </script>
 </body>
 </html>
