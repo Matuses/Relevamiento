@@ -3,410 +3,169 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<meta name="theme-color" content="#0F2A4A">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
 <title>Dashboard – Suralnor / Emcala</title>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-:root {
-  --bg:#F5F7FA; --card:#FFFFFF; --border:#E2E8F0;
-  --navy:#0F2A4A; --blue:#1B5FA8; --accent:#0EA5E9;
-  --text:#0F2A4A; --muted:#64748B; --success:#16A34A;
-  --warn:#D97706; --danger:#DC2626;
-  --radius:14px;
-  --shadow:0 1px 4px rgba(15,42,74,0.08),0 4px 16px rgba(15,42,74,0.06);
-  --shadow-lg:0 8px 32px rgba(15,42,74,0.13);
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
-
-/* LOGIN */
-#loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--navy);padding:24px;position:relative;overflow:hidden;}
-.login-box{background:white;border-radius:24px;padding:48px 40px;width:100%;max-width:400px;box-shadow:var(--shadow-lg);position:relative;z-index:1;animation:loginUp 0.5s ease forwards;}
-@keyframes loginUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
-.login-logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:32px;}
-.login-logo-text{font-size:18px;font-weight:700;color:var(--navy);}
-.login-logo-text span{color:var(--accent);}
-.lf{margin-bottom:16px;}
-.lf label{display:block;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;text-align:center;}
-.lf input{width:100%;padding:12px 16px;border:1.5px solid var(--border);border-radius:10px;font-family:'Bricolage Grotesque',sans-serif;font-size:15px;background:var(--bg);outline:none;}
-.login-error{background:#FEF2F2;border:1px solid #FECACA;color:#DC2626;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:16px;display:none;}
-.btn-primary{width:100%;background:var(--navy);color:white;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:600;cursor:pointer;}
-
-/* DASHBOARD */
-#dashboard{display:none;}
-.topbar{background:var(--navy);color:white;padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
-.topbar-left{display:flex;align-items:center;gap:12px;}
-.topbar-title{font-size:16px;font-weight:700;}
-.topbar-title span{color:var(--accent);}
-.topbar-right{display:flex;align-items:center;gap:12px;}
-.role-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px;letter-spacing:0.06em;text-transform: uppercase;}
-.role-badge.supervisor{background:rgba(14,165,233,0.2);color:#7DD3FC;}
-.role-badge.tecnico{background:rgba(22,163,74,0.2);color:#86EFAC;}
-.role-badge.trade{background:rgba(168,85,247,0.2);color:#D8B4FE;}
-.tab-btn{background:transparent;border:none;color:rgba(255,255,255,0.6);font-size:13px;font-weight:600;padding:6px 14px;border-radius:8px;cursor:pointer;}
-.tab-btn.active{background:rgba(255,255,255,0.15);color:white;}
-
-.main{padding:24px 28px;display:grid;grid-template-columns:1fr 360px;grid-template-rows:auto auto 1fr;gap:20px;max-width:1400px;margin:0 auto;}
-
-/* KPI CARDS */
-.stats-grid{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;}
-.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);border-left:4px solid var(--navy);}
-.stat-card label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;}
-.stat-card p{font-size:26px;font-weight:800;color:var(--navy);margin:4px 0;}
-.stat-card small{font-size:10px;color:var(--muted);}
-
-/* FILTROS */
-.filters-bar{grid-column:1/-1;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:var(--shadow);}
-.filters-bar label{font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap;}
-.filters-bar select,.filters-bar input[type="date"]{padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg);outline:none;cursor:pointer;}
-.filter-sep{width:1px;height:24px;background:var(--border);flex-shrink:0;}
-.btn-refresh{margin-left:auto;background:var(--navy);border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;color:white;cursor:pointer;}
-
-/* CARDS MAPA/LISTA */
-.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden;}
-.card-header{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
-.card-header h3{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px;}
-.badge-count{background:var(--navy);color:white;font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px;}
-#map{flex:1;min-height:420px;}
-
-/* LISTA */
-.table-scroll{overflow-y:auto;flex:1;max-height:calc(100vh - 250px);}
-.reg-item{display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.15s;}
-.reg-item:hover{background:#F0F6FF;}
-.reg-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:white;flex-shrink:0;}
-.reg-info{flex:1;min-width:0;}
-.reg-nombre{font-size:13px;font-weight:700;}
-.reg-sub{font-size:11px;color:var(--muted);margin-top:2px;}
-.reg-meta{text-align:right;flex-shrink:0;}
-.reg-fecha{font-size:11px;font-weight:600;}
-.reg-hora{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;}
-
-/* ESTADOS */
-.estado-pill{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;margin-top:3px;}
-.estado-pill.en-proceso{background:#FEF3C7;color:#92400E;}
-.estado-pill.resuelto{background:#D1FAE5;color:#065F46;}
-.estado-pill.pendiente{background:#FEF3C7;color:#B45309;}
-.estado-pill.retiro{background:#EDE9FE;color:#6D28D9;}
-.estado-pill.sin-estado{background:#F1F5F9;color:#64748B;}
-
-/* MODAL */
-.modal-overlay{position:fixed;inset:0;background:rgba(15,42,74,0.45);backdrop-filter:blur(4px);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;}
+:root { --navy:#0F2A4A; --accent:#0EA5E9; --danger:#DC2626; --warn:#D97706; --success:#16A34A; --bg:#F5F7FA; --border:#E2E8F0; }
+body{font-family:'Bricolage Grotesque',sans-serif; background:var(--bg); margin:0;}
+#loginScreen{height:100vh; display:flex; align-items:center; justify-content:center; background:var(--navy);}
+.login-box{background:white; padding:40px; border-radius:24px; width:100%; max-width:350px; text-align:center;}
+.main{padding:20px; max-width:1200px; margin:0 auto; display:grid; grid-template-columns: 1fr 350px; gap:20px;}
+.stats-grid{grid-column:1/-1; display:grid; grid-template-columns:repeat(3, 1fr); gap:15px; margin-bottom:10px;}
+.stat-card{background:white; padding:15px; border-radius:12px; border-left:4px solid var(--navy); box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+.filters-bar{grid-column:1/-1; background:white; padding:15px; border-radius:12px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+.card{background:white; border-radius:12px; overflow:hidden; border:1px solid var(--border);}
+#map{height:400px;}
+.table-scroll{height:500px; overflow-y:auto;}
+.reg-item{padding:12px 15px; border-bottom:1px solid var(--border); cursor:pointer; display:flex; align-items:center; gap:10px;}
+.reg-item:hover{background:#F8FAFC;}
+.avatar{width:32px; height:32px; border-radius:50%; color:white; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800;}
+.modal-overlay{position:fixed; inset:0; background:rgba(0,0,0,0.5); display:none; align-items:center; justify-content:center; z-index:1000;}
 .modal-overlay.show{display:flex;}
-.modal{background:white;border-radius:20px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);}
-.modal-head{padding:24px 24px 0;display:flex;align-items:flex-start;justify-content:space-between;}
-.modal-name{font-size:22px;font-weight:800;color:var(--navy);}
-.modal-body{padding:20px 24px 28px;}
-.modal-sec{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;margin-top:20px;}
-.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.mf{background:var(--bg);border-radius:10px;padding:12px 14px;}
-.mf.full{grid-column:1/-1;}
-.mf label{display:block;font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px;}
-.mf p{font-size:14px;font-weight:600;}
-.seguimiento-section{margin-top:4px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:12px;padding:16px;}
-.btn-guardar{width:100%;background:var(--success);color:white;border:none;border-radius:8px;padding:12px;font-weight:700;cursor:pointer;margin-top:10px;}
-.btn-maps{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--navy);color:white;border-radius:10px;padding:12px;text-decoration:none;font-size:14px;font-weight:600;margin-top:12px;}
-
-@media(max-width:900px){
-  .main{grid-template-columns:1fr;padding:12px;}
-  .stats-grid{grid-template-columns: 1fr 1fr !important;}
-  .stats-grid div:last-child{grid-column: span 2;}
-}
+.modal{background:white; padding:25px; border-radius:20px; width:90%; max-width:500px;}
+.btn-maps{display:block; text-align:center; background:var(--navy); color:white; padding:12px; border-radius:10px; text-decoration:none; margin-top:10px; font-weight:600;}
+@media(max-width:900px){ .main{grid-template-columns:1fr;} .stats-grid{grid-template-columns:1fr;} }
 </style>
 </head>
 <body>
 
 <div id="loginScreen">
   <div class="login-box">
-    <div class="login-logo">
-      <div class="login-logo-text">Suralnor <span>·</span> Emcala</div>
-    </div>
-    <h2>Acceso al sistema</h2>
-    <p>Ingresá tus credenciales para continuar</p>
-    <div class="login-error" id="loginError"></div>
-    <div class="lf"><label>Usuario</label><input type="text" id="loginUser" placeholder="Usuario"></div>
-    <div class="lf"><label>Contraseña</label><input type="password" id="loginPass" placeholder="••••••••"></div>
-    <button class="btn-primary" onclick="doLogin()">Ingresar →</button>
+    <h2 style="color:var(--navy)">Suralnor</h2>
+    <input type="text" id="loginUser" placeholder="Usuario" style="width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd">
+    <input type="password" id="loginPass" placeholder="Clave" style="width:100%; padding:10px; margin-bottom:20px; border-radius:8px; border:1px solid #ddd">
+    <button onclick="doLogin()" style="width:100%; padding:12px; background:var(--navy); color:white; border:none; border-radius:8px; cursor:pointer">Entrar</button>
   </div>
 </div>
 
-<div id="dashboard">
-  <div class="topbar">
-    <div class="topbar-left">
-      <div class="topbar-title">Suralnor <span>·</span> Emcala</div>
-    </div>
-    <div class="topbar-center" id="tabBar" style="display:none;">
-      <button class="tab-btn active" id="tabMapa" onclick="switchTab('mapa')">🗺 Mapa</button>
-      <button class="tab-btn" id="tabTabla" onclick="switchTab('tabla')">📊 Tabla</button>
-    </div>
-    <div class="topbar-right">
-      <span class="role-badge" id="roleBadge"></span>
-      <span class="topbar-user"><strong id="userLabel"></strong></span>
-      <button class="btn-logout" onclick="doLogout()" style="background:none; border:1px solid white; color:white; padding:4px 8px; border-radius:4px; cursor:pointer;">Salir</button>
-    </div>
+<div id="dashboard" style="display:none">
+  <div style="background:var(--navy); color:white; padding:15px 20px; display:flex; justify-content:space-between; align-items:center">
+    <strong>Suralnor · Emcala</strong>
+    <span id="userLabel"></span>
   </div>
 
   <div class="main">
     <div class="stats-grid">
-      <div class="stat-card" style="border-left-color: var(--danger);">
-        <label>⚠️ Casos Críticos</label>
-        <p id="kpiCriticos">0</p>
-        <small>+20 días sin resolver</small>
-      </div>
-      <div class="stat-card" style="border-left-color: var(--warn);">
-        <label>⏳ Pendientes</label>
-        <p id="kpiPendientes">0</p>
-        <small>En espera de gestión</small>
-      </div>
-      <div class="stat-card" style="border-left-color: var(--success);">
-        <label>📊 Eficacia</label>
-        <p id="kpiEficacia">0%</p>
-        <small>Total de casos resueltos</small>
-      </div>
+      <div class="stat-card" style="border-color:var(--danger)"><label style="font-size:11px; color:var(--muted)">⚠️ CRÍTICOS</label><p id="kpiCriticos" style="margin:5px 0; font-size:22px">0</p></div>
+      <div class="stat-card" style="border-color:var(--warn)"><label style="font-size:11px; color:var(--muted)">⏳ PENDIENTES</label><p id="kpiPendientes" style="margin:5px 0; font-size:22px">0</p></div>
+      <div class="stat-card" style="border-color:var(--success)"><label style="font-size:11px; color:var(--muted)">📊 EFICACIA</label><p id="kpiEficacia" style="margin:5px 0; font-size:22px">0%</p></div>
     </div>
 
     <div class="filters-bar">
-      <label>Promotor</label>
-      <select id="filterNombre" onchange="applyFilters()"><option value="">Todos</option></select>
-      <div class="filter-sep"></div>
-      <label>Estado</label>
-      <select id="filterEstado" onchange="applyFilters()">
-        <option value="">Todos</option>
-        <option value="sin-estado">Sin estado</option>
-        <option value="resuelto">✅ Resuelto</option>
-        <option value="pendiente">⏳ Pendiente</option>
-        <option value="retiro">📦 Retiro</option>
-      </select>
-      <div class="filter-sep"></div>
-      <label>Prioridad</label>
-      <select id="filterPrioridad" onchange="applyFilters()">
-        <option value="">Todas</option>
-        <option value="1">⚠️ P1 (Urgente)</option>
-        <option value="2">⚠️ P2 (Alta)</option>
-        <option value="3">P3 (Media)</option>
-        <option value="4">P4 (Baja)</option>
-        <option value="5">P5 (Planeada)</option>
-      </select>
-      <div class="filter-sep"></div>
-      <button class="btn-refresh" onclick="loadData()">↻ Actualizar</button>
+      <select id="fNombre" onchange="applyFilters()"><option value="">Promotor: Todos</option></select>
+      <select id="fEstado" onchange="applyFilters()"><option value="">Estado: Todos</option><option value="resuelto">Resuelto</option><option value="pendiente">Pendiente</option></select>
+      <select id="fPrioridad" onchange="applyFilters()"><option value="">Prioridad: Todas</option><option value="1">P1</option><option value="2">P2</option><option value="3">P3</option></select>
+      <button onclick="loadData()" style="cursor:pointer">↻</button>
     </div>
 
-    <div class="card">
-      <div class="card-header">
-        <h3>🗺️ Mapa de visitas</h3>
-        <span class="badge-count" id="mapCount">0 puntos</span>
-      </div>
-      <div id="map"></div>
-    </div>
+    <div class="card"><div id="map"></div></div>
 
     <div class="card">
-      <div class="card-header">
-        <h3>📋 Registros (Orden Urgencia)</h3>
-        <span class="badge-count" id="listCount">0</span>
-      </div>
-      <div class="table-scroll" id="registrosList">
-        <div class="loading-state"><p>Cargando...</p></div>
-      </div>
+      <div style="padding:15px; border-bottom:1px solid var(--border)"><strong>📋 Lista de Prioridades</strong></div>
+      <div class="table-scroll" id="registrosList"></div>
     </div>
   </div>
 </div>
 
-<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
   <div class="modal">
-    <div class="modal-head">
-      <div>
-        <div class="modal-name" id="modalNombre"></div>
-        <div class="modal-ts" id="modalTs" style="font-size:12px; color:var(--muted);"></div>
-      </div>
-      <button onclick="closeModalDirect()" style="cursor:pointer; background:none; border:none; font-size:20px;">✕</button>
-    </div>
-    <div class="modal-body" id="modalBody"></div>
+    <h3 id="mTitle"></h3>
+    <div id="mBody"></div>
+    <button onclick="closeModal()" style="width:100%; padding:10px; margin-top:15px; cursor:pointer">Cerrar</button>
   </div>
 </div>
 
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyuKwoNm1lg_m8To20FKNuzxNcMmHDZV4nTCz6to4ACk28ZmmuucnHSv2iMfBwpuLGQ/exec';
-
-const ESTADO_META = {
-  'resuelto':  { label:'Resuelto',  cls:'resuelto',  icon:'✅' },
-  'pendiente': { label:'Pendiente', cls:'pendiente', icon:'⏳' },
-  'retiro':    { label:'Retiro',    cls:'retiro',    icon:'📦' },
-  '':          { label:'Sin estado',cls:'sin-estado',icon:'⬜' }
-};
-
-let allData=[], seguimientos={}, filtered=[], leafMap=null, markers=[], modalLeaf=null;
-let currentUser=null, currentRole=null, currentPass=null;
+let allData=[], seguimientos={}, filtered=[], leafMap=null, markers=[];
+let currentUser='', currentRole='';
 
 function jsonp(url) {
-  return new Promise((resolve, reject) => {
-    const cb = 'cb_' + Date.now();
-    const script = document.createElement('script');
-    script.src = url + '&callback=' + cb;
-    window[cb] = (data) => { delete window[cb]; document.body.removeChild(script); resolve(data); };
-    document.body.appendChild(script);
+  return new Promise(resolve => {
+    const cb = 'cb_'+Date.now();
+    const s = document.createElement('script');
+    s.src = url + '&callback=' + cb;
+    window[cb] = d => { delete window[cb]; document.body.removeChild(s); resolve(d); };
+    document.body.appendChild(s);
   });
 }
 
 async function doLogin() {
   const u = document.getElementById('loginUser').value.trim().toUpperCase();
   const p = document.getElementById('loginPass').value;
-  const btn = document.querySelector('.btn-primary');
-  btn.textContent = 'Verificando...'; btn.disabled = true;
-  try {
-    const data = await jsonp(`${SCRIPT_URL}?action=login&usuario=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`);
-    if (data.ok) {
-      currentUser = u; currentRole = data.rol; currentPass = p;
-      document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('dashboard').style.display = 'block';
-      document.getElementById('userLabel').textContent = data.label;
-      document.getElementById('roleBadge').textContent = currentRole.toUpperCase();
-      document.getElementById('roleBadge').className = 'role-badge ' + data.rol;
-      initMap(); loadData();
-    } else {
-      document.getElementById('loginError').textContent = 'Credenciales inválidas.';
-      document.getElementById('loginError').style.display = 'block';
-    }
-  } catch(e) { console.error(e); }
-  btn.textContent = 'Ingresar →'; btn.disabled = false;
+  const d = await jsonp(`${SCRIPT_URL}?action=login&usuario=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`);
+  if(d.ok){
+    currentUser=u; currentRole=d.rol;
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('dashboard').style.display='block';
+    document.getElementById('userLabel').textContent = d.label + " (" + d.rol.toUpperCase() + ")";
+    initMap(); loadData();
+  } else alert("Error de acceso");
 }
 
-function initMap() {
-  if (leafMap) return;
+function initMap() { 
   leafMap = L.map('map').setView([-34.62,-58.38],10);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(leafMap);
 }
 
-function ageColor(ts) {
-  if (!ts) return '#94A3B8';
-  const days = (Date.now() - new Date(ts)) / 86400000;
-  if (days <= 15) return '#16A34A';
-  if (days <= 20) return '#D97706';
-  return '#DC2626';
-}
-
 async function loadData() {
-  try {
-    const data = await jsonp(`${SCRIPT_URL}?action=datos&usuario=${encodeURIComponent(currentUser)}&password=${encodeURIComponent(currentPass)}`);
-    if (data.ok) {
-      allData = parseRegistros(data.registros);
-      seguimientos = parseSeguimientos(data.seguimientos);
-      populateFilter();
-      applyFilters();
-    }
-  } catch(e) { console.error(e); }
-}
-
-function parseRegistros(rows) {
-  if(!rows || rows.length < 2) return [];
-  const h = rows[0].map(s=>(s||'').toString().trim().toLowerCase());
-  return rows.slice(1).map(c => {
-    const ts = c[h.indexOf('timestamp')];
-    let f='', h_str='';
-    if(ts){const d=new Date(ts); f=d.toLocaleDateString(); h_str=d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}
-    return {
-      ot: c[h.indexOf('ot')], ts, fecha: f, hora: h_str,
-      nombre: c[h.indexOf('promotor')], cliente: c[h.indexOf('cliente')],
-      marca: c[h.indexOf('marca')], edf: c[h.indexOf('edf')], falla: c[h.indexOf('falla')],
-      lat: c[h.indexOf('lat')], lng: c[h.indexOf('lng')], notas: c[h.indexOf('notas')]
-    };
-  });
-}
-
-function parseSeguimientos(rows) {
-  const map = {};
-  if(!rows) return map;
-  const h = rows[0].map(s=>(s||'').toString().trim().toLowerCase());
-  rows.slice(1).forEach(c => {
-    const key = c[h.indexOf('ot')] || c[h.indexOf('cliente')];
-    map[key] = {
-      estado: c[h.indexOf('estado')],
-      comentario: c[h.indexOf('comentario')],
-      tecnico: c[h.indexOf('tecnico')],
-      prioridad_sugerida: c[h.indexOf('prioridad_sugerida')],
-      prioridad_aprobada: c[h.indexOf('prioridad_aprobada')],
-      aprobado_por: c[h.indexOf('aprobado_por')]
-    };
-  });
-  return map;
-}
-
-function getSegByOt(ot, cli) { return seguimientos[ot] || seguimientos[cli] || null; }
-function getEstadoKey(ot, cli) {
-  const s = getSegByOt(ot, cli);
-  return s ? (s.estado||'').toLowerCase().replace(/ /g,'-') : '';
-}
-function getPrioridadAprobada(ot, cli) {
-  const s = getSegByOt(ot, cli);
-  return s ? (s.prioridad_aprobada || '') : '';
+  const d = await jsonp(`${SCRIPT_URL}?action=datos&usuario=${encodeURIComponent(currentUser)}&password=${encodeURIComponent('NA')}`);
+  if(d.ok){
+    allData = d.registros.slice(1).map(c => ({ ot:c[0], ts:c[1], nombre:c[2], cliente:c[4], marca:c[5], falla:c[7], lat:c[8], lng:c[9] }));
+    const hS = d.seguimientos[0].map(s=>(s||'').toLowerCase());
+    d.seguimientos.slice(1).forEach(c => {
+      const k = c[hS.indexOf('ot')] || c[hS.indexOf('cliente')];
+      seguimientos[k] = { estado:c[hS.indexOf('estado')], priA:c[hS.indexOf('prioridad_aprobada')], com:c[hS.indexOf('comentario')] };
+    });
+    populateFilters(); applyFilters();
+  }
 }
 
 function applyFilters() {
-  const nombre = document.getElementById('filterNombre').value;
-  const estado = document.getElementById('filterEstado').value;
-  const prioridad = document.getElementById('filterPrioridad').value;
+  const n = document.getElementById('fNombre').value;
+  const e = document.getElementById('fEstado').value;
+  const p = document.getElementById('fPrioridad').value;
 
   filtered = allData.filter(r => {
-    if (nombre && r.nombre !== nombre) return false;
-    if (estado) {
-      const eKey = getEstadoKey(r.ot, r.cliente);
-      if (estado === 'sin-estado' && eKey !== '') return false;
-      if (estado !== 'sin-estado' && eKey !== estado) return false;
-    }
-    if (prioridad && getPrioridadAprobada(r.ot, r.cliente) !== prioridad) return false;
-    if (currentRole === 'tecnico' && !getPrioridadAprobada(r.ot, r.cliente)) return false;
+    const s = seguimientos[r.ot] || seguimientos[r.cliente] || {};
+    if(n && r.nombre !== n) return false;
+    if(e && (s.estado||'').toLowerCase() !== e) return false;
+    if(p && (s.priA||'') !== p) return false;
     return true;
   });
 
   updateKPIs(filtered);
-  updateMap(filtered);
   renderList(filtered);
+  updateMap(filtered);
 }
 
 function updateKPIs(data) {
-  const ahora = Date.now();
-  const criticos = data.filter(r => {
-    const dias = (ahora - new Date(r.ts)) / 86400000;
-    return dias > 20 && getEstadoKey(r.ot, r.cliente) !== 'resuelto';
-  }).length;
-  const pendientes = data.filter(r => {
-    const e = getEstadoKey(r.ot, r.cliente);
-    return e === 'pendiente' || e === '';
-  }).length;
-  const resueltos = data.filter(r => getEstadoKey(r.ot, r.cliente) === 'resuelto').length;
-  const eficacia = data.length > 0 ? Math.round((resueltos / data.length) * 100) : 0;
-
-  document.getElementById('kpiCriticos').textContent = criticos;
-  document.getElementById('kpiPendientes').textContent = pendientes;
-  document.getElementById('kpiEficacia').textContent = eficacia + '%';
+  const crit = data.filter(r => (Date.now() - new Date(r.ts))/86400000 > 20).length;
+  const res = data.filter(r => { const s=seguimientos[r.ot]||seguimientos[r.cliente]; return s && s.estado==='resuelto'; }).length;
+  document.getElementById('kpiCriticos').textContent = crit;
+  document.getElementById('kpiPendientes').textContent = data.length - res;
+  document.getElementById('kpiEficacia').textContent = data.length ? Math.round((res/data.length)*100)+'%' : '0%';
 }
 
 function renderList(data) {
-  const el = document.getElementById('registrosList');
-  // Ordenar por prioridad (1 arriba, vacíos abajo)
+  // ORDEN POR PRIORIDAD (P1 -> P2 -> P3 -> Resto)
   const ordenada = [...data].sort((a,b) => {
-    const pA = getPrioridadAprobada(a.ot, a.cliente) || "99";
-    const pB = getPrioridadAprobada(b.ot, b.cliente) || "99";
+    const pA = (seguimientos[a.ot]||seguimientos[a.cliente]||{}).priA || "99";
+    const pB = (seguimientos[b.ot]||seguimientos[b.cliente]||{}).priA || "99";
     return parseInt(pA) - parseInt(pB);
   });
 
-  el.innerHTML = ordenada.map(r => {
-    const s = getSegByOt(r.ot, r.cliente);
-    const pA = getPrioridadAprobada(r.ot, r.cliente);
-    const em = ESTADO_META[getEstadoKey(r.ot, r.cliente)] || ESTADO_META[''];
+  document.getElementById('registrosList').innerHTML = ordenada.map(r => {
+    const s = seguimientos[r.ot] || seguimientos[r.cliente] || {};
+    const color = (Date.now() - new Date(r.ts))/86400000 > 20 ? 'var(--danger)' : 'var(--success)';
     return `
       <div class="reg-item" onclick='openModal(${JSON.stringify(r)})'>
-        <div class="reg-avatar" style="background:${ageColor(r.ts)}">${(r.cliente||'?').slice(0,2)}</div>
-        <div class="reg-info">
-          <div class="reg-nombre">OT ${r.ot || '—'} ${pA ? '<span style="color:var(--accent)">[P'+pA+']</span>' : ''}</div>
-          <div class="reg-sub">${r.cliente} · 👤 ${r.nombre}</div>
-          <span class="estado-pill ${em.cls}">${em.icon} ${em.label}</span>
-        </div>
-        <div class="reg-meta">
-          <div class="reg-fecha">${r.fecha}</div>
-          <div class="reg-hora">${r.hora}</div>
+        <div class="avatar" style="background:${color}">${(r.cliente||'?').slice(0,2)}</div>
+        <div style="flex:1">
+          <strong>OT ${r.ot} ${s.priA ? '[P'+s.priA+']' : ''}</strong><br>
+          <small>${r.cliente} · 👤 ${r.nombre}</small>
         </div>
       </div>`;
   }).join('');
@@ -417,66 +176,28 @@ function updateMap(data) {
   data.forEach(r => {
     const lat = parseFloat(String(r.lat).replace(',','.')), lng = parseFloat(String(r.lng).replace(',','.'));
     if(!isNaN(lat) && lat !== 0) {
-      const m = L.circleMarker([lat, lng], {radius:6, color:'white', weight:2, fillColor:ageColor(r.ts), fillOpacity:1}).addTo(leafMap);
-      m.bindPopup(`OT: ${r.ot}<br>${r.cliente}`);
+      const color = (Date.now() - new Date(r.ts))/86400000 > 20 ? 'red' : 'green';
+      const m = L.circleMarker([lat, lng], {radius:6, color:'white', weight:2, fillColor:color, fillOpacity:1}).addTo(leafMap);
       markers.push(m);
     }
   });
 }
 
 function openModal(r) {
-  const s = getSegByOt(r.ot, r.cliente);
-  const em = ESTADO_META[getEstadoKey(r.ot, r.cliente)] || ESTADO_META[''];
-  document.getElementById('modalNombre').textContent = 'OT ' + (r.ot || '—');
-  document.getElementById('modalTs').textContent = r.fecha + ' ' + r.hora;
-  
-  let segHTML = '';
-  if(currentRole === 'tecnico') {
-    segHTML = `
-      <div class="modal-sec">🔧 Gestión Técnica</div>
-      <div class="seguimiento-section">
-        <select id="segEstado" style="width:100%; padding:8px; border-radius:8px;">
-          <option value="resuelto" ${em.label==='Resuelto'?'selected':''}>✅ Resuelto</option>
-          <option value="pendiente" ${em.label==='Pendiente'?'selected':''}>⏳ Pendiente</option>
-        </select>
-        <textarea id="segComentario" style="width:100%; margin-top:10px; border-radius:8px;" placeholder="Notas...">${s?s.comentario:''}</textarea>
-        <button class="btn-guardar" onclick="guardarSeguimiento('${r.cliente}','${r.nombre}','${r.ot}','tecnico')">Guardar Cambios</button>
-      </div>`;
-  }
-
-  document.getElementById('modalBody').innerHTML = `
-    <div class="modal-grid">
-      <div class="mf"><label>Cliente</label><p>${r.cliente}</p></div>
-      <div class="mf"><label>Marca</label><p>${r.marca}</p></div>
-      <div class="mf full"><label>Falla</label><p>${r.falla}</p></div>
-    </div>
-    <a class="btn-maps" href="https://www.google.com/maps/search/?api=1&query=${r.lat},${r.lng}" target="_blank">📍 Ver en Maps</a>
-    ${segHTML}
+  document.getElementById('mTitle').textContent = 'Detalle OT ' + r.ot;
+  document.getElementById('mBody').innerHTML = `
+    <p><strong>Cliente:</strong> ${r.cliente}</p>
+    <p><strong>Falla:</strong> ${r.falla}</p>
+    <a class="btn-maps" href="https://www.google.com/maps?q=${r.lat},${r.lng}" target="_blank">📍 Ver en Maps</a>
   `;
   document.getElementById('modalOverlay').classList.add('show');
 }
 
-async function guardarSeguimiento(cli, pro, ot, rol) {
-  const payload = {
-    tipo: 'seguimiento', timestamp: new Date().toISOString(), ot, cliente: cli, promotor: pro,
-    estado: document.getElementById('segEstado').value,
-    comentario: document.getElementById('segComentario').value,
-    tecnico: currentUser
-  };
-  fetch(SCRIPT_URL, {method:'POST', mode:'no-cors', body:JSON.stringify(payload)});
-  seguimientos[ot||cli] = payload;
-  applyFilters();
-  closeModalDirect();
-}
-
-function populateFilter() {
+function closeModal() { document.getElementById('modalOverlay').classList.remove('show'); }
+function populateFilters() {
   const names = [...new Set(allData.map(r=>r.nombre))].sort();
-  document.getElementById('filterNombre').innerHTML = '<option value="">Todos</option>' + names.map(n=>`<option value="${n}">${n}</option>`).join('');
+  document.getElementById('fNombre').innerHTML = '<option value="">Promotor: Todos</option>' + names.map(n=>`<option value="${n}">${n}</option>`).join('');
 }
-
-function closeModalDirect() { document.getElementById('modalOverlay').classList.remove('show'); }
-function doLogout() { location.reload(); }
-function switchTab(t) { /* Implementar lógica de tabla si es necesario */ }
 </script>
 </body>
 </html>
