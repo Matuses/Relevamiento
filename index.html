@@ -47,7 +47,7 @@
         #map { height: 500px; width: 100%; }
         .list-header { padding: 18px 25px; border-bottom: 2px solid var(--bg); font-weight: 800; color: var(--navy); }
         .list-container { max-height: 430px; overflow-y: auto; }
-        .list-item { padding: 16px 25px; border-bottom: 1px solid #F1F5F9; cursor: pointer; }
+        .list-item { padding: 16px 25px; border-bottom: 1px solid #F1F5F9; cursor: pointer; border-left: 4px solid transparent; }
         .list-item:hover { background: #F8FAFC; border-left: 4px solid var(--accent); }
 
         /* MODAL */
@@ -84,7 +84,7 @@
     </div>
     <div class="container">
         <div class="stats-grid">
-            <div class="stat-card" style="border-left-color: var(--danger);"><label>Críticos</label><p id="countCritico">0</p></div>
+            <div class="stat-card" style="border-left-color: var(--danger);"><label>Críticos (+20 días)</label><p id="countCritico">0</p></div>
             <div class="stat-card" style="border-left-color: var(--warn);"><label>Pendientes</label><p id="countPendiente">0</p></div>
             <div class="stat-card" style="border-left-color: var(--success);"><label>Eficacia</label><p id="percEficacia">85%</p></div>
         </div>
@@ -110,19 +110,18 @@
 </div>
 
 <script>
-    // --- PEGA TU URL DE GOOGLE ACÁ ABAJO ---
-    const MI_URL_GAS = "https://script.google.com/macros/s/AKfycbz4ka5nQ3TLx_DT4F1pLRBWC8e1ps04w91FM4A011obaIx0G8K4DXdzh2kbPyvPMb-V/exec"; 
+    // --- PEGA TU URL DE GOOGLE ACÁ ---
+    const MI_URL_GAS = "TU_URL_DE_APPS_SCRIPT_AQUI"; 
 
     let rawData = [];
     let map;
+    let markersLayer = L.layerGroup();
 
     function intentarLogin() {
         const u = document.getElementById('userInput').value.trim();
         const p = document.getElementById('passInput').value.trim();
         if(!u || !p) return;
-        
-        document.getElementById('loginBtn').innerText = "CARGANDO...";
-        
+        document.getElementById('loginBtn').innerText = "VERIFICANDO...";
         const script = document.createElement('script');
         script.src = `${MI_URL_GAS}?action=login&usuario=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}&callback=respuestaLogin`;
         document.body.appendChild(script);
@@ -143,8 +142,11 @@
     }
 
     function initMap() {
-        map = L.map('map').setView([-24.78, -65.41], 12);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        if (!map) {
+            map = L.map('map').setView([-24.78, -65.41], 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+            markersLayer.addTo(map);
+        }
     }
 
     function fetchData() {
@@ -153,31 +155,87 @@
         document.body.appendChild(script);
     }
 
+    // Función para limpiar coordenadas raras (ej: -34.621.643 -> -34.621643)
+    function cleanCoord(str) {
+        if(!str) return NaN;
+        let parts = str.split('.');
+        if(parts.length > 2) {
+            return parseFloat(parts[0] + "." + parts.slice(1).join(''));
+        }
+        return parseFloat(str);
+    }
+
     function handleData(response) {
         if (response.ok) {
             rawData = response.registros.slice(1);
+            populateFilters();
             renderView(rawData);
         }
     }
 
+    function populateFilters() {
+        const promotores = [...new Set(rawData.map(r => r[2]))];
+        const select = document.getElementById('filterPromotor');
+        select.innerHTML = '<option value="">Todos los Promotores</option>';
+        promotores.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p; opt.innerText = p;
+            select.appendChild(opt);
+        });
+    }
+
+    function filterData() {
+        const pFilt = document.getElementById('filterPromotor').value;
+        const filtered = rawData.filter(r => pFilt === "" || r[2] === pFilt);
+        renderView(filtered);
+    }
+
     function renderView(data) {
         const list = document.getElementById('dataList');
+        const criticosEl = document.getElementById('countCritico');
+        const pendientesEl = document.getElementById('countPendiente');
         list.innerHTML = "";
+        markersLayer.clearLayers();
+        
+        let bounds = [];
+        let criticos = 0;
+
         data.forEach(r => {
+            // Lista: Col A(0) es OT, Col E(4) es Cliente
             const item = document.createElement('div');
             item.className = "list-item";
             item.innerHTML = `<h4>OT: ${r[0]}</h4><p>${r[4]}</p>`;
-            item.onclick = () => {
-                document.getElementById('mOT').innerText = "OT: " + r[0];
-                document.getElementById('mCliente').innerText = r[4];
-                document.getElementById('mFalla').innerText = r[7];
-                document.getElementById('mLink').href = `https://www.google.com/maps?q=${r[8]},${r[9]}`;
-                document.getElementById('detailModal').classList.add('show');
-            };
+            item.onclick = () => showDetail(r);
             list.appendChild(item);
-            if(r[8] && r[9]) L.marker([r[8], r[9]]).addTo(map);
+
+            // Mapa: Col I(8) es Lat, Col J(9) es Lng
+            const lat = cleanCoord(r[8]);
+            const lng = cleanCoord(r[9]);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                const m = L.marker([lat, lng]).bindPopup(`<b>OT: ${r[0]}</b><br>${r[4]}`);
+                markersLayer.addLayer(m);
+                bounds.push([lat, lng]);
+            }
+
+            // Críticos: Col B(1) es Timestamp
+            const fecha = new Date(r[1]);
+            const hoy = new Date();
+            if ((hoy - fecha)/(1000*60*60*24) > 20) criticos++;
         });
+
         document.getElementById('countPendiente').innerText = data.length;
+        document.getElementById('countCritico').innerText = criticos;
+        if (bounds.length > 0) map.fitBounds(bounds, {padding: [50,50]});
+    }
+
+    function showDetail(r) {
+        document.getElementById('mOT').innerText = "OT: " + r[0];
+        document.getElementById('mCliente').innerText = r[4];
+        document.getElementById('mFalla').innerText = r[7] || "No especificada";
+        const lat = cleanCoord(r[8]);
+        const lng = cleanCoord(r[9]);
+        document.getElementById('mLink').href = `https://www.google.com/maps?q=${lat},${lng}`;
+        document.getElementById('detailModal').classList.add('show');
     }
 
     function closeModal() { document.getElementById('detailModal').classList.remove('show'); }
