@@ -3,60 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <title>Dashboard Suralnor - Emcala</title>
+    <title>Suralnor - Gestión de Equipos</title>
     <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         :root {
-            --bg: #F5F7FA; --card: #FFFFFF; --border: #E2E8F0;
-            --navy: #0F2A4A; --blue: #1B5FA8; --accent: #0EA5E9;
-            --text: #0F2A4A; --muted: #64748B; --success: #16A34A;
-            --warn: #D97706; --danger: #DC2626; --radius: 18px;
+            --bg: #F5F7FA; --navy: #0F2A4A; --accent: #0EA5E9;
+            --muted: #64748B; --radius: 18px; --border: #E2E8F0;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Bricolage Grotesque', sans-serif; background: var(--bg); color: var(--text); }
+        body { font-family: 'Bricolage Grotesque', sans-serif; background: var(--bg); color: var(--navy); }
 
-        /* --- LOGIN --- */
+        /* LOGIN */
         #loginScreen {
             min-height: 100vh; display: flex; align-items: center; justify-content: center;
             background: radial-gradient(circle at center, #1B5FA8 0%, #0F2A4A 100%); padding: 20px;
         }
         .login-box {
-            background: white; border-radius: 28px; padding: 50px 40px; width: 100%;
-            max-width: 420px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); text-align: center;
+            background: white; border-radius: 28px; padding: 40px; width: 100%;
+            max-width: 400px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); text-align: center;
         }
-        .login-logo { width: 100px; height: 100px; border-radius: 50%; margin: 0 auto 15px; border: 4px solid var(--bg); object-fit: cover; }
-        .login-title { font-size: 19px; font-weight: 800; color: var(--navy); margin-bottom: 30px; line-height: 1.3; }
-        .lf { margin-bottom: 20px; text-align: left; }
-        .lf label { display: block; font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
-        .lf input { width: 100%; padding: 14px; border: 2px solid #EDF2F7; border-radius: 12px; outline: none; font-size: 16px; background: #F8FAFC; }
-        .btn-primary { width: 100%; background: var(--navy); color: white; border: none; border-radius: 12px; padding: 16px; font-weight: 700; cursor: pointer; font-size: 16px; }
+        .login-logo { width: 100px; height: 100px; border-radius: 50%; margin-bottom: 15px; border: 3px solid #eee; }
+        .login-title { font-size: 18px; font-weight: 800; margin-bottom: 25px; line-height: 1.2; }
+        .lf { margin-bottom: 15px; text-align: left; }
+        .lf label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
+        .lf input { width: 100%; padding: 12px; border: 2px solid #edf2f7; border-radius: 10px; font-size: 16px; outline: none; }
+        .btn-primary { width: 100%; background: var(--navy); color: white; border: none; border-radius: 10px; padding: 15px; font-weight: 700; cursor: pointer; }
 
-        /* --- DASHBOARD --- */
+        /* DASHBOARD */
         #dashboard { display: none; }
-        .topbar { background: var(--navy); color: white; padding: 0 30px; height: 70px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-        .container { padding: 30px; max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 1fr 380px; gap: 25px; }
-        .stats-grid { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-        .stat-card { background: white; border-radius: var(--radius); padding: 20px; border-left: 6px solid var(--navy); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .topbar { background: var(--navy); color: white; padding: 0 20px; height: 65px; display: flex; align-items: center; justify-content: space-between; }
+        .container { padding: 20px; max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 350px; gap: 20px; }
+        .stats-grid { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .stat-card { background: white; padding: 20px; border-radius: var(--radius); border-left: 5px solid var(--navy); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .stat-card label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; }
-        .stat-card p { font-size: 32px; font-weight: 800; margin-top: 8px; color: var(--navy); }
-        .filters { grid-column: 1 / -1; background: white; border-radius: var(--radius); padding: 15px 25px; display: flex; gap: 15px; align-items: center; border: 1px solid var(--border); }
-        .filters select { padding: 10px; border-radius: 10px; border: 1px solid var(--border); font-size: 14px; outline: none; }
-        .card { background: white; border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        #map { height: 500px; width: 100%; z-index: 1; }
-        .list-header { padding: 18px 25px; border-bottom: 2px solid var(--bg); font-weight: 800; color: var(--navy); }
-        .list-container { max-height: 430px; overflow-y: auto; }
-        .list-item { padding: 16px 25px; border-bottom: 1px solid #F1F5F9; cursor: pointer; border-left: 4px solid transparent; }
-        .list-item:hover { background: #F8FAFC; border-left: 4px solid var(--accent); }
+        .stat-card p { font-size: 28px; font-weight: 800; margin-top: 5px; }
+        .card { background: white; border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        #map { height: 450px; width: 100%; }
+        .list-container { max-height: 450px; overflow-y: auto; }
+        .list-item { padding: 15px 20px; border-bottom: 1px solid #f1f5f9; cursor: pointer; }
+        .list-item:hover { background: #f8fafc; border-left: 4px solid var(--accent); }
 
         /* MODAL */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 42, 74, 0.7); display: none; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(4px); }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15,42,74,0.7); display: none; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(4px); }
         .modal-overlay.show { display: flex; }
-        .modal { background: white; padding: 30px; border-radius: 24px; width: 90%; max-width: 480px; }
-        .modal-field { background: #F8FAFC; padding: 10px 14px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #EDF2F7; }
-        .modal-field label { font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--accent); margin-bottom: 2px; display: block; }
-        .modal-field p { font-size: 14px; font-weight: 600; margin: 0; }
+        .modal { background: white; padding: 30px; border-radius: 24px; width: 90%; max-width: 450px; }
+        .modal-field { background: #F8FAFC; padding: 10px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #edf2f7; }
+        .modal-field label { font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--accent); }
         .btn-maps { display: block; text-align: center; background: var(--navy); color: white; padding: 12px; border-radius: 10px; text-decoration: none; font-weight: 700; margin-top: 15px; }
 
         @media (max-width: 800px) { .container { grid-template-columns: 1fr; } .stats-grid { grid-template-columns: 1fr; } }
@@ -68,33 +62,26 @@
     <div class="login-box">
         <img src="https://raw.githubusercontent.com/Matuses/Relevamiento/main/Logo_Suralnor_Emcala.jpeg" class="login-logo">
         <div class="login-title">Gestión de solicitudes, retiro y entrega de Equipos de frío</div>
-        <div class="lf"><label>Usuario</label><input type="text" id="userInput" placeholder="Ej: MATIAS"></div>
-        <div class="lf"><label>Contraseña</label><input type="password" id="passInput" placeholder="••••"></div>
+        <div class="lf"><label>Usuario</label><input type="text" id="userInput"></div>
+        <div class="lf"><label>Contraseña</label><input type="password" id="passInput"></div>
         <button id="loginBtn" class="btn-primary" onclick="intentarLogin()">INGRESAR AL SISTEMA</button>
     </div>
 </div>
 
 <div id="dashboard">
     <div class="topbar">
-        <span style="font-weight: 800;">SURALNOR <span style="color:var(--accent)">·</span> EMCALA</span>
-        <div>
-            <span id="displayRole" class="role-badge">---</span>
-            <span id="displayName" style="margin: 0 15px; font-weight: 600; font-size: 14px;">Usuario</span>
-            <button class="btn-logout" onclick="location.reload()">Salir</button>
-        </div>
+        <span style="font-weight: 800;">SURALNOR · EMCALA</span>
+        <button onclick="location.reload()" style="background:none; border:1px solid white; color:white; padding:5px 10px; border-radius:5px; cursor:pointer;">Salir</button>
     </div>
     <div class="container">
         <div class="stats-grid">
-            <div class="stat-card" style="border-left-color: var(--danger);"><label>Críticos (+20 días)</label><p id="countCritico">0</p></div>
-            <div class="stat-card" style="border-left-color: var(--warn);"><label>Pendientes</label><p id="countPendiente">0</p></div>
-            <div class="stat-card" style="border-left-color: var(--success);"><label>Eficacia</label><p id="percEficacia">85%</p></div>
-        </div>
-        <div class="filters">
-            <select id="filterPromotor" onchange="filterData()"><option value="">Todos los Promotores</option></select>
+            <div class="stat-card" style="border-left-color: #DC2626;"><label>Críticos (+20 días)</label><p id="countCritico">0</p></div>
+            <div class="stat-card"><label>Pendientes Totales</label><p id="countPendiente">0</p></div>
+            <div class="stat-card" style="border-left-color: #16A34A;"><label>Eficacia</label><p>85%</p></div>
         </div>
         <div class="card"><div id="map"></div></div>
         <div class="card">
-            <div class="list-header">PRIORIDAD DE ATENCIÓN</div>
+            <div style="padding:15px; font-weight:800; border-bottom:1px solid #eee;">LISTADO DE OT</div>
             <div class="list-container" id="dataList"></div>
         </div>
     </div>
@@ -102,17 +89,16 @@
 
 <div class="modal-overlay" id="detailModal" onclick="if(event.target===this)closeModal()">
     <div class="modal">
-        <h2 id="mOT" style="color: var(--navy);">OT: ---</h2>
-        <div class="modal-field"><label>Cliente</label><p id="mCliente">-</p></div>
+        <h2 id="mOT">OT: ---</h2>
+        <div class="modal-field"><label>Punto de Venta / Cliente</label><p id="mCliente">-</p></div>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
             <div class="modal-field"><label>Marca</label><p id="mMarca">-</p></div>
             <div class="modal-field"><label>EDF</label><p id="mEDF">-</p></div>
         </div>
         <div class="modal-field"><label>Falla Reportada</label><p id="mFalla">-</p></div>
-        <div class="modal-field"><label>Notas</label><p id="mNotas">-</p></div>
-        
-        <a id="mLink" href="#" target="_blank" class="btn-maps">VER RUTA EN GOOGLE MAPS</a>
-        <button onclick="closeModal()" style="width:100%; margin-top:15px; cursor:pointer; background:none; border:none; color:var(--muted); font-weight:700; text-transform:uppercase; font-size:11px;">Cerrar Detalle</button>
+        <div class="modal-field"><label>Notas Adicionales</label><p id="mNotas">-</p></div>
+        <a id="mLink" href="#" target="_blank" class="btn-maps">VER EN GOOGLE MAPS</a>
+        <button onclick="closeModal()" style="width:100%; margin-top:10px; border:none; background:none; color:gray; cursor:pointer;">Cerrar</button>
     </div>
 </div>
 
@@ -124,15 +110,11 @@
     let map;
     let markersLayer = L.layerGroup();
 
-    // Limpiador de coordenadas para el formato -34.621.643
     function cleanCoord(val) {
         if(!val) return NaN;
-        let s = val.toString().trim();
+        let s = val.toString().trim().replace(/,/g, '.');
         let parts = s.split('.');
-        if(parts.length > 2) {
-            // Convierte "-34.621.643" en "-34.621643"
-            return parseFloat(parts[0] + "." + parts.slice(1).join(''));
-        }
+        if(parts.length > 2) return parseFloat(parts[0] + "." + parts.slice(1).join(''));
         return parseFloat(s);
     }
 
@@ -140,7 +122,7 @@
         const u = document.getElementById('userInput').value.trim();
         const p = document.getElementById('passInput').value.trim();
         if(!u || !p) return;
-        document.getElementById('loginBtn').innerText = "VERIFICANDO...";
+        document.getElementById('loginBtn').innerText = "CONECTANDO...";
         const script = document.createElement('script');
         script.src = `${MI_URL_GAS}?action=login&usuario=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}&callback=respuestaLogin`;
         document.body.appendChild(script);
@@ -150,8 +132,6 @@
         if (res.ok) {
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
-            document.getElementById('displayName').innerText = res.label;
-            document.getElementById('displayRole').innerText = res.rol;
             initMap();
             fetchData();
         } else {
@@ -177,80 +157,52 @@
     function handleData(response) {
         if (response.ok) {
             rawData = response.registros.slice(1);
-            populateFilters();
             renderView(rawData);
         }
     }
 
-    function populateFilters() {
-        const promotores = [...new Set(rawData.map(r => r[2]))];
-        const select = document.getElementById('filterPromotor');
-        select.innerHTML = '<option value="">Todos los Promotores</option>';
-        promotores.forEach(p => {
-            const opt = document.createElement('option');
-            opt.value = p; opt.innerText = p;
-            select.appendChild(opt);
-        });
-    }
-
-    function filterData() {
-        const pFilt = document.getElementById('filterPromotor').value;
-        const filtered = rawData.filter(r => pFilt === "" || r[2] === pFilt);
-        renderView(filtered);
-    }
-
     function renderView(data) {
         const list = document.getElementById('dataList');
-        const criticosEl = document.getElementById('countCritico');
-        const pendientesEl = document.getElementById('countPendiente');
         list.innerHTML = "";
         markersLayer.clearLayers();
-        
         let bounds = [];
         let criticos = 0;
 
         data.forEach(r => {
-            // Lista
+            // Fila de lista
             const item = document.createElement('div');
             item.className = "list-item";
             item.innerHTML = `<h4>OT: ${r[0]}</h4><p>${r[4]}</p>`;
-            item.onclick = () => showDetail(r);
+            item.onclick = () => {
+                document.getElementById('mOT').innerText = "OT: " + r[0];
+                document.getElementById('mCliente').innerText = r[4];
+                document.getElementById('mMarca').innerText = r[5];
+                document.getElementById('mEDF').innerText = r[6];
+                document.getElementById('mFalla').innerText = r[7];
+                document.getElementById('mNotas').innerText = r[11] || "Sin notas";
+                const lat = cleanCoord(r[8]);
+                const lng = cleanCoord(r[9]);
+                document.getElementById('mLink').href = `https://www.google.com/maps?q=${lat},${lng}`;
+                document.getElementById('detailModal').classList.add('show');
+            };
             list.appendChild(item);
 
-            // Mapa
+            // Marcadores
             const lat = cleanCoord(r[8]);
             const lng = cleanCoord(r[9]);
             if (!isNaN(lat) && !isNaN(lng)) {
-                const m = L.marker([lat, lng]).bindPopup(`<b>OT: ${r[0]}</b><br>${r[4]}`);
-                markersLayer.addLayer(m);
+                const m = L.marker([lat, lng]).addTo(markersLayer).bindPopup(`<b>OT: ${r[0]}</b><br>${r[4]}`);
                 bounds.push([lat, lng]);
             }
 
-            // Calculo Críticos (>20 días)
-            const fechaStr = r[1]; 
-            const fecha = new Date(fechaStr);
-            const hoy = new Date();
-            if (!isNaN(fecha) && (hoy - fecha)/(1000*60*60*24) > 20) criticos++;
+            // Contador de críticos (>20 días)
+            const fecha = new Date(r[1]);
+            if (!isNaN(fecha) && (new Date() - fecha)/(864e5) > 20) criticos++;
         });
 
-        pendientesEl.innerText = data.length;
-        criticosEl.innerText = criticos;
+        document.getElementById('countPendiente').innerText = data.length;
+        document.getElementById('countCritico').innerText = criticos;
         if (bounds.length > 0) map.fitBounds(bounds, {padding: [50,50]});
-    }
-
-    function showDetail(r) {
-        const lat = cleanCoord(r[8]);
-        const lng = cleanCoord(r[9]);
-        
-        document.getElementById('mOT').innerText = "OT: " + r[0];
-        document.getElementById('mCliente').innerText = r[4];
-        document.getElementById('mMarca').innerText = r[5] || "-";
-        document.getElementById('mEDF').innerText = r[6] || "-";
-        document.getElementById('mFalla').innerText = r[7] || "No especificada";
-        document.getElementById('mNotas').innerText = r[11] || "Sin notas";
-        
-        document.getElementById('mLink').href = `https://www.google.com/maps?q=${lat},${lng}`;
-        document.getElementById('detailModal').classList.add('show');
     }
 
     function closeModal() { document.getElementById('detailModal').classList.remove('show'); }
