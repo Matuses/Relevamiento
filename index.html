@@ -3,19 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <title>Suralnor - Panel de Control</title>
+    <title>Suralnor - Gestión AR</title>
     <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        :root {
-            --bg: #F8FAFC; --navy: #0F2A4A; --accent: #0EA5E9;
-            --muted: #64748B; --radius: 16px; --border: #E2E8F0;
-        }
+        :root { --bg: #F8FAFC; --navy: #0F2A4A; --accent: #0EA5E9; --muted: #64748B; --radius: 16px; --border: #E2E8F0; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Bricolage Grotesque', sans-serif; background: var(--bg); color: var(--navy); }
 
-        /* --- LOGIN --- */
+        /* LOGIN */
         #loginScreen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at center, #1B5FA8 0%, #0F2A4A 100%); }
         .login-box { background: white; border-radius: 24px; padding: 40px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
         .login-logo { width: 90px; height: 90px; border-radius: 50%; margin-bottom: 15px; border: 3px solid #eee; }
@@ -24,36 +21,31 @@
         .lf input { width: 100%; padding: 12px; border: 2px solid #edf2f7; border-radius: 10px; font-size: 16px; outline: none; }
         .btn-primary { width: 100%; background: var(--navy); color: white; border: none; border-radius: 10px; padding: 15px; font-weight: 700; cursor: pointer; }
 
-        /* --- DASHBOARD --- */
+        /* DASHBOARD */
         #dashboard { display: none; }
         .topbar { background: var(--navy); color: white; padding: 0 20px; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 1000; }
-        
-        /* Pestañas */
         .tabs-nav { background: white; border-bottom: 1px solid var(--border); display: flex; padding: 0 20px; gap: 10px; }
-        .tab-btn { padding: 15px 20px; border: none; background: none; font-family: inherit; font-weight: 700; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s; font-size: 13px; text-transform: uppercase; }
+        .tab-btn { padding: 15px 20px; border: none; background: none; font-family: inherit; font-weight: 700; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; font-size: 12px; text-transform: uppercase; }
         .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
         .tab-content { display: none; padding: 20px; max-width: 1400px; margin: 0 auto; }
         .tab-content.active { display: block; }
 
-        /* Buscador y Tabla */
-        .filters { background: white; border-radius: var(--radius); padding: 15px 20px; display: flex; gap: 15px; align-items: center; border: 1px solid var(--border); margin-bottom: 20px; }
-        .search-input { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border); outline: none; }
+        /* LISTADO TABLA */
         .table-container { background: white; border-radius: var(--radius); border: 1px solid var(--border); overflow-x: auto; }
-        .styled-table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 800px; }
+        .styled-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 800px; }
         .styled-table th, .styled-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border); }
-        .styled-table thead { background: #F8FAFC; }
-        .btn-excel { background: #16A34A; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 12px; }
+        .styled-table thead { background: #F8FAFC; font-weight: 800; }
 
-        /* Mapa */
+        /* MAPA */
         #map { height: 500px; border-radius: var(--radius); border: 1px solid var(--border); }
         .m-red { filter: hue-rotate(300deg); }
         .m-yellow { filter: hue-rotate(20deg) brightness(1.2); }
         .m-green { filter: hue-rotate(90deg); }
 
-        /* Modal */
+        /* MODAL */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(4px); }
         .modal-overlay.show { display: flex; }
-        .modal { background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 450px; }
+        .modal { background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 450px; max-height: 90vh; overflow-y: auto; }
         .modal-field { background: #F8FAFC; padding: 10px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #eee; }
         .modal-field label { font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--accent); }
     </style>
@@ -63,127 +55,98 @@
 <div id="loginScreen">
     <div class="login-box">
         <img src="https://raw.githubusercontent.com/Matuses/Relevamiento/main/Logo_Suralnor_Emcala.jpeg" class="login-logo">
-        <div class="login-title">Gestión de solicitudes, retiro y entrega de Equipos de frío</div>
+        <div class="login-title" style="margin-bottom: 20px; font-weight: 800;">Gestión de Solicitudes y Equipos</div>
         <div class="lf"><label>Usuario</label><input type="text" id="userInput"></div>
         <div class="lf"><label>Contraseña</label><input type="password" id="passInput"></div>
-        <button class="btn-primary" onclick="intentarLogin()">INGRESAR</button>
+        <button id="loginBtn" class="btn-primary" onclick="intentarLogin()">INGRESAR</button>
     </div>
 </div>
 
 <div id="dashboard">
     <div class="topbar">
         <span style="font-weight: 800;">SURALNOR · EMCALA</span>
-        <span id="userDisplay" style="font-size: 12px;"></span>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span id="userLabel" style="font-size: 11px; background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 100px;"></span>
+            <button onclick="location.reload()" style="background:none; border:1px solid white; color:white; border-radius:5px; padding:3px 8px; cursor:pointer; font-size:11px;">Salir</button>
+        </div>
     </div>
 
     <nav class="tabs-nav">
         <button class="tab-btn active" onclick="switchTab('mapa')">Mapa</button>
-        <button class="tab-btn" id="tabListadoBtn" onclick="switchTab('listado')">Listado de Solicitudes</button>
+        <button class="tab-btn" id="tabListadoBtn" onclick="switchTab('listado')">Historial</button>
         <button class="tab-btn" id="tabRetiroBtn" onclick="switchTab('retiro')">RETIRO / ENTREGA</button>
     </nav>
 
     <div id="tab-mapa" class="tab-content active">
-        <div class="filters">
-            <input type="text" id="searchInput" class="search-input" placeholder="Buscar por Cliente o OT..." oninput="filterData()">
-        </div>
+        <input type="text" id="searchInput" placeholder="Buscar Cliente o OT..." oninput="filterData()" style="width:100%; padding:12px; margin-bottom:15px; border-radius:10px; border:1px solid var(--border); outline:none;">
         <div id="map"></div>
     </div>
 
     <div id="tab-listado" class="tab-content">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h2>Historial de Solicitudes</h2>
-            <button class="btn-excel" onclick="exportToExcel()">Descargar Excel</button>
+        <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+            <h2>Listado de Solicitudes</h2>
+            <button onclick="exportToExcel()" style="background:#16A34A; color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:700;">Descargar Excel</button>
         </div>
         <div class="table-container">
-            <table class="styled-table" id="mainTable">
-                <thead>
-                    <tr>
-                        <th>CLIENTE</th>
-                        <th>OT</th>
-                        <th>PROMOTOR</th>
-                        <th>PRIORIDAD</th>
-                        <th>ESTADO</th>
-                        <th>FECHA</th>
-                    </tr>
-                </thead>
+            <table class="styled-table">
+                <thead><tr><th>CLIENTE</th><th>OT</th><th>PROMOTOR</th><th>PRIORIDAD</th><th>ESTADO</th><th>FECHA</th></tr></thead>
                 <tbody id="tableBody"></tbody>
             </table>
         </div>
     </div>
 
     <div id="tab-retiro" class="tab-content">
-        <div style="background: white; padding: 40px; border-radius: 20px; text-align: center; border: 2px dashed #ddd;">
-            <h3 style="color: #999;">Módulo de Retiro/Entrega en desarrollo</h3>
-        </div>
+        <div style="background:white; padding:50px; text-align:center; border-radius:20px; border:2px dashed #ddd; color:#999;">Módulo Retiro/Entrega en construcción</div>
     </div>
 </div>
 
 <div class="modal-overlay" id="detailModal" onclick="if(event.target===this)closeModal()">
     <div class="modal">
-        <h2 id="mOT">OT: ---</h2>
+        <h2 id="mOT" style="color:var(--navy); margin-bottom:15px;">OT: ---</h2>
         <div class="modal-field"><label>Cliente</label><p id="mCliente">-</p></div>
-        <div class="modal-field" style="background:#eefbff;"><label>Falla sugerida</label><p id="mFallaSugerida">-</p></div>
+        <div class="modal-field" style="background:#eefbff;"><label>Falla Sugerida</label><p id="mFalla">-</p></div>
         
-        <div id="supSection" style="display:none; background:#f0f9ff; padding:10px; border-radius:10px; margin-top:10px;">
+        <div id="supSection" style="display:none; background:#f0f9ff; padding:12px; border-radius:10px; margin-top:10px; border:1px solid #bae6fd;">
             <label style="font-size:10px; font-weight:800; color:#0369a1;">SUGERIR PRIORIDAD (SUPERVISOR)</label>
-            <select id="suggestSelect" style="width:100%; padding:8px; margin-top:5px;">
-                <option value="">Sin definir</option>
-                <option value="ALTA">ALTA</option>
-                <option value="MEDIA">MEDIA</option>
-                <option value="BAJA">BAJA</option>
-            </select>
+            <select id="suggestSelect" style="width:100%; padding:8px; margin-top:5px;"><option value="">Sin definir</option><option value="ALTA">ALTA</option><option value="MEDIA">MEDIA</option><option value="BAJA">BAJA</option></select>
             <button onclick="saveAction('admin')" style="width:100%; margin-top:8px; background:#0369a1; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;">Guardar Sugerencia</button>
         </div>
 
-        <div id="tradeSection" style="display:none; background:#fffbeb; padding:10px; border-radius:10px; margin-top:10px;">
+        <div id="tradeSection" style="display:none; background:#fffbeb; padding:12px; border-radius:10px; margin-top:10px; border:1px solid #fef3c7;">
             <label style="font-size:10px; font-weight:800; color:#92400e;">APROBAR PRIORIDAD (TRADE)</label>
-            <p style="font-size:11px; margin-bottom:5px;">Sugerido por Supervisor: <b id="mSugerencia"></b></p>
-            <select id="approveSelect" style="width:100%; padding:8px; margin-top:5px;">
-                <option value="">Pendiente...</option>
-                <option value="ALTA">ALTA</option>
-                <option value="MEDIA">MEDIA</option>
-                <option value="BAJA">BAJA</option>
-            </select>
-            <button onclick="saveAction('trade')" style="width:100%; margin-top:8px; background:#d97706; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;">Confirmar y Enviar al Técnico</button>
+            <p style="font-size:11px; margin-bottom:5px;">Sugerencia: <b id="mSugerencia"></b></p>
+            <select id="approveSelect" style="width:100%; padding:8px; margin-top:5px;"><option value="">Pendiente...</option><option value="ALTA">ALTA</option><option value="MEDIA">MEDIA</option><option value="BAJA">BAJA</option></select>
+            <button onclick="saveAction('trade')" style="width:100%; margin-top:8px; background:#d97706; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;">Confirmar y Enviar</button>
         </div>
 
-        <div id="tecSection" style="display:none; background:#f0fdf4; padding:10px; border-radius:10px; margin-top:10px;">
+        <div id="tecSection" style="display:none; background:#f0fdf4; padding:12px; border-radius:10px; margin-top:10px; border:1px solid #dcfce7;">
             <label style="font-size:10px; font-weight:800; color:#166534;">ESTADO DEL TRABAJO</label>
             <p style="font-size:11px; margin-bottom:5px;">Prioridad: <b id="mPrioridadFinal"></b></p>
-            <select id="tecStatusSelect" style="width:100%; padding:8px; margin-top:5px;">
-                <option value="Pendiente">Pendiente</option>
-                <option value="Retiro">Retiro</option>
-                <option value="Resuelto">Resuelto (Finalizar)</option>
-            </select>
+            <select id="tecStatusSelect" style="width:100%; padding:8px; margin-top:5px;"><option value="Pendiente">Pendiente</option><option value="Retiro">Retiro</option><option value="Resuelto">Resuelto</option></select>
             <button onclick="saveAction('tecnico')" style="width:100%; margin-top:8px; background:#16a34a; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;">Actualizar Estado</button>
         </div>
 
-        <button onclick="closeModal()" style="width:100%; margin-top:15px; border:none; background:none; color:gray; cursor:pointer;">Cerrar</button>
+        <button onclick="closeModal()" style="width:100%; margin-top:15px; border:none; background:none; color:gray; cursor:pointer; font-weight:700;">Cerrar</button>
     </div>
 </div>
 
 <script>
-    // --- PEGA TU URL DE GOOGLE ACÁ ---
-    const MI_URL_GAS = "TU_URL_DE_APPS_SCRIPT_AQUI"; 
+    const MI_URL_GAS = "https://script.google.com/macros/s/AKfycbxyXIaeXcn-rnAZ597slHrDaYQdvvZMZoCH8sb5r93O0dCE13omTEpZUh2ri1sWyoGY/exec"; 
+    let rawData = [], userRole = "", userName = "", map, markersLayer = L.layerGroup(), currentData = null;
 
-    let rawData = [];
-    let userRole = "";
-    let userName = "";
-    let map;
-    let markersLayer = L.layerGroup();
-    let currentData = null;
-
-    function switchTab(tabId) {
+    function switchTab(t) {
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('tab-' + tabId).classList.add('active');
+        document.getElementById('tab-' + t).classList.add('active');
         event.currentTarget.classList.add('active');
-        if(tabId === 'mapa' && map) map.invalidateSize();
+        if(t === 'mapa' && map) map.invalidateSize();
     }
 
     function intentarLogin() {
         const u = document.getElementById('userInput').value.trim();
         const p = document.getElementById('passInput').value.trim();
+        if(!u || !p) return;
+        document.getElementById('loginBtn').innerText = "CONECTANDO...";
         const script = document.createElement('script');
         script.src = `${MI_URL_GAS}?action=login&usuario=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}&callback=respuestaLogin`;
         document.body.appendChild(script);
@@ -191,20 +154,17 @@
 
     function respuestaLogin(res) {
         if (res.ok) {
-            userRole = res.rol;
-            userName = res.label;
+            userRole = res.rol; userName = res.label;
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
-            document.getElementById('userDisplay').innerText = `HOLA, ${userName.toUpperCase()} (${userRole.toUpperCase()})`;
-            
+            document.getElementById('userLabel').innerText = `${userName} (${userRole.toUpperCase()})`;
             if(userRole === 'tecnico') {
                 document.getElementById('tabListadoBtn').style.display = 'none';
                 document.getElementById('tabRetiroBtn').style.display = 'none';
             }
-            initMap();
-            fetchData();
+            initMap(); fetchData();
         } else {
-            alert(res.msg);
+            alert(res.msg); document.getElementById('loginBtn').innerText = "INGRESAR";
         }
     }
 
@@ -220,108 +180,78 @@
         document.body.appendChild(script);
     }
 
-    function handleData(response) {
-        if (response.ok) {
-            rawData = response.registros;
-            renderAll(rawData);
-        }
-    }
-
-    function filterData() {
-        const s = document.getElementById('searchInput').value.toLowerCase();
-        const filtered = rawData.filter(r => r[0].toString().includes(s) || r[4].toLowerCase().includes(s));
-        renderAll(filtered);
+    function handleData(res) {
+        if (res.ok) { rawData = res.registros; renderAll(rawData); }
     }
 
     function renderAll(data) {
         renderMap(data);
-        renderTable(data);
+        const tbody = document.getElementById('tableBody'); tbody.innerHTML = "";
+        data.forEach(r => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${r[4]}</td><td>${r[0]}</td><td>${r[2]}</td><td>${r[13]||r[12]||'-'}</td><td>${r[14]||'Pendiente'}</td><td>${r[1].split('T')[0]}</td>`;
+            tbody.appendChild(tr);
+        });
     }
 
     function renderMap(data) {
-        markersLayer.clearLayers();
-        let bounds = [];
+        markersLayer.clearLayers(); let bounds = [];
         data.forEach(r => {
             const lat = parseFloat(r[8].toString().replace(',','.'));
             const lng = parseFloat(r[9].toString().replace(',','.'));
-            const dias = Math.floor((new Date() - new Date(r[1]))/(864e5));
-            let color = "m-green";
-            if(dias > 20) color = "m-red"; else if(dias >= 15) color = "m-yellow";
-
+            const fechaOriginal = new Date(r[1]); fechaOriginal.setHours(0,0,0,0);
+            const hoy = new Date(); hoy.setHours(0,0,0,0);
+            const dias = Math.floor((hoy - fechaOriginal)/864e5);
+            let color = "m-green"; if(dias > 20) color = "m-red"; else if(dias >= 15) color = "m-yellow";
             if(!isNaN(lat) && !isNaN(lng)) {
                 const icon = L.icon({ iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png', className: color });
-                L.marker([lat, lng], {icon: icon}).addTo(markersLayer).bindTooltip(`<b>OT: ${r[0]}</b><br>${r[13] || r[12] || 'Sin Prioridad'}`).on('click', () => showDetail(r));
+                L.marker([lat, lng], {icon: icon}).addTo(markersLayer).bindTooltip(`<b>OT: ${r[0]}</b><br>${r[13]||'Sin Aprobar'}`).on('click', () => showDetail(r));
                 bounds.push([lat, lng]);
             }
         });
         if(bounds.length > 0) map.fitBounds(bounds, {padding: [30,30]});
     }
 
-    function renderTable(data) {
-        const body = document.getElementById('tableBody');
-        body.innerHTML = "";
-        data.forEach(r => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${r[4]}</td><td>${r[0]}</td><td>${r[2]}</td><td>${r[13] || r[12] || '-'}</td><td>${r[14] || 'Pendiente'}</td><td>${r[1].split('T')[0]}</td>`;
-            body.appendChild(tr);
-        });
-    }
-
     function showDetail(r) {
-        currentData = r;
-        document.getElementById('mOT').innerText = "OT: " + r[0];
-        document.getElementById('mCliente').innerText = r[4];
-        document.getElementById('mFallaSugerida').innerText = r[7];
-
-        document.getElementById('supSection').style.display = "none";
-        document.getElementById('tradeSection').style.display = "none";
-        document.getElementById('tecSection').style.display = "none";
-
+        currentData = r; document.getElementById('mOT').innerText = "OT: " + r[0];
+        document.getElementById('mCliente').innerText = r[4]; document.getElementById('mFalla').innerText = r[7];
+        document.getElementById('supSection').style.display = document.getElementById('tradeSection').style.display = document.getElementById('tecSection').style.display = "none";
         if (userRole === 'admin') {
-            document.getElementById('supSection').style.display = "block";
-            document.getElementById('suggestSelect').value = r[12] || "";
+            document.getElementById('supSection').style.display = "block"; document.getElementById('suggestSelect').value = r[12] || "";
         } else if (userRole === 'trade') {
-            document.getElementById('tradeSection').style.display = "block";
-            document.getElementById('mSugerencia').innerText = r[12] || "Ninguna";
-            document.getElementById('approveSelect').value = r[13] || r[12] || "";
+            document.getElementById('tradeSection').style.display = "block"; document.getElementById('mSugerencia').innerText = r[12] || "S/D"; document.getElementById('approveSelect').value = r[13] || r[12] || "";
         } else if (userRole === 'tecnico') {
-            document.getElementById('tecSection').style.display = "block";
-            document.getElementById('mPrioridadFinal').innerText = r[13] || "S/D";
-            document.getElementById('tecStatusSelect').value = r[14] || "Pendiente";
+            document.getElementById('tecSection').style.display = "block"; document.getElementById('mPrioridadFinal').innerText = r[13] || "S/D"; document.getElementById('tecStatusSelect').value = r[14] || "Pendiente";
         }
         document.getElementById('detailModal').classList.add('show');
     }
 
     function saveAction(type) {
         const payload = {
-            ot: currentData[0],
-            cliente: currentData[4],
-            promotor: currentData[2],
+            ot: currentData[0], cliente: currentData[4], promotor: currentData[2],
             estado: type === 'tecnico' ? document.getElementById('tecStatusSelect').value : (currentData[14] || 'Pendiente'),
             sugerida: type === 'admin' ? document.getElementById('suggestSelect').value : (currentData[12] || ''),
             aprobada: type === 'trade' ? document.getElementById('approveSelect').value : (currentData[13] || ''),
-            aprobado_por: type === 'trade' ? userName : (currentData[15] || ''), // Adaptado según columnas de Seguimientos
+            aprobado_por: type === 'trade' ? userName : (currentData[15] || ''),
             tecnico: type === 'tecnico' ? userName : (currentData[6] || '')
         };
-
         const script = document.createElement('script');
         script.src = `${MI_URL_GAS}?action=updateSeguimiento&data=${encodeURIComponent(JSON.stringify(payload))}&callback=finishSave`;
         document.body.appendChild(script);
     }
 
-    function finishSave(res) {
-        if(res.ok) { alert("¡Guardado!"); closeModal(); fetchData(); }
+    function finishSave() { alert("Guardado"); closeModal(); fetchData(); }
+    function filterData() {
+        const s = document.getElementById('searchInput').value.toLowerCase();
+        const filtered = rawData.filter(r => r[0].toString().includes(s) || r[4].toLowerCase().includes(s));
+        renderAll(filtered);
     }
-
     function exportToExcel() {
         let csv = "CLIENTE,OT,PROMOTOR,PRIORIDAD,ESTADO,FECHA\n";
-        rawData.forEach(r => csv += `"${r[4]}","${r[0]}","${r[2]}","${r[13] || r[12]}","${r[14] || 'Pendiente'}","${r[1]}"\n`);
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = 'Solicitudes.csv'; a.click();
+        rawData.forEach(r => csv += `"${r[4]}","${r[0]}","${r[2]}","${r[13]||r[12]}","${r[14]||'Pendiente'}","${r[1].split('T')[0]}"\n`);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "Solicitudes.csv"; link.click();
     }
-
     function closeModal() { document.getElementById('detailModal').classList.remove('show'); }
 </script>
 </body>
