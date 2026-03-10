@@ -12,12 +12,30 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Bricolage Grotesque', sans-serif; background: var(--bg); color: var(--navy); overflow-x: hidden; }
 
-        /* --- LOGIN --- */
-        #loginScreen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at center, #1B5FA8 0%, #0F2A4A 100%); }
-        .login-box { background: white; border-radius: 24px; padding: 40px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
-        .btn-primary { width: 100%; background: var(--navy); color: white; border: none; border-radius: 10px; padding: 15px; font-weight: 700; cursor: pointer; }
+        /* --- LOGIN (AJUSTADO PARA QUE NO SE AGRANDE) --- */
+        #loginScreen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at center, #1B5FA8 0%, #0F2A4A 100%); padding: 20px; }
+        .login-box { background: white; border-radius: 28px; padding: 40px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+        
+        /* TAMAÑO DE LOGO FIJO */
+        .login-logo { 
+            width: 100px !important; 
+            height: 100px !important; 
+            border-radius: 50%; 
+            margin: 0 auto 20px; 
+            object-fit: cover; 
+            border: 4px solid #F8FAFC; 
+            display: block;
+        }
 
-        /* --- TOPBAR Y TABS --- */
+        .login-title { font-size: 18px; font-weight: 800; margin-bottom: 25px; line-height: 1.3; color: var(--navy); }
+        .lf { margin-bottom: 15px; text-align: left; }
+        .lf label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
+        .lf input { width: 100%; padding: 12px; border: 2px solid #edf2f7; border-radius: 10px; font-size: 16px; outline: none; }
+        .btn-primary { width: 100%; background: var(--navy); color: white; border: none; border-radius: 10px; padding: 15px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .btn-primary:hover { background: #1B5FA8; }
+
+        /* --- DASHBOARD ESTRUCTURA --- */
+        #dashboard { display: none; }
         .topbar { background: var(--navy); color: white; padding: 0 20px; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 1000; }
         .tabs-nav { background: white; border-bottom: 1px solid var(--border); display: flex; padding: 0 20px; gap: 10px; position: sticky; top: 60px; z-index: 999; }
         .tab-btn { padding: 15px 20px; border: none; background: none; font-family: inherit; font-weight: 700; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; font-size: 12px; text-transform: uppercase; }
@@ -25,22 +43,20 @@
         .tab-content { display: none; padding: 20px; max-width: 1600px; margin: 0 auto; }
         .tab-content.active { display: block; }
 
-        /* --- DISEÑO DEL MAPA (2 COLUMNAS) --- */
+        /* --- MAPA Y LISTA LATERAL --- */
         .map-layout { display: grid; grid-template-columns: 1fr 380px; gap: 20px; align-items: start; }
         #map { height: 600px; border-radius: var(--radius); border: 1px solid var(--border); z-index: 1; }
         .side-list { background: white; border-radius: var(--radius); border: 1px solid var(--border); display: flex; flex-direction: column; height: 600px; }
         .list-header { padding: 15px; font-weight: 800; border-bottom: 1px solid var(--border); background: #F8FAFC; border-radius: 16px 16px 0 0; }
         .list-container { flex: 1; overflow-y: auto; }
-        .list-item { padding: 15px; border-bottom: 1px solid #F1F5F9; cursor: pointer; transition: 0.2s; }
-        .list-item:hover { background: #F0F9FF; border-left: 4px solid var(--accent); }
-        .list-item h4 { font-size: 14px; margin-bottom: 4px; }
-        .list-item p { font-size: 12px; color: var(--muted); }
+        .list-item { padding: 15px; border-bottom: 1px solid #F1F5F9; cursor: pointer; transition: 0.2s; border-left: 4px solid transparent; }
+        .list-item:hover { background: #F0F9FF; border-left-color: var(--accent); }
 
-        /* --- TABLAS Y OTROS --- */
+        /* --- TABLA --- */
         .table-container { background: white; border-radius: var(--radius); border: 1px solid var(--border); overflow-x: auto; }
         .styled-table { width: 100%; border-collapse: collapse; font-size: 13px; }
         .styled-table th, .styled-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border); }
-        .styled-table thead { background: #F8FAFC; }
+        .styled-table thead { background: #F8FAFC; font-weight: 800; }
 
         /* MODAL */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(4px); }
@@ -61,24 +77,18 @@
 <div id="loginScreen">
     <div class="login-box">
         <img src="https://raw.githubusercontent.com/Matuses/Relevamiento/main/Logo_Suralnor_Emcala.jpeg" class="login-logo">
-        <div class="login-title" style="margin-bottom: 20px; font-weight: 800;">Gestión de Equipos de Frío</div>
-        <div style="text-align: left; margin-bottom: 15px;">
-            <label style="font-size: 11px; font-weight: 700; color: var(--muted);">USUARIO</label>
-            <input type="text" id="userInput" style="width:100%; padding:12px; border-radius:10px; border:1px solid var(--border); margin-top:5px;">
-        </div>
-        <div style="text-align: left; margin-bottom: 20px;">
-            <label style="font-size: 11px; font-weight: 700; color: var(--muted);">CONTRASEÑA</label>
-            <input type="password" id="passInput" style="width:100%; padding:12px; border-radius:10px; border:1px solid var(--border); margin-top:5px;">
-        </div>
-        <button id="loginBtn" class="btn-primary" onclick="intentarLogin()">INGRESAR AL SISTEMA</button>
+        <div class="login-title">Gestión de solicitudes, retiro y entrega de Equipos de frío</div>
+        <div class="lf"><label>Usuario</label><input type="text" id="userInput"></div>
+        <div class="lf"><label>Contraseña</label><input type="password" id="passInput"></div>
+        <button id="loginBtn" class="btn-primary" onclick="intentarLogin()">INGRESAR</button>
     </div>
 </div>
 
 <div id="dashboard">
     <div class="topbar">
-        <span style="font-weight: 800; letter-spacing: 1px;">SURALNOR · EMCALA</span>
+        <span style="font-weight: 800;">SURALNOR · EMCALA</span>
         <div style="display: flex; align-items: center; gap: 10px;">
-            <span id="userLabel" style="font-size: 11px; background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 100px;"></span>
+            <span id="userLabel" style="font-size: 11px; background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 100px;"></span>
             <button onclick="location.reload()" style="background:none; border:1px solid white; color:white; border-radius:5px; padding:3px 8px; cursor:pointer; font-size:11px;">Salir</button>
         </div>
     </div>
@@ -91,13 +101,11 @@
 
     <div id="tab-mapa" class="tab-content active">
         <input type="text" id="searchInput" placeholder="Buscar Cliente o OT..." oninput="filterData()" style="width:100%; padding:12px; margin-bottom:15px; border-radius:10px; border:1px solid var(--border); outline:none;">
-        
         <div class="map-layout">
             <div id="map"></div>
             <div class="side-list">
                 <div class="list-header">Órdenes Activas <span id="otCount" style="float:right; color:var(--accent);">0</span></div>
-                <div id="miniList" class="list-container">
-                    </div>
+                <div id="miniList" class="list-container"></div>
             </div>
         </div>
     </div>
@@ -105,7 +113,7 @@
     <div id="tab-listado" class="tab-content">
         <div style="display:flex; justify-content:space-between; margin-bottom:15px; align-items: center;">
             <h2>Historial de Solicitudes</h2>
-            <button onclick="exportToExcel()" style="background:#16A34A; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:700;">📊 Descargar Excel</button>
+            <button onclick="exportToExcel()" style="background:#16A34A; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:700;">Descargar Excel</button>
         </div>
         <div class="table-container">
             <table class="styled-table">
@@ -122,9 +130,9 @@
 
 <div class="modal-overlay" id="detailModal" onclick="if(event.target===this)closeModal()">
     <div class="modal">
-        <h2 id="mOT" style="color:var(--navy); margin-bottom:15px; border-bottom: 2px solid var(--bg); padding-bottom: 10px;">OT: ---</h2>
+        <h2 id="mOT">OT: ---</h2>
         <div class="modal-field"><label>Cliente</label><p id="mCliente" style="font-weight: 800;">-</p></div>
-        <div class="modal-field" style="background:#eefbff;"><label>Falla Sugerida (Relevamiento)</label><p id="mFalla" style="font-weight: 800;">-</p></div>
+        <div class="modal-field" style="background:#eefbff;"><label>Falla Sugerida</label><p id="mFalla" style="font-weight: 800;">-</p></div>
         
         <div id="supSection" style="display:none; background:#f0f9ff; padding:12px; border-radius:10px; margin-top:10px; border:1px solid #bae6fd;">
             <label style="font-size:10px; font-weight:800; color:#0369a1;">SUGERIR PRIORIDAD (SUPERVISOR)</label>
@@ -134,19 +142,19 @@
 
         <div id="tradeSection" style="display:none; background:#fffbeb; padding:12px; border-radius:10px; margin-top:10px; border:1px solid #fef3c7;">
             <label style="font-size:10px; font-weight:800; color:#92400e;">APROBAR PRIORIDAD (TRADE)</label>
-            <p style="font-size:11px; margin-bottom:5px;">Sugerencia del Supervisor: <b id="mSugerencia"></b></p>
+            <p style="font-size:11px; margin-bottom:5px;">Sugerencia: <b id="mSugerencia"></b></p>
             <select id="approveSelect" style="width:100%; padding:8px; margin-top:5px;"><option value="">Pendiente...</option><option value="ALTA">ALTA</option><option value="MEDIA">MEDIA</option><option value="BAJA">BAJA</option></select>
-            <button onclick="saveAction('trade')" style="width:100%; margin-top:8px; background:#d97706; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;">Confirmar y Enviar al Técnico</button>
+            <button onclick="saveAction('trade')" style="width:100%; margin-top:8px; background:#d97706; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;">Confirmar y Enviar</button>
         </div>
 
         <div id="tecSection" style="display:none; background:#f0fdf4; padding:12px; border-radius:10px; margin-top:10px; border:1px solid #dcfce7;">
             <label style="font-size:10px; font-weight:800; color:#166534;">ESTADO DEL TRABAJO</label>
-            <p style="font-size:11px; margin-bottom:5px;">Prioridad Asignada: <b id="mPrioridadFinal"></b></p>
+            <p style="font-size:11px; margin-bottom:5px;">Prioridad: <b id="mPrioridadFinal"></b></p>
             <select id="tecStatusSelect" style="width:100%; padding:8px; margin-top:5px;"><option value="Pendiente">Pendiente</option><option value="Retiro">Retiro</option><option value="Resuelto">Resuelto</option></select>
             <button onclick="saveAction('tecnico')" style="width:100%; margin-top:8px; background:#16a34a; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;">Actualizar Estado</button>
         </div>
 
-        <button onclick="closeModal()" style="width:100%; margin-top:15px; border:none; background:none; color:gray; cursor:pointer; font-weight:700; text-transform: uppercase; font-size: 11px;">Cerrar Ventana</button>
+        <button onclick="closeModal()" style="width:100%; margin-top:15px; border:none; background:none; color:gray; cursor:pointer; font-weight:700; text-transform: uppercase;">Cerrar</button>
     </div>
 </div>
 
@@ -184,7 +192,7 @@
             }
             initMap(); fetchData();
         } else {
-            alert(res.msg); document.getElementById('loginBtn').innerText = "INGRESAR AL SISTEMA";
+            alert(res.msg); document.getElementById('loginBtn').innerText = "INGRESAR";
         }
     }
 
@@ -215,13 +223,13 @@
         data.forEach(r => {
             const lat = parseFloat(r[8].toString().replace(',','.'));
             const lng = parseFloat(r[9].toString().replace(',','.'));
-            const fechaOriginal = new Date(r[1]); fechaOriginal.setHours(0,0,0,0);
+            const fOrg = new Date(r[1]); fOrg.setHours(0,0,0,0);
             const hoy = new Date(); hoy.setHours(0,0,0,0);
-            const dias = Math.floor((hoy - fechaOriginal)/864e5);
+            const dias = Math.floor((hoy - fOrg)/864e5);
             let color = "m-green"; if(dias > 20) color = "m-red"; else if(dias >= 15) color = "m-yellow";
             if(!isNaN(lat) && !isNaN(lng)) {
                 const icon = L.icon({ iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png', className: color });
-                L.marker([lat, lng], {icon: icon}).addTo(markersLayer).bindTooltip(`<b>OT: ${r[0]}</b><br>${r[13]||'Sin Aprobar'}`).on('click', () => showDetail(r));
+                L.marker([lat, lng], {icon: icon}).addTo(markersLayer).bindTooltip(`OT: ${r[0]}`).on('click', () => showDetail(r));
                 bounds.push([lat, lng]);
             }
         });
@@ -278,7 +286,7 @@
         document.body.appendChild(script);
     }
 
-    function finishSave() { alert("Guardado correctamente"); closeModal(); fetchData(); }
+    function finishSave() { alert("Guardado"); closeModal(); fetchData(); }
     
     function filterData() {
         const s = document.getElementById('searchInput').value.toLowerCase();
@@ -290,7 +298,7 @@
         let csv = "\uFEFFCLIENTE,OT,PROMOTOR,PRIORIDAD,ESTADO,FECHA\n";
         rawData.forEach(r => csv += `"${r[4]}","${r[0]}","${r[2]}","${r[13]||r[12]}","${r[14]||'Pendiente'}","${r[1].split('T')[0]}"\n`);
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "Solicitudes_Suralnor.csv"; link.click();
+        const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "Solicitudes.csv"; link.click();
     }
 
     function closeModal() { document.getElementById('detailModal').classList.remove('show'); }
