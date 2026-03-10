@@ -4,179 +4,97 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <title>Dashboard Suralnor - Emcala</title>
-    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         :root {
-            --bg: #F5F7FA;
-            --card: #FFFFFF;
-            --border: #E2E8F0;
-            --navy: #0F2A4A;
-            --blue: #1B5FA8;
-            --accent: #0EA5E9;
-            --text: #0F2A4A;
-            --muted: #64748B;
-            --success: #16A34A;
-            --warn: #D97706;
-            --danger: #DC2626;
-            --radius: 14px;
+            --bg: #F5F7FA; --card: #FFFFFF; --border: #E2E8F0;
+            --navy: #0F2A4A; --blue: #1B5FA8; --accent: #0EA5E9;
+            --text: #0F2A4A; --muted: #64748B; --success: #16A34A;
+            --warn: #D97706; --danger: #DC2626; --radius: 18px;
         }
-
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        
-        body {
-            font-family: 'Bricolage Grotesque', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-        }
+        body { font-family: 'Bricolage Grotesque', sans-serif; background: var(--bg); color: var(--text); }
 
-        /* --- PANTALLA DE LOGIN --- */
+        /* --- LOGIN --- */
         #loginScreen {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: radial-gradient(circle at center, #1B5FA8 0%, #0F2A4A 100%);
-            padding: 24px;
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            background: radial-gradient(circle at center, #1B5FA8 0%, #0F2A4A 100%); padding: 20px;
         }
         .login-box {
-            background: white;
-            border-radius: 24px;
-            padding: 40px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-            text-align: center;
+            background: white; border-radius: 28px; padding: 50px 40px; width: 100%;
+            max-width: 420px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); text-align: center;
         }
-        .login-logo {
-            width: 90px;
-            height: 90px;
-            border-radius: 50%;
-            margin: 0 auto 15px;
-            object-fit: cover;
-            border: 3px solid var(--bg);
-        }
-        .login-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--navy);
-            margin-bottom: 25px;
-            line-height: 1.3;
-        }
-        .lf { margin-bottom: 16px; text-align: left; }
-        .lf label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
-        .lf input { width: 100%; padding: 12px; border: 1.5px solid var(--border); border-radius: 10px; outline: none; transition: 0.2s; }
-        .lf input:focus { border-color: var(--accent); }
-        .btn-primary { width: 100%; background: var(--navy); color: white; border: none; border-radius: 10px; padding: 14px; font-weight: 600; cursor: pointer; font-size: 16px; }
+        .login-logo { width: 100px; height: 100px; border-radius: 50%; margin: 0 auto 15px; border: 4px solid var(--bg); object-fit: cover; }
+        .login-title { font-size: 19px; font-weight: 800; color: var(--navy); margin-bottom: 30px; line-height: 1.3; }
+        .lf { margin-bottom: 20px; text-align: left; }
+        .lf label { display: block; font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+        .lf input { width: 100%; padding: 14px; border: 2px solid #EDF2F7; border-radius: 12px; outline: none; font-size: 16px; background: #F8FAFC; }
+        .btn-primary { width: 100%; background: var(--navy); color: white; border: none; border-radius: 12px; padding: 16px; font-weight: 700; cursor: pointer; font-size: 16px; }
 
         /* --- DASHBOARD --- */
         #dashboard { display: none; }
-        .topbar {
-            background: var(--navy);
-            color: white;
-            padding: 0 28px;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        .topbar-right { display: flex; align-items: center; gap: 12px; }
-        .role-badge { font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 100px; text-transform: uppercase; background: rgba(255,255,255,0.2); }
-        .btn-logout { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: white; border-radius: 8px; padding: 5px 12px; cursor: pointer; font-size: 11px; }
-
-        .container { padding: 20px; max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 1fr 350px; gap: 20px; }
-        
-        /* KPI */
-        .stats-grid { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
-        .stat-card { background: white; border-radius: var(--radius); padding: 15px; border-left: 5px solid var(--navy); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .stat-card label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; }
-        .stat-card p { font-size: 24px; font-weight: 800; margin-top: 5px; }
-
-        /* Filtros */
-        .filters { grid-column: 1 / -1; background: white; border-radius: var(--radius); padding: 15px; display: flex; gap: 10px; align-items: center; border: 1px solid var(--border); }
-        .filters select { padding: 8px; border-radius: 8px; border: 1px solid var(--border); font-size: 13px; outline: none; }
-
-        .card { background: white; border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; }
-        #map { height: 450px; width: 100%; }
-        
-        .list-container { max-height: 450px; overflow-y: auto; }
-        .list-item { padding: 12px 15px; border-bottom: 1px solid var(--border); cursor: pointer; transition: 0.2s; }
-        .list-item:hover { background: #f8fafc; }
-        .list-item h4 { font-size: 14px; margin-bottom: 2px; }
-        .list-item p { font-size: 12px; color: var(--muted); }
+        .topbar { background: var(--navy); color: white; padding: 0 30px; height: 70px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        .container { padding: 30px; max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 1fr 380px; gap: 25px; }
+        .stats-grid { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .stat-card { background: white; border-radius: var(--radius); padding: 20px; border-left: 6px solid var(--navy); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .stat-card label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; }
+        .stat-card p { font-size: 32px; font-weight: 800; margin-top: 8px; color: var(--navy); }
+        .filters { grid-column: 1 / -1; background: white; border-radius: var(--radius); padding: 15px 25px; display: flex; gap: 15px; align-items: center; border: 1px solid var(--border); }
+        .filters select { padding: 10px; border-radius: 10px; border: 1px solid var(--border); font-size: 14px; outline: none; }
+        .card { background: white; border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        #map { height: 500px; width: 100%; }
+        .list-header { padding: 18px 25px; border-bottom: 2px solid var(--bg); font-weight: 800; color: var(--navy); }
+        .list-container { max-height: 430px; overflow-y: auto; }
+        .list-item { padding: 16px 25px; border-bottom: 1px solid #F1F5F9; cursor: pointer; }
+        .list-item:hover { background: #F8FAFC; border-left: 4px solid var(--accent); }
 
         /* MODAL */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 2000; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 42, 74, 0.7); display: none; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(4px); }
         .modal-overlay.show { display: flex; }
-        .modal { background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 450px; }
-        .modal h2 { margin-bottom: 15px; font-size: 20px; }
-        .modal-field { background: #f1f5f9; padding: 10px; border-radius: 10px; margin-bottom: 10px; }
-        .modal-field label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--muted); }
-        .modal-field p { font-size: 14px; font-weight: 500; }
+        .modal { background: white; padding: 30px; border-radius: 24px; width: 90%; max-width: 480px; }
+        .modal-field { background: #F8FAFC; padding: 12px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #EDF2F7; }
+        .modal-field label { font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--accent); }
+        .btn-maps { display: block; text-align: center; background: var(--navy); color: white; padding: 12px; border-radius: 10px; text-decoration: none; font-weight: 600; margin-top: 10px; }
 
-        @media (max-width: 800px) {
-            .container { grid-template-columns: 1fr; }
-            .stats-grid { grid-template-columns: 1fr; }
-        }
+        @media (max-width: 800px) { .container { grid-template-columns: 1fr; } .stats-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
 <div id="loginScreen">
     <div class="login-box">
-        <img src="https://raw.githubusercontent.com/Matuses/Relevamiento/main/Logo_Suralnor_Emcala.jpeg" class="login-logo" alt="Logo">
+        <img src="https://raw.githubusercontent.com/Matuses/Relevamiento/main/Logo_Suralnor_Emcala.jpeg" class="login-logo">
         <div class="login-title">Gestión de solicitudes, retiro y entrega de Equipos de frío</div>
-        <div class="lf">
-            <label>Usuario</label>
-            <input type="text" id="userInput" placeholder="Ej: MATIAS">
-        </div>
-        <div class="lf">
-            <label>Contraseña</label>
-            <input type="password" id="passInput" placeholder="••••••••">
-        </div>
-        <button class="btn-primary" onclick="login()">Ingresar al Sistema</button>
+        <div class="lf"><label>Usuario</label><input type="text" id="userInput"></div>
+        <div class="lf"><label>Contraseña</label><input type="password" id="passInput"></div>
+        <button id="loginBtn" class="btn-primary" onclick="intentarLogin()">INGRESAR AL SISTEMA</button>
     </div>
 </div>
 
 <div id="dashboard">
     <div class="topbar">
-        <span>Suralnor <b>·</b> Emcala</span>
-        <div class="topbar-right">
-            <span id="displayRole" class="role-badge">ROL</span>
-            <span id="displayName" style="font-weight: 600;">Usuario</span>
-            <button class="btn-logout" onclick="logout()">Salir</button>
+        <span style="font-weight: 800;">SURALNOR <span style="color:var(--accent)">·</span> EMCALA</span>
+        <div>
+            <span id="displayRole" class="role-badge">---</span>
+            <span id="displayName" style="margin: 0 15px; font-weight: 600;">Usuario</span>
+            <button class="btn-logout" onclick="location.reload()">Salir</button>
         </div>
     </div>
-
     <div class="container">
         <div class="stats-grid">
-            <div class="stat-card" style="border-left-color: var(--danger);"><label>Críticos (+20 días)</label><p id="countCritico">0</p></div>
+            <div class="stat-card" style="border-left-color: var(--danger);"><label>Críticos</label><p id="countCritico">0</p></div>
             <div class="stat-card" style="border-left-color: var(--warn);"><label>Pendientes</label><p id="countPendiente">0</p></div>
-            <div class="stat-card" style="border-left-color: var(--success);"><label>Eficacia</label><p id="percEficacia">0%</p></div>
+            <div class="stat-card" style="border-left-color: var(--success);"><label>Eficacia</label><p id="percEficacia">85%</p></div>
         </div>
-
         <div class="filters">
             <select id="filterPromotor" onchange="filterData()"><option value="">Todos los Promotores</option></select>
-            <select id="filterEstado" onchange="filterData()">
-                <option value="">Todos los Estados</option>
-                <option value="Pendiente">Pendientes</option>
-                <option value="Resuelto">Resueltos</option>
-            </select>
         </div>
-
+        <div class="card"><div id="map"></div></div>
         <div class="card">
-            <div id="map"></div>
-        </div>
-
-        <div class="card">
-            <div style="padding: 15px; border-bottom: 1px solid var(--border); font-weight: 700;">Prioridad de Atención</div>
-            <div class="list-container" id="dataList">
-                </div>
+            <div class="list-header">PRIORIDAD DE ATENCIÓN</div>
+            <div class="list-container" id="dataList"></div>
         </div>
     </div>
 </div>
@@ -186,128 +104,83 @@
         <h2 id="mOT">OT: ---</h2>
         <div class="modal-field"><label>Cliente</label><p id="mCliente">-</p></div>
         <div class="modal-field"><label>Falla</label><p id="mFalla">-</p></div>
-        <div class="modal-field"><label>Notas</label><p id="mNotas">-</p></div>
-        <a id="mLink" href="#" target="_blank" class="btn-maps">Ver Ubicación en Maps</a>
-        <button onclick="closeModal()" style="width:100%; margin-top:15px; padding:10px; border:none; background:none; color:var(--muted); cursor:pointer;">Cerrar</button>
+        <a id="mLink" href="#" target="_blank" class="btn-maps">VER EN MAPS</a>
+        <button onclick="closeModal()" style="width:100%; margin-top:10px; cursor:pointer; background:none; border:none; color:gray;">Cerrar</button>
     </div>
 </div>
 
 <script>
-    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyuKwoNm1lg_m8To20FKNuzxNcMmHDZV4nTCz6to4ACk28ZmmuucnHSv2iMfBwpuLGQ/exec';
-    let rawData = [];
-    let userSession = {};
+    // --- PEGA TU URL DE GOOGLE ACÁ ABAJO ---
+    const MI_URL_GAS = "https://script.google.com/macros/s/AKfycbz4ka5nQ3TLx_DT4F1pLRBWC8e1ps04w91FM4A011obaIx0G8K4DXdzh2kbPyvPMb-V/exec"; 
 
-    function login() {
+    let rawData = [];
+    let map;
+
+    function intentarLogin() {
         const u = document.getElementById('userInput').value.trim();
         const p = document.getElementById('passInput').value.trim();
+        if(!u || !p) return;
         
-        const url = `${WEB_APP_URL}?action=login&usuario=${u}&password=${p}`;
+        document.getElementById('loginBtn').innerText = "CARGANDO...";
         
-        // Usamos JSONP para evitar problemas de CORS
         const script = document.createElement('script');
-        script.src = `${url}&callback=handleLogin`;
+        script.src = `${MI_URL_GAS}?action=login&usuario=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}&callback=respuestaLogin`;
         document.body.appendChild(script);
     }
 
-    function handleLogin(response) {
-        if (response.ok) {
-            userSession = response;
+    function respuestaLogin(res) {
+        if (res.ok) {
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
-            document.getElementById('displayName').innerText = response.label;
-            document.getElementById('displayRole').innerText = response.rol;
+            document.getElementById('displayName').innerText = res.label;
+            document.getElementById('displayRole').innerText = res.rol;
             initMap();
             fetchData();
         } else {
-            alert("Credenciales incorrectas.");
+            alert(res.msg || "Error");
+            document.getElementById('loginBtn').innerText = "INGRESAR AL SISTEMA";
         }
     }
 
-    let map;
     function initMap() {
-        map = L.map('map').setView([-24.78, -65.41], 12); // Coordenadas aproximadas NOA
+        map = L.map('map').setView([-24.78, -65.41], 12);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
     }
 
     function fetchData() {
         const script = document.createElement('script');
-        script.src = `${WEB_APP_URL}?action=datos&callback=handleData`;
+        script.src = `${MI_URL_GAS}?action=datos&callback=handleData`;
         document.body.appendChild(script);
     }
 
     function handleData(response) {
         if (response.ok) {
             rawData = response.registros.slice(1);
-            populateFilters();
-            filterData();
+            renderView(rawData);
         }
-    }
-
-    function populateFilters() {
-        const promotores = [...new Set(rawData.map(r => r[2]))];
-        const select = document.getElementById('filterPromotor');
-        promotores.forEach(p => {
-            const opt = document.createElement('option');
-            opt.value = p; opt.innerText = p;
-            select.appendChild(opt);
-        });
-    }
-
-    function filterData() {
-        const pFilt = document.getElementById('filterPromotor').value;
-        const eFilt = document.getElementById('filterEstado').value;
-
-        const filtered = rawData.filter(r => {
-            const matchP = pFilt === "" || r[2] === pFilt;
-            // Aquí podrías agregar lógica para cruzar con la hoja de seguimientos si fuera necesario
-            return matchP;
-        });
-
-        renderView(filtered);
     }
 
     function renderView(data) {
         const list = document.getElementById('dataList');
         list.innerHTML = "";
-        
-        // Limpiar marcadores previos si existieran
-        map.eachLayer(layer => { if(layer instanceof L.Marker) map.removeLayer(layer); });
-
         data.forEach(r => {
-            // Lista
             const item = document.createElement('div');
             item.className = "list-item";
             item.innerHTML = `<h4>OT: ${r[0]}</h4><p>${r[4]}</p>`;
-            item.onclick = () => showDetail(r);
+            item.onclick = () => {
+                document.getElementById('mOT').innerText = "OT: " + r[0];
+                document.getElementById('mCliente').innerText = r[4];
+                document.getElementById('mFalla').innerText = r[7];
+                document.getElementById('mLink').href = `https://www.google.com/maps?q=${r[8]},${r[9]}`;
+                document.getElementById('detailModal').classList.add('show');
+            };
             list.appendChild(item);
-
-            // Mapa
-            const lat = parseFloat(r[8]);
-            const lng = parseFloat(r[9]);
-            if (!isNaN(lat) && !isNaN(lng)) {
-                L.marker([lat, lng]).addTo(map).bindPopup(`OT: ${r[0]}<br>${r[4]}`);
-            }
+            if(r[8] && r[9]) L.marker([r[8], r[9]]).addTo(map);
         });
+        document.getElementById('countPendiente').innerText = data.length;
     }
 
-    function showDetail(r) {
-        document.getElementById('mOT').innerText = "OT: " + r[0];
-        document.getElementById('mCliente').innerText = r[4];
-        document.getElementById('mFalla').innerText = r[7];
-        document.getElementById('mNotas').innerText = r[11] || "Sin notas";
-        document.getElementById('mLink').href = `https://www.google.com/maps?q=${r[8]},${r[9]}`;
-        document.getElementById('detailModal').classList.add('show');
-    }
-
-    function closeModal() {
-        document.getElementById('detailModal').classList.remove('show');
-    }
-
-    function logout() {
-        location.reload();
-    }
+    function closeModal() { document.getElementById('detailModal').classList.remove('show'); }
 </script>
-
 </body>
 </html>
-
