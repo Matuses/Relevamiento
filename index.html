@@ -11,16 +11,6 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-
-  /* =====================================
-     SURALNOR / EMCALA — DASHBOARD
-     Secciones: LOGIN · TOPBAR · FILTROS
-                MAPA · LISTA · MODAL
-                TABLA · SEGUIMIENTO
-  ===================================== */
-
-
-  /* ==================== RESET & VARIABLES ==================== */
   :root {
   --bg:#F5F7FA; --card:#FFFFFF; --border:#E2E8F0;
   --navy:#0F2A4A; --blue:#1B5FA8; --accent:#0EA5E9;
@@ -39,8 +29,7 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
 .login-box{background:white;border-radius:24px;padding:48px 40px;width:100%;max-width:400px;box-shadow:var(--shadow-lg);position:relative;z-index:1;animation:loginUp 0.5s ease forwards;}
 @keyframes loginUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
 .login-logo{display:flex;justify-content:center;margin-bottom:24px;}
-.login-logo-icon{width:40px;height:40px;background:var(--navy);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
-.login-logo-text{font-size:18px;font-weight:700;color:var(--navy);}
+
 .login-logo-text span{color:var(--accent);}
   .login-subtitle-sub{font-size:13px;color:var(--accent);font-weight:600;margin-bottom:2px;letter-spacing:0.03em;}
 .login-box h2{font-size:26px;font-weight:800;margin-bottom:6px;text-align:center;}
@@ -57,7 +46,7 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
 #dashboard{display:none;}
 .topbar{background:var(--navy);color:white;padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(15,42,74,0.2);}
 .topbar-left{display:flex;align-items:center;gap:12px;}
-.topbar-icon{width:32px;height:32px;background:rgba(14,165,233,0.2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;}
+
 .topbar-title{font-size:16px;font-weight:700;}
 .topbar-title span{color:var(--accent);}
 .topbar-right{display:flex;align-items:center;gap:12px;}
@@ -69,8 +58,6 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
   .tab-btn{background:transparent;border:none;color:rgba(255,255,255,0.6);font-size:13px;font-weight:600;padding:6px 14px;border-radius:8px;cursor:pointer;transition:all 0.2s;}
   .tab-btn:hover{background:rgba(255,255,255,0.1);color:white;}
   .tab-btn.active{background:rgba(255,255,255,0.15);color:white;}
-  
-  /* ==================== TABLA (TRADE) ==================== */
   #vistaTabla{display:none;padding:16px 24px;overflow:auto;}
   .tabla-filters{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px;align-items:flex-end;}
   .tabla-filters input,.tabla-filters select{padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;color:var(--text);background:white;min-width:140px;}
@@ -92,8 +79,6 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
 .main{padding:24px 28px;display:grid;grid-template-columns:1fr 360px;grid-template-rows:auto 1fr;gap:20px;max-width:1400px;margin:0 auto;}
 
 /* FILTROS */
-
-  /* ==================== FILTROS ==================== */
   .filters-bar{grid-column:1/-1;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:var(--shadow);}
 .filters-bar label{font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap;}
 .filters-bar select,.filters-bar input[type="date"]{padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Bricolage Grotesque',sans-serif;font-size:13px;color:var(--text);background:var(--bg);outline:none;cursor:pointer;transition:border-color 0.2s;}
@@ -111,8 +96,6 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
 .badge-count{background:var(--navy);color:white;font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px;}
 
 /* MAPA */
-
-  /* ==================== MAPA ==================== */
   #map{flex:1;min-height:420px;}
 .map-legend{padding:12px 20px;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:10px;background:#FAFBFD;min-height:44px;}
 .legend-item{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--text);}
@@ -120,8 +103,6 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
 
 /* LISTA */
 .table-scroll{overflow-y:auto;flex:1;max-height:calc(100vh - 200px);}
-
-  /* ==================== LISTA DE REGISTROS ==================== */
   .reg-item{display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.15s;}
 .reg-item:last-child{border-bottom:none;}
 .reg-item:hover{background:#F0F6FF;}
@@ -136,8 +117,6 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
 .reg-nogps{font-size:10px;color:var(--muted);margin-top:2px;}
 
 /* ESTADO BADGE en lista */
-
-  /* ==================== ESTADOS ==================== */
   .estado-pill{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;margin-top:3px;}
 .estado-pill.en-proceso{background:#FEF3C7;color:#92400E;}
 .estado-pill.resuelto{background:#D1FAE5;color:#065F46;}
@@ -152,8 +131,6 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* MODAL */
-
-  /* ==================== MODAL ==================== */
   .modal-overlay{position:fixed;inset:0;background:rgba(15,42,74,0.45);backdrop-filter:blur(4px);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;}
 .modal-overlay.show{display:flex;animation:fadeIn 0.2s ease;}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
@@ -180,8 +157,6 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
 .btn-maps:hover{background:var(--blue);}
 
 /* SECCIÓN TÉCNICO EN MODAL */
-
-  /* ==================== SEGUIMIENTO ==================== */
   .seguimiento-section{margin-top:4px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:10px 12px;}
 .seguimiento-section.readonly{background:#F8FAFC;border-color:var(--border);}
 .seg-title{font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--success);margin-bottom:6px;display:flex;align-items:center;gap:6px;}
@@ -199,18 +174,11 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
 .btn-guardar:hover{background:#15803D;}
 .btn-guardar:disabled{opacity:0.6;cursor:not-allowed;}
 .save-ok{text-align:center;color:var(--success);font-size:13px;font-weight:600;padding:8px;display:none;}
-
-
-  /* ==================== RETIRO / ENTREGA ==================== */
   #btnNuevaSolicitud:hover{background:var(--blue) !important;}
   #vistaRetiro .excel-table th{background:var(--navy);color:white;}
-
-/* ==================== CHAT ==================== */
   #chatBox::-webkit-scrollbar{width:4px;}
   #chatBox::-webkit-scrollbar-thumb{background:#E2E8F0;border-radius:4px;}
   #chatInput:focus{border-color:var(--blue);outline:none;}
-
-  /* ==================== RESPONSIVE ==================== */
   /* Tablet */
 @media(max-width:900px){
   .main{grid-template-columns:1fr;padding:12px;gap:12px;}
@@ -288,7 +256,6 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
 input,select,textarea{font-size:16px;}
 input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-action:manipulation;-webkit-appearance:none;appearance:none;}
 
-
 /*
  * =====================================
  * JAVASCRIPT — SECCIONES:
@@ -299,19 +266,6 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
  * =====================================
  */
 
-PE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<meta name="theme-color" content="#0F2A4A">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<title>Dashboard – Suralnor / Emcala</title>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<style>
 :root {
   --bg:#F5F7FA; --card:#FFFFFF; --border:#E2E8F0;
   --navy:#0F2A4A; --blue:#1B5FA8; --accent:#0EA5E9;
@@ -635,7 +589,6 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
   </div>
 </div>
 
-
 </div>
 
 <!-- MODAL -->
@@ -654,7 +607,6 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
 
 <script>
 
-
 /* ==================== CONFIGURACIÓN ==================== */
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyuKwoNm1lg_m8To20FKNuzxNcMmHDZV4nTCz6to4ACk28ZmmuucnHSv2iMfBwpuLGQ/exec';
 
@@ -665,8 +617,6 @@ const ESTADO_META = {
   '':          { label:'Sin estado',cls:'sin-estado',icon:'⬜' }
 };
 
-
-
 /* ==================== ESTADO GLOBAL ==================== */
 let allData=[], seguimientos={}, chatData={}, filtered=[], leafMap=null, markers=[], modalLeaf=null;
 let currentUser=null, currentRole=null, currentPass=null;
@@ -674,8 +624,6 @@ let currentUser=null, currentRole=null, currentPass=null;
 // LOGIN
 document.getElementById('loginUser').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('loginPass').focus(); });
 document.getElementById('loginPass').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
-
-
 
 /* ==================== AUTENTICACIÓN ==================== */
 function jsonp(url) {
@@ -689,7 +637,7 @@ function jsonp(url) {
   });
 }
 
-async function doLogin() {
+async async function doLogin() {
   const u = document.getElementById('loginUser').value.trim().toUpperCase();
   const p = document.getElementById('loginPass').value;
   const btn = document.querySelector('.btn-primary');
@@ -722,14 +670,13 @@ async function doLogin() {
   btn.textContent = 'Ingresar →'; btn.disabled = false;
 }
 
-
 /* ==================== RETIRO / ENTREGA ==================== */
   #btnNuevaSolicitud:hover{background:var(--blue) !important;}
   #vistaRetiro .excel-table th{background:var(--navy);color:white;}
 
 /* ==================== CHAT ==================== */
 async function enviarChat(ot) {
-  const input = document.getElementById('chatInput');
+  const input = document.getElementById('modalPanel').querySelector('[data-mid="chatInput"]');
   const msg = (input.value||'').trim();
   if(!msg) return;
   input.value = '';
@@ -753,7 +700,7 @@ async function enviarChat(ot) {
     chatData[ot].push({ts, fecha, autor:currentUser, rol:currentRole, mensaje:msg});
 
     // Actualizar chatBox sin cerrar el modal
-    const chatBox = document.getElementById('chatBox');
+    const chatBox = document.getElementById('modalPanel').querySelector('[data-mid="chatBox"]');
     if(chatBox) {
       const m = chatData[ot].slice(-1)[0];
       const isMe = m.rol === currentRole;
@@ -820,8 +767,6 @@ function doLogout() {
   document.getElementById('loginUser').value = '';
   document.getElementById('loginPass').value = '';
 }
-
-
 
 /* ==================== TABLA (TRADE) ==================== */
 function switchTab(tab) {
@@ -917,7 +862,6 @@ function exportarExcel() {
 
 // MAPA
 
-
 /* ==================== PARSERS CHAT ==================== */
 function parseChat(rows) {
   // Retorna { ot: [{ts, autor, rol, mensaje}, ...] }
@@ -992,7 +936,6 @@ function updateMap(data) {
 
 // DATA
 
-
 /* ==================== CARGA DE DATOS ==================== */
 async function loadData() {
   document.getElementById('registrosList').innerHTML='<div class="loading-state"><div class="spin"></div><p>Cargando registros...</p></div>';
@@ -1011,8 +954,6 @@ async function loadData() {
     document.getElementById('registrosList').innerHTML='<div class="empty-state"><div class="ico">⚠️</div><p>Error al cargar los datos.</p></div>';
   }
 }
-
-
 
 /* ==================== PARSERS ==================== */
 function parseRegistros(rows) {
@@ -1060,12 +1001,6 @@ function parseSeguimientos(rows) {
   return map;
 }
 
-function splitCSV(line){
-  const res=[];let cur='',inQ=false;
-  for(const ch of line){if(ch==='"')inQ=!inQ;else if(ch===','&&!inQ){res.push(cur.trim());cur='';}else cur+=ch;}
-  res.push(cur.trim());return res;
-}
-
 function getSegByOt(ot, cli) {
   return seguimientos[ot] || seguimientos[cli] || null;
 }
@@ -1082,8 +1017,6 @@ function getPrioridadSugerida(ot, cli) {
   const seg = getSegByOt(ot, cli);
   return seg ? (seg.prioridad_sugerida||'') : '';
 }
-
-
 
 /* ==================== FILTROS ==================== */
 function populateFilter() {
@@ -1146,7 +1079,6 @@ function clearFilters(){
 
 // LISTA
 
-
 /* ==================== LISTA ==================== */
 function renderList(data) {
   const el=document.getElementById('registrosList');
@@ -1179,7 +1111,6 @@ function renderList(data) {
 }
 
 // MODAL
-
 
 /* ==================== MODAL ==================== */
 function openModal(r) {
@@ -1216,22 +1147,22 @@ function openModal(r) {
         ${seg2&&seg2.comentario?`<div class="seg-last">Última devolución: <strong>${em.icon} ${em.label}</strong><br>"${seg2.comentario}"${seg2.fecha?`<span class="seg-ts">${seg2.tecnico} · ${seg2.fecha}</span>`:''}</div>`:''}
         <div class="seg-form">
           <label>Estado</label>
-          <select id="segEstado">
+          <select data-mid="segEstado">
             <option value="resuelto"  ${eKey==='resuelto'?'selected':''}>✅ Resuelto</option>
             <option value="retiro"    ${eKey==='retiro'  ?'selected':''}>📦 Retiro</option>
           </select>
           <label>Devolución</label>
-          <textarea id="segComentario" placeholder="Describí el estado del equipo...">${seg2?seg2.comentario:''}</textarea>
-          <button class="btn-guardar" id="btnGuardar" onclick="guardarSeguimiento('${r.cliente}','${r.nombre}','${r.ot}','tecnico')">
+          <textarea data-mid="segComentario" placeholder="Describí el estado del equipo...">${seg2?seg2.comentario:''}</textarea>
+          <button class="btn-guardar" data-mid="btnGuardar" onclick="guardarSeguimiento('${r.cliente}','${r.nombre}','${r.ot}','tecnico')">
             💾 Guardar devolución
           </button>
-          <div class="save-ok" id="saveOk">✅ Guardado correctamente</div>
+          <div class="save-ok" data-mid="saveOk">✅ Guardado correctamente</div>
         </div>
       </div>
       <div class="modal-sec">💬 Chat</div>
-      <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:12px;margin-bottom:8px;max-height:200px;overflow-y:auto;" id="chatBox">${chatHTML}</div>
+      <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:12px;margin-bottom:8px;max-height:200px;overflow-y:auto;" data-mid="chatBox">${chatHTML}</div>
       <div style="display:flex;gap:8px;">
-        <input id="chatInput" placeholder="Escribí un mensaje..." style="flex:1;padding:9px 12px;border:1.5px solid #E2E8F0;border-radius:8px;font-size:13px;color:#0F2A4A;background:white;">
+        <input data-mid="chatInput" placeholder="Escribí un mensaje..." style="flex:1;padding:9px 12px;border:1.5px solid #E2E8F0;border-radius:8px;font-size:13px;color:#0F2A4A;background:white;">
         <button onclick="enviarChat('${r.ot}')" style="background:#0F2A4A;color:white;border:none;padding:9px 16px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;">Enviar</button>
       </div>`;
 
@@ -1244,14 +1175,14 @@ function openModal(r) {
         ${seg2&&seg2.comentario?`<div class="seg-last"><strong>${em.icon} ${em.label}</strong><br>"${seg2.comentario}"${seg2.fecha?`<span class="seg-ts">${seg2.tecnico} · ${seg2.fecha}</span>`:''}</div>`:''}
         <div class="seg-form">
           <label>Prioridad sugerida ${priA?`<span style="color:var(--success)">· Aprobada: P${priA} por ${seg2.aprobado_por}</span>`:''}</label>
-          <select id="segPriSug">
+          <select data-mid="segPriSug">
             <option value="">Sin prioridad</option>
             ${[1,2,3,4,5].map(n=>`<option value="${n}" ${priS==n?'selected':''}>${n==='1'||n===1?'⚠️ ':n==='2'||n===2?'⚠️ ':''}P${n}</option>`).join('')}
           </select>
-          <button class="btn-guardar" id="btnGuardar" onclick="guardarSeguimiento('${r.cliente}','${r.nombre}','${r.ot}','supervisor')">
+          <button class="btn-guardar" data-mid="btnGuardar" onclick="guardarSeguimiento('${r.cliente}','${r.nombre}','${r.ot}','supervisor')">
             💾 Guardar prioridad
           </button>
-          <div class="save-ok" id="saveOk">✅ Guardado correctamente</div>
+          <div class="save-ok" data-mid="saveOk">✅ Guardado correctamente</div>
         </div>
       </div>`;
 
@@ -1274,20 +1205,20 @@ function openModal(r) {
         ${seg2&&seg2.comentario?`<div class="seg-last"><strong>${em.icon} ${em.label}</strong><br>"${seg2.comentario}"</div>`:''}
         <div class="seg-form">
           <label>Aprobar prioridad</label>
-          <select id="segPriApr" style="border-color:#DDD6FE;">
+          <select data-mid="segPriApr" style="border-color:#DDD6FE;">
             <option value="">Sin prioridad</option>
             ${[1,2,3,4,5].map(n=>`<option value="${n}" ${priA==n?'selected':''}>${n==='1'||n===1?'⚠️ ':n==='2'||n===2?'⚠️ ':''}P${n}</option>`).join('')}
           </select>
-          <button class="btn-guardar" id="btnGuardar" style="background:#7C3AED;" onclick="guardarSeguimiento('${r.cliente}','${r.nombre}','${r.ot}','trade')">
+          <button class="btn-guardar" data-mid="btnGuardar" style="background:#7C3AED;" onclick="guardarSeguimiento('${r.cliente}','${r.nombre}','${r.ot}','trade')">
             ✅ Aprobar prioridad
           </button>
-          <div class="save-ok" id="saveOk">✅ Aprobado correctamente</div>
+          <div class="save-ok" data-mid="saveOk">✅ Aprobado correctamente</div>
         </div>
       </div>
       <div class="modal-sec">💬 Chat con Técnico</div>
-      <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:12px;margin-bottom:8px;max-height:200px;overflow-y:auto;" id="chatBox">${chatHTML}</div>
+      <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:12px;margin-bottom:8px;max-height:200px;overflow-y:auto;" data-mid="chatBox">${chatHTML}</div>
       <div style="display:flex;gap:8px;">
-        <input id="chatInput" placeholder="Escribí un mensaje al técnico..." style="flex:1;padding:9px 12px;border:1.5px solid #E2E8F0;border-radius:8px;font-size:13px;color:#0F2A4A;background:white;">
+        <input data-mid="chatInput" placeholder="Escribí un mensaje al técnico..." style="flex:1;padding:9px 12px;border:1.5px solid #E2E8F0;border-radius:8px;font-size:13px;color:#0F2A4A;background:white;">
         <button onclick="enviarChat('${r.ot}')" style="background:#7C3AED;color:white;border:none;padding:9px 16px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;">Enviar</button>
       </div>`;
   }
@@ -1326,11 +1257,10 @@ function openModal(r) {
   }
 }
 
-
-
 /* ==================== SEGUIMIENTO ==================== */
 async function guardarSeguimiento(cliente, promotor, ot, tipoRol) {
-  const btn=document.getElementById('btnGuardar');
+  const modal = document.getElementById('modalPanel');
+  const btn = modal.querySelector('[data-mid="btnGuardar"]');
   btn.disabled=true; btn.textContent='Guardando...';
 
   const key = ot||cliente;
@@ -1341,13 +1271,13 @@ async function guardarSeguimiento(cliente, promotor, ot, tipoRol) {
     aprobado_por: prev.aprobado_por||''};
 
   if(tipoRol==='tecnico') {
-    payload.estado    = document.getElementById('segEstado').value;
-    payload.comentario= document.getElementById('segComentario').value.trim();
+    payload.estado    = modal.querySelector('[data-mid="segEstado"]').value;
+    payload.comentario= modal.querySelector('[data-mid="segComentario"]').value.trim();
     payload.tecnico   = currentUser;
   } else if(tipoRol==='supervisor') {
-    payload.prioridad_sugerida = document.getElementById('segPriSug').value;
+    payload.prioridad_sugerida = modal.querySelector('[data-mid="segPriSug"]').value;
   } else if(tipoRol==='trade') {
-    payload.prioridad_aprobada = document.getElementById('segPriApr').value;
+    payload.prioridad_aprobada = modal.querySelector('[data-mid="segPriApr"]').value;
     payload.aprobado_por       = currentUser;
   }
 
@@ -1358,7 +1288,7 @@ async function guardarSeguimiento(cliente, promotor, ot, tipoRol) {
     const fecha=new Date().toLocaleDateString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',day:'2-digit',month:'2-digit',year:'numeric'})+' '+new Date().toLocaleTimeString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',hour:'2-digit',minute:'2-digit'});
     seguimientos[key]={...prev, ...payload, ts, fecha};
     btn.style.display='none';
-    document.getElementById('saveOk').style.display='block';
+    modal.querySelector('[data-mid="saveOk"]').style.display='block';
     renderList(filtered);
     updateMap(filtered);
     setTimeout(()=>closeModalDirect(),1200);
