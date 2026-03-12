@@ -11,6 +11,252 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
+
+  /* =====================================
+     SURALNOR / EMCALA — DASHBOARD
+     Secciones: LOGIN · TOPBAR · FILTROS
+                MAPA · LISTA · MODAL
+                TABLA · SEGUIMIENTO
+  ===================================== */
+
+
+  /* ==================== RESET & VARIABLES ==================== */
+  :root {
+  --bg:#F5F7FA; --card:#FFFFFF; --border:#E2E8F0;
+  --navy:#0F2A4A; --blue:#1B5FA8; --accent:#0EA5E9;
+  --text:#0F2A4A; --muted:#64748B; --success:#16A34A;
+  --warn:#D97706; --danger:#DC2626;
+  --radius:14px;
+  --shadow:0 1px 4px rgba(15,42,74,0.08),0 4px 16px rgba(15,42,74,0.06);
+  --shadow-lg:0 8px 32px rgba(15,42,74,0.13);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* LOGIN */
+#loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--navy);padding:24px;position:relative;overflow:hidden;}
+#loginScreen::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(14,165,233,0.15) 0%,transparent 70%);top:-200px;right:-200px;pointer-events:none;}
+.login-box{background:white;border-radius:24px;padding:48px 40px;width:100%;max-width:400px;box-shadow:var(--shadow-lg);position:relative;z-index:1;animation:loginUp 0.5s ease forwards;}
+@keyframes loginUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.login-logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:32px;}
+.login-logo-icon{width:40px;height:40px;background:var(--navy);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.login-logo-text{font-size:18px;font-weight:700;color:var(--navy);}
+.login-logo-text span{color:var(--accent);}
+  .login-subtitle-sub{font-size:13px;color:var(--accent);font-weight:600;margin-bottom:2px;letter-spacing:0.03em;}
+.login-box h2{font-size:26px;font-weight:800;margin-bottom:6px;text-align:center;}
+.login-box p{color:var(--muted);font-size:14px;margin-bottom:32px;text-align:center;}
+.lf{margin-bottom:16px;}
+.lf label{display:block;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;text-align:center;}
+.lf input{width:100%;padding:12px 16px;border:1.5px solid var(--border);border-radius:10px;font-family:'Bricolage Grotesque',sans-serif;font-size:15px;color:var(--text);background:var(--bg);outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
+.lf input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(14,165,233,0.12);background:white;}
+.login-error{background:#FEF2F2;border:1px solid #FECACA;color:#DC2626;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:16px;display:none;}
+.btn-primary{width:100%;background:var(--navy);color:white;border:none;border-radius:10px;padding:14px;font-family:'Bricolage Grotesque',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:background 0.2s;margin-top:4px;}
+.btn-primary:hover{background:var(--blue);}
+
+/* DASHBOARD */
+#dashboard{display:none;}
+.topbar{background:var(--navy);color:white;padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(15,42,74,0.2);}
+.topbar-left{display:flex;align-items:center;gap:12px;}
+.topbar-icon{width:32px;height:32px;background:rgba(14,165,233,0.2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;}
+.topbar-title{font-size:16px;font-weight:700;}
+.topbar-title span{color:var(--accent);}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.role-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px;letter-spacing:0.06em;}
+.role-badge.supervisor{background:rgba(14,165,233,0.2);color:#7DD3FC;}
+.role-badge.tecnico{background:rgba(22,163,74,0.2);color:#86EFAC;}
+.role-badge.trade{background:rgba(168,85,247,0.2);color:#D8B4FE;}
+  .topbar-center{display:flex;gap:4px;align-items:center;}
+  .tab-btn{background:transparent;border:none;color:rgba(255,255,255,0.6);font-size:13px;font-weight:600;padding:6px 14px;border-radius:8px;cursor:pointer;transition:all 0.2s;}
+  .tab-btn:hover{background:rgba(255,255,255,0.1);color:white;}
+  .tab-btn.active{background:rgba(255,255,255,0.15);color:white;}
+  
+  /* ==================== TABLA (TRADE) ==================== */
+  #vistaTabla{display:none;padding:16px 24px;overflow:auto;}
+  .tabla-filters{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px;align-items:flex-end;}
+  .tabla-filters input,.tabla-filters select{padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;color:var(--text);background:white;min-width:140px;}
+  .tabla-filters label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:4px;}
+  .btn-export{margin-left:auto;background:var(--navy);color:white;border:none;padding:9px 18px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;}
+  .btn-export:hover{background:#1a3a5c;}
+  .excel-table{width:100%;border-collapse:collapse;font-size:13px;}
+  .excel-table th{background:#0F2A4A;color:white;padding:10px 14px;text-align:left;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;position:sticky;top:0;z-index:2;}
+  .excel-table td{padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle;}
+  .excel-table tr:hover td{background:#F0F4FF;}
+  .excel-table tr:nth-child(even) td{background:#F8FAFC;}
+  .excel-table tr:nth-child(even):hover td{background:#F0F4FF;}
+  .tabla-wrap{border:1px solid var(--border);border-radius:12px;overflow:auto;max-height:calc(100vh - 220px);}
+.topbar-user{font-size:13px;color:rgba(255,255,255,0.6);}
+.topbar-user strong{color:white;}
+.btn-logout{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);color:white;border-radius:8px;padding:6px 14px;font-family:'Bricolage Grotesque',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:background 0.2s;}
+.btn-logout:hover{background:rgba(255,255,255,0.18);}
+
+.main{padding:24px 28px;display:grid;grid-template-columns:1fr 360px;grid-template-rows:auto 1fr;gap:20px;max-width:1400px;margin:0 auto;}
+
+/* FILTROS */
+
+  /* ==================== FILTROS ==================== */
+  .filters-bar{grid-column:1/-1;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:var(--shadow);}
+.filters-bar label{font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap;}
+.filters-bar select,.filters-bar input[type="date"]{padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Bricolage Grotesque',sans-serif;font-size:13px;color:var(--text);background:var(--bg);outline:none;cursor:pointer;transition:border-color 0.2s;}
+.filters-bar select:focus,.filters-bar input[type="date"]:focus{border-color:var(--accent);}
+.filter-sep{width:1px;height:24px;background:var(--border);flex-shrink:0;}
+.btn-clear{background:none;border:1.5px solid var(--border);border-radius:8px;padding:8px 14px;font-family:'Bricolage Grotesque',sans-serif;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;transition:all 0.2s;}
+.btn-clear:hover{border-color:var(--text);color:var(--text);}
+.btn-refresh{margin-left:auto;background:var(--navy);border:none;border-radius:8px;padding:8px 16px;font-family:'Bricolage Grotesque',sans-serif;font-size:13px;font-weight:600;color:white;cursor:pointer;transition:background 0.2s;}
+.btn-refresh:hover{background:var(--blue);}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden;}
+.card-header{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0;}
+.card-header h3{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px;}
+.badge-count{background:var(--navy);color:white;font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px;}
+
+/* MAPA */
+
+  /* ==================== MAPA ==================== */
+  #map{flex:1;min-height:420px;}
+.map-legend{padding:12px 20px;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:10px;background:#FAFBFD;min-height:44px;}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--text);}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.2);}
+
+/* LISTA */
+.table-scroll{overflow-y:auto;flex:1;max-height:calc(100vh - 200px);}
+
+  /* ==================== LISTA DE REGISTROS ==================== */
+  .reg-item{display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.15s;}
+.reg-item:last-child{border-bottom:none;}
+.reg-item:hover{background:#F0F6FF;}
+.reg-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:white;flex-shrink:0;}
+.reg-info{flex:1;min-width:0;}
+.reg-nombre{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.reg-sub{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;}
+.reg-meta{text-align:right;flex-shrink:0;}
+.reg-fecha{font-size:11px;font-weight:600;}
+.reg-hora{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;}
+.reg-gps{font-size:10px;color:var(--success);font-weight:600;margin-top:2px;}
+.reg-nogps{font-size:10px;color:var(--muted);margin-top:2px;}
+
+/* ESTADO BADGE en lista */
+
+  /* ==================== ESTADOS ==================== */
+  .estado-pill{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;margin-top:3px;}
+.estado-pill.en-proceso{background:#FEF3C7;color:#92400E;}
+.estado-pill.resuelto{background:#D1FAE5;color:#065F46;}
+.estado-pill.pendiente{background:#FEF3C7;color:#B45309;}
+.estado-pill.retiro{background:#EDE9FE;color:#6D28D9;}
+.estado-pill.sin-estado{background:#F1F5F9;color:#64748B;}
+
+.empty-state{padding:48px 24px;text-align:center;color:var(--muted);font-size:14px;}
+.empty-state .ico{font-size:32px;margin-bottom:8px;}
+.loading-state{padding:48px 24px;text-align:center;color:var(--muted);font-size:14px;display:flex;flex-direction:column;align-items:center;gap:12px;}
+.spin{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* MODAL */
+
+  /* ==================== MODAL ==================== */
+  .modal-overlay{position:fixed;inset:0;background:rgba(15,42,74,0.45);backdrop-filter:blur(4px);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.show{display:flex;animation:fadeIn 0.2s ease;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{background:white;border-radius:20px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:modalUp 0.25s ease;}
+@keyframes modalUp{from{opacity:0;transform:translateY(16px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+.modal-head{padding:24px 24px 0;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+.modal-name{font-size:22px;font-weight:800;color:var(--navy);margin-bottom:4px;}
+.modal-ts{font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;}
+.modal-close{background:var(--bg);border:1px solid var(--border);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;}
+.modal-close:hover{background:#FEE2E2;border-color:#FECACA;color:#DC2626;}
+.modal-body{padding:20px 24px 28px;}
+.modal-sec{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;margin-top:20px;}
+.modal-sec:first-child{margin-top:0;}
+.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.mf{background:var(--bg);border-radius:10px;padding:12px 14px;}
+.mf.full{grid-column:1/-1;}
+.mf label{display:block;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+.mf p{font-size:14px;font-weight:600;color:var(--text);line-height:1.4;}
+.modal-map-wrap{border-radius:12px;overflow:hidden;border:1px solid var(--border);margin-top:4px;}
+#modalMap{height:180px;}
+.btn-maps{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--navy);color:white;border-radius:10px;padding:12px;text-decoration:none;font-size:14px;font-weight:600;margin-top:12px;transition:background 0.2s;}
+.btn-maps:hover{background:var(--blue);}
+
+/* SECCIÓN TÉCNICO EN MODAL */
+
+  /* ==================== SEGUIMIENTO ==================== */
+  .seguimiento-section{margin-top:4px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:12px;padding:16px;}
+.seguimiento-section.readonly{background:#F8FAFC;border-color:var(--border);}
+.seg-title{font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--success);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.seg-title.readonly{color:var(--muted);}
+.seg-last{font-size:13px;color:var(--text);margin-bottom:12px;line-height:1.5;}
+.seg-last strong{color:var(--navy);}
+.seg-last .seg-ts{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;display:block;margin-top:2px;}
+
+/* FORM TÉCNICO */
+.seg-form select,.seg-form textarea{width:100%;padding:10px 12px;border:1.5px solid #BBF7D0;border-radius:8px;font-family:'Bricolage Grotesque',sans-serif;font-size:14px;color:var(--text);background:white;outline:none;transition:border-color 0.2s;margin-bottom:10px;}
+.seg-form select:focus,.seg-form textarea:focus{border-color:var(--success);box-shadow:0 0 0 3px rgba(22,163,74,0.1);}
+.seg-form textarea{resize:vertical;min-height:80px;}
+.seg-form label{display:block;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--success);margin-bottom:6px;}
+.btn-guardar{width:100%;background:var(--success);color:white;border:none;border-radius:8px;padding:12px;font-family:'Bricolage Grotesque',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:background 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-guardar:hover{background:#15803D;}
+.btn-guardar:disabled{opacity:0.6;cursor:not-allowed;}
+.save-ok{text-align:center;color:var(--success);font-size:13px;font-weight:600;padding:8px;display:none;}
+
+
+  /* ==================== CHAT ==================== */
+  #chatBox::-webkit-scrollbar{width:4px;}
+  #chatBox::-webkit-scrollbar-thumb{background:#E2E8F0;border-radius:4px;}
+  #chatInput:focus{border-color:var(--blue);outline:none;}
+
+  /* ==================== RESPONSIVE ==================== */
+  @media(max-width:900px){
+  .main{grid-template-columns:1fr;padding:12px;gap:12px;}
+  
+  /* ==================== MAPA ==================== */
+  #map{min-height:280px;}
+  .table-scroll{max-height:350px;}
+  .topbar{padding:0 16px;height:52px;}
+  .topbar-title{font-size:14px;}
+  .topbar-user{display:none;}
+  
+  /* ==================== FILTROS ==================== */
+  .filters-bar{padding:10px 12px;gap:8px;}
+  .filters-bar select,.filters-bar input[type="date"]{font-size:13px;padding:7px 10px;}
+  .card-header{padding:12px 16px;}
+  
+  /* ==================== LISTA DE REGISTROS ==================== */
+  .reg-item{padding:11px 14px;}
+  .modal{border-radius:16px 16px 0 0;max-height:95vh;position:fixed;bottom:0;left:0;right:0;width:100%;max-width:100%;}
+  
+  /* ==================== MODAL ==================== */
+  .modal-overlay{align-items:flex-end;padding:0;}
+}
+@media(max-width:480px){
+  .filters-bar label{display:none;}
+  input,select,textarea{font-size:16px !important;}
+}
+input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+
+
+/*
+ * =====================================
+ * JAVASCRIPT — SECCIONES:
+ * CONFIGURACIÓN · AUTENTICACIÓN
+ * CARGA DE DATOS · PARSERS
+ * MAPA · FILTROS · LISTA · MODAL
+ * SEGUIMIENTO · TABLA · LOGOUT
+ * =====================================
+ */
+
+PE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0F2A4A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Dashboard – Suralnor / Emcala</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
 :root {
   --bg:#F5F7FA; --card:#FFFFFF; --border:#E2E8F0;
   --navy:#0F2A4A; --blue:#1B5FA8; --accent:#0EA5E9;
@@ -32,6 +278,7 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
 .login-logo-icon{width:40px;height:40px;background:var(--navy);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
 .login-logo-text{font-size:18px;font-weight:700;color:var(--navy);}
 .login-logo-text span{color:var(--accent);}
+  .login-subtitle-sub{font-size:13px;color:var(--accent);font-weight:600;margin-bottom:2px;letter-spacing:0.03em;}
 .login-box h2{font-size:26px;font-weight:800;margin-bottom:6px;text-align:center;}
 .login-box p{color:var(--muted);font-size:14px;margin-bottom:32px;text-align:center;}
 .lf{margin-bottom:16px;}
@@ -201,9 +448,10 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
   <div class="login-box">
     <div class="login-logo">
       <img src="data:image/jpeg;base64,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" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid var(--border);">
-      <div class="login-logo-text">Suralnor <span>·</span> Emcala</div>
+      <div class="login-logo-text">SURALNOR <span>-</span> EMCALA</div>
     </div>
-    <h2>Acceso al sistema</h2>
+    <h2>GESTIÓN EDF</h2>
+    <p class="login-subtitle-sub">Reparaciones, Entregas y Retiros</p>
     <p>Ingresá tus credenciales para continuar</p>
     <div class="login-error" id="loginError">Usuario o contraseña incorrectos.</div>
     <div class="lf"><label>Usuario</label><input type="text" id="loginUser" placeholder="Usuario" autocomplete="username"></div>
@@ -320,7 +568,10 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
 </div>
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhE_VkPEvsHN2e_-L-chew2Q8fGAxqZ9jXNIV8OFdfhPkGkWitFhLeLW2wtIp1u7-p/exec';
+
+
+/* ==================== CONFIGURACIÓN ==================== */
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyuKwoNm1lg_m8To20FKNuzxNcMmHDZV4nTCz6to4ACk28ZmmuucnHSv2iMfBwpuLGQ/exec';
 
 const ESTADO_META = {
   'resuelto':  { label:'Resuelto',  cls:'resuelto',  icon:'✅' },
@@ -329,13 +580,19 @@ const ESTADO_META = {
   '':          { label:'Sin estado',cls:'sin-estado',icon:'⬜' }
 };
 
-let allData=[], seguimientos={}, filtered=[], leafMap=null, markers=[], modalLeaf=null;
+
+
+/* ==================== ESTADO GLOBAL ==================== */
+let allData=[], seguimientos={}, chatData={}, filtered=[], leafMap=null, markers=[], modalLeaf=null;
 let currentUser=null, currentRole=null, currentPass=null;
 
 // LOGIN
 document.getElementById('loginUser').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('loginPass').focus(); });
 document.getElementById('loginPass').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
 
+
+
+/* ==================== AUTENTICACIÓN ==================== */
 function jsonp(url) {
   return new Promise((resolve, reject) => {
     const cb = 'cb_' + Date.now();
@@ -376,6 +633,61 @@ async function doLogin() {
   }
   btn.textContent = 'Ingresar →'; btn.disabled = false;
 }
+
+
+/* ==================== CHAT ==================== */
+async function enviarChat(ot) {
+  const input = document.getElementById('chatInput');
+  const msg = (input.value||'').trim();
+  if(!msg) return;
+  input.value = '';
+  input.disabled = true;
+
+  const payload = {
+    tipo: 'chat',
+    timestamp: new Date().toISOString(),
+    ot,
+    autor: currentUser,
+    rol: currentRole,
+    mensaje: msg
+  };
+
+  try {
+    fetch(SCRIPT_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(payload)});
+    // Actualizar local
+    if(!chatData[ot]) chatData[ot]=[];
+    const ts = new Date().toISOString();
+    const fecha = new Date().toLocaleDateString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',day:'2-digit',month:'2-digit',year:'numeric'})+' '+new Date().toLocaleTimeString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',hour:'2-digit',minute:'2-digit'});
+    chatData[ot].push({ts, fecha, autor:currentUser, rol:currentRole, mensaje:msg});
+
+    // Actualizar chatBox sin cerrar el modal
+    const chatBox = document.getElementById('chatBox');
+    if(chatBox) {
+      const m = chatData[ot].slice(-1)[0];
+      const isMe = m.rol === currentRole;
+      const align = currentRole==='trade' ? 'flex-end' : 'flex-start';
+      const bg = currentRole==='trade' ? '#EDE9FE' : '#F0FDF4';
+      const border = currentRole==='trade' ? '#DDD6FE' : '#BBF7D0';
+      const radius = currentRole==='trade' ? '12px 4px 12px 12px' : '4px 12px 12px 12px';
+      const color = currentRole==='trade' ? '#6D28D9' : '#15803D';
+      const newMsg = document.createElement('div');
+      newMsg.style.cssText = `display:flex;flex-direction:column;align-items:${align};margin-bottom:8px;`;
+      newMsg.innerHTML = `<div style="max-width:80%;background:${bg};border:1px solid ${border};border-radius:${radius};padding:8px 12px;"><div style="font-size:11px;font-weight:700;color:${color};margin-bottom:3px;">${currentUser}</div><div style="font-size:13px;color:#0F2A4A;">${msg}</div><div style="font-size:10px;color:#94A3B8;margin-top:4px;text-align:right;">${fecha}</div></div>`;
+      // Quitar mensaje "Sin mensajes"
+      if(chatBox.querySelector('div[style*="text-align:center"]')) chatBox.innerHTML='';
+      chatBox.appendChild(newMsg);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+    // Actualizar lista para técnico (puede reaparecer OT)
+    applyFilters();
+  } catch(e) {
+    console.error('Error enviando chat:', e);
+  }
+  input.disabled = false;
+  input.focus();
+}
+
+/* ==================== LOGOUT ==================== */
 function doLogout() {
   currentUser=null; currentRole=null; currentPass=null;
   document.getElementById('loginScreen').style.display = 'flex';
@@ -384,6 +696,9 @@ function doLogout() {
   document.getElementById('loginPass').value = '';
 }
 
+
+
+/* ==================== TABLA (TRADE) ==================== */
 function switchTab(tab) {
   const esMapa = tab === 'mapa';
   document.getElementById('tabMapa').classList.toggle('active', esMapa);
@@ -473,6 +788,29 @@ function exportarExcel() {
 }
 
 // MAPA
+
+
+/* ==================== PARSERS CHAT ==================== */
+function parseChat(rows) {
+  // Retorna { ot: [{ts, autor, rol, mensaje}, ...] }
+  if(!rows||rows.length<2) return {};
+  const h=rows[0].map(s=>(s||'').toString().trim().toLowerCase());
+  const col=n=>h.findIndex(s=>s.includes(n));
+  const iTs=col('timestamp'),iOt=col('ot'),iAut=col('autor'),iRol=col('rol'),iMsg=col('mensaje');
+  const map={};
+  rows.slice(1).forEach(c=>{
+    const ot=(c[iOt]||'').toString().trim();
+    if(!ot) return;
+    const ts=(c[iTs]||'').toString();
+    let fecha='';
+    if(ts){const d=new Date(ts);if(!isNaN(d)) fecha=d.toLocaleDateString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',day:'2-digit',month:'2-digit',year:'numeric'})+' '+d.toLocaleTimeString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',hour:'2-digit',minute:'2-digit'});}
+    if(!map[ot]) map[ot]=[];
+    map[ot].push({ts,fecha,autor:(c[iAut]||'').toString().trim(),rol:(c[iRol]||'').toString().trim(),mensaje:(c[iMsg]||'').toString().trim()});
+  });
+  return map;
+}
+
+/* ==================== MAPA ==================== */
 function initMap() {
   if (leafMap) return;
   leafMap = L.map('map').setView([-34.62,-58.38],10);
@@ -525,6 +863,9 @@ function updateMap(data) {
 }
 
 // DATA
+
+
+/* ==================== CARGA DE DATOS ==================== */
 async function loadData() {
   document.getElementById('registrosList').innerHTML='<div class="loading-state"><div class="spin"></div><p>Cargando registros...</p></div>';
   try {
@@ -535,6 +876,7 @@ async function loadData() {
     }
     allData = parseRegistros(data.registros);
     seguimientos = parseSeguimientos(data.seguimientos);
+    chatData = parseChat(data.chat||[]);
     populateFilter();
     applyFilters();
   } catch(e) {
@@ -542,6 +884,9 @@ async function loadData() {
   }
 }
 
+
+
+/* ==================== PARSERS ==================== */
 function parseRegistros(rows) {
   if(!rows||rows.length<2) return [];
   const h=rows[0].map(s=>(s||'').toString().trim().toLowerCase());
@@ -610,6 +955,9 @@ function getPrioridadSugerida(ot, cli) {
   return seg ? (seg.prioridad_sugerida||'') : '';
 }
 
+
+
+/* ==================== FILTROS ==================== */
 function populateFilter() {
   const names=[...new Set(allData.map(r=>r.nombre))].sort();
   const opts='<option value="">Todos</option>'+names.map(n=>`<option value="${n}">${n}</option>`).join('');
@@ -633,10 +981,18 @@ function applyFilters() {
     }
     // Técnico solo ve solicitudes con prioridad aprobada
     if(currentRole==='tecnico' && !getPrioridadAprobada(r.ot,r.cliente)) return false;
-    // Técnico no ve OTs donde ya dejó devolución (comentario cargado)
+    // Técnico: lógica de visibilidad por devolución y reapertura via chat
     if(currentRole==='tecnico') {
       const seg = getSegByOt(r.ot, r.cliente);
-      if(seg && seg.comentario && seg.comentario.trim() !== '') return false;
+      const tieneDev = seg && seg.comentario && seg.comentario.trim() !== '';
+      if(tieneDev) {
+        // Verificar si Trade escribió DESPUÉS de la última devolución del técnico
+        const msgs = chatData[r.ot] || [];
+        const ultimoTrade = msgs.filter(m=>m.rol==='trade').slice(-1)[0];
+        const ultimaTecnico = msgs.filter(m=>m.rol==='tecnico').slice(-1)[0];
+        const tradeReabrio = ultimoTrade && (!ultimaTecnico || ultimoTrade.ts > ultimaTecnico.ts);
+        if(!tradeReabrio) return false;
+      }
     }
     if((desde||hasta)&&r.ts){
       const d=new Date(r.ts);
@@ -656,6 +1012,9 @@ function clearFilters(){
 }
 
 // LISTA
+
+
+/* ==================== LISTA ==================== */
 function renderList(data) {
   const el=document.getElementById('registrosList');
   if(!data.length){el.innerHTML='<div class="empty-state"><div class="ico">📭</div><p>No hay registros.</p></div>';return;}
@@ -687,6 +1046,9 @@ function renderList(data) {
 }
 
 // MODAL
+
+
+/* ==================== MODAL ==================== */
 function openModal(r) {
   if(typeof r==='string') r=JSON.parse(r);
   document.getElementById('modalNombre').textContent='OT ' + (r.ot||'—');
@@ -704,26 +1066,40 @@ function openModal(r) {
   let segHTML='';
 
   if(currentRole==='tecnico') {
-    // Técnico: carga estado y comentario
+    const msgs = chatData[r.ot]||[];
+    const chatHTML = msgs.length ? msgs.map(m=>`
+      <div style="display:flex;flex-direction:column;align-items:${m.rol==='trade'?'flex-start':'flex-end'};margin-bottom:8px;">
+        <div style="max-width:80%;background:${m.rol==='trade'?'#EFF6FF':'#F0FDF4'};border:1px solid ${m.rol==='trade'?'#BFDBFE':'#BBF7D0'};border-radius:${m.rol==='trade'?'4px 12px 12px 12px':'12px 4px 12px 12px'};padding:8px 12px;">
+          <div style="font-size:11px;font-weight:700;color:${m.rol==='trade'?'#1D4ED8':'#15803D'};margin-bottom:3px;">${m.autor}</div>
+          <div style="font-size:13px;color:#0F2A4A;">${m.mensaje}</div>
+          <div style="font-size:10px;color:#94A3B8;margin-top:4px;text-align:right;">${m.fecha}</div>
+        </div>
+      </div>`).join('') : '<div style="text-align:center;color:#94A3B8;font-size:12px;padding:12px 0;">Sin mensajes aún</div>';
+
     segHTML=`
       <div class="modal-sec">🔧 Seguimiento técnico</div>
       <div class="seguimiento-section">
-        <div class="seg-title">✏️ Actualizar estado</div>
-        ${seg2?`<div class="seg-last">Último estado: <strong>${em.icon} ${em.label}</strong>${seg2.comentario?`<br>"${seg2.comentario}"`:''}${seg2.fecha?`<span class="seg-ts">${seg2.tecnico} · ${seg2.fecha}</span>`:''}</div>`:''}
+        <div class="seg-title">✏️ Devolución</div>
+        ${seg2&&seg2.comentario?`<div class="seg-last">Última devolución: <strong>${em.icon} ${em.label}</strong><br>"${seg2.comentario}"${seg2.fecha?`<span class="seg-ts">${seg2.tecnico} · ${seg2.fecha}</span>`:''}</div>`:''}
         <div class="seg-form">
           <label>Estado</label>
           <select id="segEstado">
-            <option value="resuelto"  ${eKey==='resuelto' ?'selected':''}>✅ Resuelto</option>
-            <option value="pendiente" ${eKey==='pendiente'?'selected':''}>⏳ Pendiente</option>
-            <option value="retiro"    ${eKey==='retiro'   ?'selected':''}>📦 Retiro</option>
+            <option value="resuelto"  ${eKey==='resuelto'?'selected':''}>✅ Resuelto</option>
+            <option value="retiro"    ${eKey==='retiro'  ?'selected':''}>📦 Retiro</option>
           </select>
-          <label>Comentario / Devolución</label>
-          <textarea id="segComentario" placeholder="Describí el estado actual del servicio...">${seg2?seg2.comentario:''}</textarea>
+          <label>Devolución</label>
+          <textarea id="segComentario" placeholder="Describí el estado del equipo...">${seg2?seg2.comentario:''}</textarea>
           <button class="btn-guardar" id="btnGuardar" onclick="guardarSeguimiento('${r.cliente}','${r.nombre}','${r.ot}','tecnico')">
             💾 Guardar devolución
           </button>
           <div class="save-ok" id="saveOk">✅ Guardado correctamente</div>
         </div>
+      </div>
+      <div class="modal-sec">💬 Chat</div>
+      <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:12px;margin-bottom:8px;max-height:200px;overflow-y:auto;" id="chatBox">${chatHTML}</div>
+      <div style="display:flex;gap:8px;">
+        <input id="chatInput" placeholder="Escribí un mensaje..." style="flex:1;padding:9px 12px;border:1.5px solid #E2E8F0;border-radius:8px;font-size:13px;color:#0F2A4A;background:white;">
+        <button onclick="enviarChat('${r.ot}')" style="background:#0F2A4A;color:white;border:none;padding:9px 16px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;">Enviar</button>
       </div>`;
 
   } else if(currentRole==='supervisor') {
@@ -747,7 +1123,16 @@ function openModal(r) {
       </div>`;
 
   } else if(currentRole==='trade') {
-    // Trade Marketing: aprueba prioridad
+    const msgs = chatData[r.ot]||[];
+    const chatHTML = msgs.length ? msgs.map(m=>`
+      <div style="display:flex;flex-direction:column;align-items:${m.rol==='trade'?'flex-end':'flex-start'};margin-bottom:8px;">
+        <div style="max-width:80%;background:${m.rol==='trade'?'#EDE9FE':'#F0FDF4'};border:1px solid ${m.rol==='trade'?'#DDD6FE':'#BBF7D0'};border-radius:${m.rol==='trade'?'12px 4px 12px 12px':'4px 12px 12px 12px'};padding:8px 12px;">
+          <div style="font-size:11px;font-weight:700;color:${m.rol==='trade'?'#6D28D9':'#15803D'};margin-bottom:3px;">${m.autor}</div>
+          <div style="font-size:13px;color:#0F2A4A;">${m.mensaje}</div>
+          <div style="font-size:10px;color:#94A3B8;margin-top:4px;text-align:right;">${m.fecha}</div>
+        </div>
+      </div>`).join('') : '<div style="text-align:center;color:#94A3B8;font-size:12px;padding:12px 0;">Sin mensajes aún</div>';
+
     segHTML=`
       <div class="modal-sec">✅ Aprobación de prioridad</div>
       <div class="seguimiento-section" style="background:#F5F3FF;border-color:#DDD6FE;">
@@ -765,6 +1150,12 @@ function openModal(r) {
           </button>
           <div class="save-ok" id="saveOk">✅ Aprobado correctamente</div>
         </div>
+      </div>
+      <div class="modal-sec">💬 Chat con Técnico</div>
+      <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:12px;margin-bottom:8px;max-height:200px;overflow-y:auto;" id="chatBox">${chatHTML}</div>
+      <div style="display:flex;gap:8px;">
+        <input id="chatInput" placeholder="Escribí un mensaje al técnico..." style="flex:1;padding:9px 12px;border:1.5px solid #E2E8F0;border-radius:8px;font-size:13px;color:#0F2A4A;background:white;">
+        <button onclick="enviarChat('${r.ot}')" style="background:#7C3AED;color:white;border:none;padding:9px 16px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;">Enviar</button>
       </div>`;
   }
 
@@ -799,6 +1190,9 @@ function openModal(r) {
   }
 }
 
+
+
+/* ==================== SEGUIMIENTO ==================== */
 async function guardarSeguimiento(cliente, promotor, ot, tipoRol) {
   const btn=document.getElementById('btnGuardar');
   btn.disabled=true; btn.textContent='Guardando...';
@@ -846,4 +1240,3 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModalDirect();}
 </script>
 </body>
 </html>
-
