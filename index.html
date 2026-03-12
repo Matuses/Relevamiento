@@ -54,10 +54,11 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
 .role-badge.supervisor{background:rgba(14,165,233,0.2);color:#7DD3FC;}
 .role-badge.tecnico{background:rgba(22,163,74,0.2);color:#86EFAC;}
 .role-badge.trade{background:rgba(168,85,247,0.2);color:#D8B4FE;}
-  .topbar-center{display:flex;gap:4px;align-items:center;}
-  .tab-btn{background:transparent;border:none;color:rgba(255,255,255,0.6);font-size:13px;font-weight:600;padding:6px 14px;border-radius:8px;cursor:pointer;transition:all 0.2s;}
-  .tab-btn:hover{background:rgba(255,255,255,0.1);color:white;}
-  .tab-btn.active{background:rgba(255,255,255,0.15);color:white;}
+  .topbar-center{display:none;}
+  .tabbar-wrap{display:none;background:white;border-bottom:1px solid var(--border);padding:0 24px;gap:0;align-items:stretch;position:sticky;top:60px;z-index:90;box-shadow:0 1px 4px rgba(0,0,0,0.05);}
+  .tab-btn{background:transparent;border:none;border-bottom:3px solid transparent;color:var(--muted);font-size:13px;font-weight:600;padding:12px 20px;cursor:pointer;transition:all 0.18s;white-space:nowrap;letter-spacing:0.02em;}
+  .tab-btn:hover{color:var(--navy);}
+  .tab-btn.active{color:var(--blue);border-bottom-color:var(--blue);}
   #vistaTabla{display:none;padding:16px 24px;overflow:auto;}
   .tabla-filters{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px;align-items:flex-end;}
   .tabla-filters input,.tabla-filters select{padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;color:var(--text);background:white;min-width:140px;}
@@ -201,6 +202,8 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
   .topbar{padding:0 12px;height:48px;gap:8px;}
   .topbar-title{font-size:13px;}
   .topbar-center{display:none !important;}
+  .tabbar-wrap{padding:0 12px;top:48px;}
+  .tab-btn{padding:10px 12px;font-size:12px;}
   .btn-logout{padding:4px 10px;font-size:11px;}
   .role-badge{font-size:10px;padding:2px 8px;}
 
@@ -310,10 +313,11 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
 .role-badge.supervisor{background:rgba(14,165,233,0.2);color:#7DD3FC;}
 .role-badge.tecnico{background:rgba(22,163,74,0.2);color:#86EFAC;}
 .role-badge.trade{background:rgba(168,85,247,0.2);color:#D8B4FE;}
-  .topbar-center{display:flex;gap:4px;align-items:center;}
-  .tab-btn{background:transparent;border:none;color:rgba(255,255,255,0.6);font-size:13px;font-weight:600;padding:6px 14px;border-radius:8px;cursor:pointer;transition:all 0.2s;}
-  .tab-btn:hover{background:rgba(255,255,255,0.1);color:white;}
-  .tab-btn.active{background:rgba(255,255,255,0.15);color:white;}
+  .topbar-center{display:none;}
+  .tabbar-wrap{display:none;background:white;border-bottom:1px solid var(--border);padding:0 24px;gap:0;align-items:stretch;position:sticky;top:60px;z-index:90;box-shadow:0 1px 4px rgba(0,0,0,0.05);}
+  .tab-btn{background:transparent;border:none;border-bottom:3px solid transparent;color:var(--muted);font-size:13px;font-weight:600;padding:12px 20px;cursor:pointer;transition:all 0.18s;white-space:nowrap;letter-spacing:0.02em;}
+  .tab-btn:hover{color:var(--navy);}
+  .tab-btn.active{color:var(--blue);border-bottom-color:var(--blue);}
   #vistaTabla{display:none;padding:16px 24px;overflow:auto;}
   .tabla-filters{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px;align-items:flex-end;}
   .tabla-filters input,.tabla-filters select{padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;color:var(--text);background:white;min-width:140px;}
@@ -450,6 +454,9 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
   input,select,textarea{font-size:16px !important;}
 }
 input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+  /* RETIRO / ENTREGA */
+  #btnNuevaSolicitud:hover{background:var(--blue) !important;}
+  #vistaRetiro .excel-table th{background:var(--navy);color:white;}
 </style>
 </head>
 <body>
@@ -477,16 +484,19 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
       <img src="data:image/jpeg;base64,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" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.2);">
       <div class="topbar-title" id="topbarTitle"></div>
     </div>
-    <div class="topbar-center" id="tabBar" style="display:none;">
-      <button class="tab-btn active" id="tabMapa" onclick="switchTab('mapa')">🗺 Mapa</button>
-      <button class="tab-btn" id="tabTabla" onclick="switchTab('tabla')">📊 Tabla</button>
-      <button class="tab-btn" id="tabRetiro" onclick="switchTab('retiro')" style="display:none;">📦 Retiro / Entrega</button>
-    </div>
+    <div class="topbar-center"></div>
     <div class="topbar-right">
       <span class="role-badge" id="roleBadge"></span>
       <span id="userLabel" style="display:none;"></span>
       <button class="btn-logout" onclick="doLogout()">Salir</button>
     </div>
+  </div>
+
+  <!-- TABBAR -->
+  <div class="tabbar-wrap" id="tabBar" style="display:none;">
+    <button class="tab-btn active" id="tabMapa" onclick="switchTab('mapa')">Mapa de Gestión</button>
+    <button class="tab-btn" id="tabTabla" onclick="switchTab('tabla')" style="display:none;">Historial</button>
+    <button class="tab-btn" id="tabRetiro" onclick="switchTab('retiro')" style="display:none;">Retiro / Entrega</button>
   </div>
 
   <div class="main">
@@ -675,10 +685,6 @@ async function doLogin() {
   btn.textContent = 'Ingresar →'; btn.disabled = false;
 }
 
-/* ==================== RETIRO / ENTREGA ==================== */
-  #btnNuevaSolicitud:hover{background:var(--blue) !important;}
-  #vistaRetiro .excel-table th{background:var(--navy);color:white;}
-
 /* ==================== CHAT ==================== */
 async function enviarChat(ot) {
   const input = document.getElementById('modalPanel').querySelector('[data-mid="chatInput"]');
@@ -785,6 +791,8 @@ function switchTab(tab) {
   document.getElementById('vistaRetiro').style.display = tab==='retiro' ? 'block' : 'none';
   if(tab==='tabla') renderTabla();
   if(tab==='retiro') renderTablaRetiro();
+  // Ajustar top del mapa sticky según altura del tabbar
+  if(leafMap) setTimeout(()=>leafMap.invalidateSize(), 50);
 }
 
 function getTablaData() {
@@ -1036,6 +1044,10 @@ function populateFilter() {
   }
   if(currentRole==='trade') document.getElementById('tabTabla').style.display='';
   else document.getElementById('tabTabla').style.display='none';
+  // Ajustar sticky del mapa
+  const topbarH = document.querySelector('.topbar').offsetHeight;
+  const tabbarH = document.getElementById('tabBar').offsetHeight;
+  document.querySelector('.filters-bar').style.top = (topbarH + tabbarH) + 'px';
 }
 
 function applyFilters() {
