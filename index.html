@@ -173,7 +173,7 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
 .mf label{display:block;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:2px;}
 .mf p{font-size:14px;font-weight:600;color:var(--text);line-height:1.4;}
 .modal-map-wrap{border-radius:12px;overflow:hidden;border:1px solid var(--border);margin-top:4px;position:relative;}
-  .map-hint{display:none;position:absolute;inset:0;background:rgba(0,0,0,0.35);z-index:1000;align-items:center;justify-content:center;color:white;font-size:13px;font-weight:600;pointer-events:none;border-radius:12px;}
+  .map-hint{display:none;position:absolute;bottom:8px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.55);z-index:1000;align-items:center;justify-content:center;color:white;font-size:12px;font-weight:600;pointer-events:none;border-radius:20px;padding:5px 12px;white-space:nowrap;}
   @media(max-width:768px){.map-hint{display:flex;}}
 #modalMap{height:140px;}
 .btn-maps{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--navy);color:white;border-radius:10px;padding:9px;text-decoration:none;font-size:14px;font-weight:600;margin-top:8px;transition:background 0.2s;}
@@ -448,7 +448,7 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
 .mf label{display:block;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:2px;}
 .mf p{font-size:14px;font-weight:600;color:var(--text);line-height:1.4;}
 .modal-map-wrap{border-radius:12px;overflow:hidden;border:1px solid var(--border);margin-top:4px;position:relative;}
-  .map-hint{display:none;position:absolute;inset:0;background:rgba(0,0,0,0.35);z-index:1000;align-items:center;justify-content:center;color:white;font-size:13px;font-weight:600;pointer-events:none;border-radius:12px;}
+  .map-hint{display:none;position:absolute;bottom:8px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.55);z-index:1000;align-items:center;justify-content:center;color:white;font-size:12px;font-weight:600;pointer-events:none;border-radius:20px;padding:5px 12px;white-space:nowrap;}
   @media(max-width:768px){.map-hint{display:flex;}}
 #modalMap{height:140px;}
 .btn-maps{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--navy);color:white;border-radius:10px;padding:9px;text-decoration:none;font-size:14px;font-weight:600;margin-top:8px;transition:background 0.2s;}
@@ -1225,7 +1225,7 @@ function openModal(r) {
     </div>
     ${hasGeo?`
       <div class="modal-sec">Ubicación</div>
-      <div class="modal-map-wrap"><div class="map-hint">🤌 Usá dos dedos para mover el mapa</div><div id="modalMap"></div></div>
+      <div class="modal-map-wrap"><div class="map-hint">👉 Dos dedos para mover el mapa</div><div id="modalMap"></div></div>
       <a class="btn-maps" href="https://www.google.com/maps?q=${lat},${lng}" target="_blank">📍 Abrir en Google Maps</a>
     `:''}
     ${segHTML}
