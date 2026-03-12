@@ -205,33 +205,82 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
   #chatInput:focus{border-color:var(--blue);outline:none;}
 
   /* ==================== RESPONSIVE ==================== */
-  @media(max-width:900px){
+  /* Tablet */
+@media(max-width:900px){
   .main{grid-template-columns:1fr;padding:12px;gap:12px;}
-  
-  /* ==================== MAPA ==================== */
-  #map{min-height:280px;}
-  .table-scroll{max-height:350px;}
-  .topbar{padding:0 16px;height:52px;}
+  #map{min-height:260px;}
+  .table-scroll{max-height:320px;}
+  .topbar{padding:0 14px;height:52px;}
   .topbar-title{font-size:14px;}
   .topbar-user{display:none;}
-  
-  /* ==================== FILTROS ==================== */
-  .filters-bar{padding:10px 12px;gap:8px;}
+  .filters-bar{padding:10px 12px;gap:8px;flex-wrap:wrap;}
   .filters-bar select,.filters-bar input[type="date"]{font-size:13px;padding:7px 10px;}
   .card-header{padding:12px 16px;}
-  
-  /* ==================== LISTA DE REGISTROS ==================== */
   .reg-item{padding:11px 14px;}
   .modal{border-radius:16px 16px 0 0;max-height:95vh;position:fixed;bottom:0;left:0;right:0;width:100%;max-width:100%;}
-  
-  /* ==================== MODAL ==================== */
   .modal-overlay{align-items:flex-end;padding:0;}
 }
+
+/* Mobile (Samsung A05, Moto E22 — 360-480px) */
 @media(max-width:480px){
+  /* Topbar */
+  .topbar{padding:0 12px;height:48px;gap:8px;}
+  .topbar-title{font-size:13px;}
+  .topbar-center{display:none !important;}
+  .btn-logout{padding:4px 10px;font-size:11px;}
+  .role-badge{font-size:10px;padding:2px 8px;}
+
+  /* Filtros — una fila con scroll horizontal */
+  .filters-bar{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:8px;padding:8px 12px;-webkit-overflow-scrolling:touch;}
   .filters-bar label{display:none;}
-  input,select,textarea{font-size:16px !important;}
+  .filters-bar select,.filters-bar input[type="date"]{min-width:130px;font-size:14px;padding:7px 10px;flex-shrink:0;}
+  .btn-refresh{white-space:nowrap;padding:7px 12px;font-size:12px;}
+  .btn-clear{display:none;}
+
+  /* Layout principal — solo lista, mapa colapsado */
+  .main{grid-template-columns:1fr;padding:8px;gap:8px;}
+  .card:first-child{order:2;}  /* mapa abajo */
+  .card:last-child{order:1;}   /* lista arriba */
+  #map{min-height:220px;}
+  .map-legend{flex-wrap:wrap;gap:6px;font-size:10px;}
+
+  /* Lista */
+  .card-header{padding:10px 14px;}
+  .badge-count{font-size:10px;padding:2px 8px;}
+  .reg-item{padding:10px 12px;gap:10px;}
+  .reg-avatar{width:34px;height:34px;font-size:11px;flex-shrink:0;}
+  .reg-nombre{font-size:13px;}
+  .reg-sub{font-size:11px;}
+  .estado-pill{font-size:10px;padding:2px 7px;}
+
+  /* Modal — full bottom sheet */
+  .modal{border-radius:20px 20px 0 0;max-height:92vh;overflow-y:auto;}
+  .modal-overlay{align-items:flex-end;padding:0;}
+  .modal-header{padding:14px 16px;}
+  .modal-title{font-size:15px;}
+  .modal-body{padding:14px 16px;}
+  .modal-field-val{font-size:13px;}
+  .seg-form select,.seg-form textarea{font-size:15px;}
+  .btn-guardar{padding:12px;font-size:14px;}
+  #chatInput{font-size:15px;}
+
+  /* Login */
+  .login-box{padding:28px 20px;margin:12px;}
+  .login-logo-icon{width:56px;height:56px;}
+  .login-box h2{font-size:20px;}
+
+  /* Tabla trade */
+  #vistaTabla{padding:8px 12px;}
+  .tabla-filters{gap:8px;}
+  .tabla-filters input,.tabla-filters select{min-width:120px;font-size:13px;}
+  .btn-export{padding:8px 12px;font-size:12px;}
+  .excel-table{font-size:12px;}
+  .excel-table th,.excel-table td{padding:7px 10px;}
 }
-input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+
+/* Inputs globales — evitar zoom en iOS/Android */
+input,select,textarea{font-size:16px;}
+input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-action:manipulation;-webkit-appearance:none;appearance:none;}
 
 
 /*
