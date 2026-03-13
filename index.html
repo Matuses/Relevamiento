@@ -659,7 +659,7 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
 <script>
 
 /* ==================== CONFIGURACIÓN ==================== */
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyuKwoNm1lg_m8To20FKNuzxNcMmHDZV4nTCz6to4ACk28ZmmuucnHSv2iMfBwpuLGQ/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhE_VkPEvsHN2e_-L-chew2Q8fGAxqZ9jXNIV8OFdfhPkGkWitFhLeLW2wtIp1u7-p/exec';
 
 const ESTADO_META = {
   'resuelto':  { label:'Resuelto',  cls:'resuelto',  icon:'✅' },
@@ -670,7 +670,7 @@ const ESTADO_META = {
 
 /* ==================== ESTADO GLOBAL ==================== */
 let allData=[], seguimientos={}, chatData={}, filtered=[], leafMap=null, markers=[], modalLeaf=null;
-let currentUser=null, currentRole=null, currentPass=null;
+let currentUser=null, currentRole=null, currentPass=null, promotoresPropios=[];
 
 // LOGIN
 document.getElementById('loginUser').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('loginPass').focus(); });
@@ -703,6 +703,7 @@ async function doLogin() {
     if (data.ok) {
       currentUser = u; currentRole = data.rol;
       currentPass = p;
+      promotoresPropios = data.promotores ? data.promotores.split(',').map(p=>p.trim().toUpperCase()).filter(Boolean) : [];
       document.getElementById('loginScreen').style.display = 'none';
       document.getElementById('dashboard').style.display = 'block';
       document.getElementById('loginError').style.display = 'none';
@@ -1131,7 +1132,13 @@ function getPrioridadSugerida(ot, cli) {
 
 /* ==================== FILTROS ==================== */
 function populateFilter() {
-  const names=[...new Set(allData.map(r=>r.nombre))].sort();
+  // Si supervisor con lista propia, mostrar solo sus promotores en el filtro
+  let names;
+  if(currentRole==='supervisor' && promotoresPropios.length > 0) {
+    names = [...new Set(allData.map(r=>r.nombre))].filter(n=>promotoresPropios.includes(n.toUpperCase())).sort();
+  } else {
+    names = [...new Set(allData.map(r=>r.nombre))].sort();
+  }
   const opts='<option value="">Todos</option>'+names.map(n=>`<option value="${n}">${n}</option>`).join('');
   document.getElementById('filterNombre').innerHTML=opts;
   const tp=document.getElementById('tFiltPromotor');
