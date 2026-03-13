@@ -659,7 +659,7 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
 <script>
 
 /* ==================== CONFIGURACIÓN ==================== */
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhE_VkPEvsHN2e_-L-chew2Q8fGAxqZ9jXNIV8OFdfhPkGkWitFhLeLW2wtIp1u7-p/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyuKwoNm1lg_m8To20FKNuzxNcMmHDZV4nTCz6to4ACk28ZmmuucnHSv2iMfBwpuLGQ/exec';
 
 const ESTADO_META = {
   'resuelto':  { label:'Resuelto',  cls:'resuelto',  icon:'✅' },
@@ -729,7 +729,7 @@ async function doLogin() {
 
 /* ==================== CHAT ==================== */
 async function enviarChat(ot) {
-  const input = document.getElementById('modalPanel').querySelector('[data-mid="chatInput"]');
+  const input = document.getElementById('modalOverlay').querySelector('[data-mid="chatInput"]');
   const msg = (input.value||'').trim();
   if(!msg) return;
   input.value = '';
@@ -753,7 +753,7 @@ async function enviarChat(ot) {
     chatData[ot].push({ts, fecha, autor:currentUser, rol:currentRole, mensaje:msg});
 
     // Actualizar chatBox sin cerrar el modal
-    const chatBox = document.getElementById('modalPanel').querySelector('[data-mid="chatBox"]');
+    const chatBox = document.getElementById('modalOverlay').querySelector('[data-mid="chatBox"]');
     if(chatBox) {
       const m = chatData[ot].slice(-1)[0];
       const isMe = m.rol === currentRole;
@@ -1380,7 +1380,7 @@ function openModal(r) {
 
 /* ==================== SEGUIMIENTO ==================== */
 async function guardarSeguimiento(cliente, promotor, ot, tipoRol) {
-  const modal = document.getElementById('modalPanel');
+  const modal = document.getElementById('modalOverlay');
   const btn = modal.querySelector('[data-mid="btnGuardar"]');
   btn.disabled=true; btn.textContent='Guardando...';
 
