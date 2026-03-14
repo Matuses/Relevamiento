@@ -715,6 +715,7 @@ async function doLogin() {
       currentUser = u; currentRole = data.rol;
       currentPass = p;
       promotoresPropios = data.promotores ? data.promotores.split(',').map(p=>p.trim().toUpperCase()).filter(Boolean) : [];
+      console.log('ROL:', data.rol, '| PROMOTORES RECIBIDOS:', JSON.stringify(data.promotores), '| LISTA:', JSON.stringify(promotoresPropios));
       document.getElementById('loginScreen').style.display = 'none';
       document.getElementById('dashboard').style.display = 'block';
       document.getElementById('loginError').style.display = 'none';
