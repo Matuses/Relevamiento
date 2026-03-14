@@ -124,6 +124,7 @@ body::after{
 
 /* ── SUCCESS ── */
 .success-box{display:none;text-align:center;padding:32px 0;}
+.success-box.show{display:block;}
 .success-icon{font-size:56px;margin-bottom:16px;}
 .success-title{font-size:22px;font-weight:800;color:var(--navy);margin-bottom:8px;}
 .success-sub{font-size:14px;color:var(--muted);margin-bottom:24px;}
@@ -260,11 +261,11 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
   </div>
 
   <!-- ÉXITO -->
-  <div class="success-box" id="successBox">
+  <div class="success-box" id="successOverlay">
     <div class="success-icon">✅</div>
     <div class="success-title">¡Solicitud enviada!</div>
     <div class="success-sub">Tu OT fue registrada correctamente</div>
-    <div class="success-ot" id="successOt">—</div>
+    <pre class="success-ot" id="summaryText" style="font-family:'Bricolage Grotesque',sans-serif;font-size:13px;text-align:left;white-space:pre-wrap;line-height:1.7;"></pre>
     <button class="btn-nuevo" onclick="resetForm()">+ Nueva solicitud</button>
   </div>
 
@@ -436,12 +437,14 @@ UBICACIÓN: ${geoData ? `Lat ${geoData.lat}, Lng ${geoData.lng}` : 'No capturada
     `.trim();
 
     document.getElementById('summaryText').textContent = summary;
+    document.getElementById('formContent').style.display = 'none';
     document.getElementById('successOverlay').classList.add('show');
   });
 
   function resetForm() {
     document.getElementById('mainForm').reset();
     document.getElementById('successOverlay').classList.remove('show');
+    document.getElementById('formContent').style.display = 'block';
     document.getElementById('geoResult').className = 'geo-result';
     geoData = null;
     // Reiniciar GPS al limpiar
