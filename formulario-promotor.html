@@ -146,14 +146,14 @@ body::after{
   body{
     padding:0;
     align-items:flex-start;
-    background:white;
+    background:var(--navy);
+    overflow-y:auto;
   }
-  body::before,body::after{display:none;}
   .form-box{
-    border-radius:0;
-    padding:24px 18px 48px;
+    border-radius:16px;
+    padding:28px 20px 40px;
     box-shadow:none;
-    min-height:100vh;
+    margin:20px 16px;
     animation:none;
     max-width:100%;
   }
@@ -171,8 +171,6 @@ body::after{
   .geo-btn{font-size:14px;padding:13px 12px;}
   .submit-btn{
     font-size:16px;padding:15px;
-    position:sticky;bottom:16px;
-    box-shadow:0 4px 20px rgba(15,42,74,0.25);
     margin-top:12px;
   }
   .divider{margin:14px 0;}
