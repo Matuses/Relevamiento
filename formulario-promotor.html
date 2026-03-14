@@ -6,6 +6,7 @@
 <meta name="theme-color" content="#0F2A4A">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, interactive-widget=resizes-content">
 <title>Solicitud de Reparación — Suralnor / Emcala</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -151,7 +152,7 @@ body::after{
   }
   .form-box{
     border-radius:16px;
-    padding:28px 20px 40px;
+    padding:28px 20px 80px;
     box-shadow:none;
     margin:20px 16px;
     animation:none;
@@ -171,8 +172,12 @@ body::after{
   .geo-btn{font-size:14px;padding:13px 12px;}
   .submit-btn{
     font-size:16px;padding:15px;
-    margin-top:12px;
+    margin-top:20px;
+    position:relative;
+    z-index:10;
   }
+  /* Espacio extra para que el botón no quede tapado por el teclado */
+  #mainForm{padding-bottom:20px;}
   .divider{margin:14px 0;}
 }
 input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
@@ -233,7 +238,7 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
 
       <div class="field">
         <label>EDF <span class="req">*</span></label>
-        <input type="text" id="edf" placeholder="Ingresá el EDF" required>
+        <input type="text" id="edf" placeholder="Ingresá el número de Activo Fijo" required>
       </div>
 
       <div class="field">
