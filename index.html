@@ -687,7 +687,7 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
 <script>
 
 /* ==================== CONFIGURACIÓN ==================== */
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbybYYG47uIk1r3ca52LTIVX0Ocy3w-Ibb9vNRTrfN2iQLoYQREzMnzC4Htn4kKG0O1X/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyuKwoNm1lg_m8To20FKNuzxNcMmHDZV4nTCz6to4ACk28ZmmuucnHSv2iMfBwpuLGQ/exec';
 
 const ESTADO_META = {
   'resuelto':  { label:'Resuelto',  cls:'resuelto',  icon:'✅' },
@@ -1447,12 +1447,12 @@ function openModal(r) {
     // Trade: ve dos secciones — chat con técnico y chat con supervisor
     const msgsT = chatMsgs.filter(m=>m.rol==='trade'||m.rol==='tecnico');
     const msgsS = chatMsgs.filter(m=>m.rol==='trade'||m.rol==='supervisor');
-    chatTabHTML = \`
+    chatTabHTML = `
       <div class="modal-sec">💬 Chat con Técnico</div>
-      \${buildChatBox(msgsT, 'trade-tecnico', r.ot, 'Técnico', '#15803D', '#6D28D9')}
+      ${buildChatBox(msgsT, 'trade-tecnico', r.ot, 'Técnico', '#15803D', '#6D28D9')}
       <div class="modal-sec" style="margin-top:16px;">💬 Chat con Supervisor</div>
-      \${buildChatBox(msgsS, 'trade-supervisor', r.ot, 'Supervisor', '#15803D', '#6D28D9')}
-    \`;
+      ${buildChatBox(msgsS, 'trade-supervisor', r.ot, 'Supervisor', '#15803D', '#6D28D9')}
+    `;
   }
 
   document.getElementById('mtChat').innerHTML = chatTabHTML;
