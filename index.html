@@ -630,13 +630,7 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <input type="text" id="hFiltCliente" placeholder="🔍 Cliente / PDV..." oninput="renderHistorial()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;color:var(--text);">
       <input type="text" id="hFiltPromotor" placeholder="👤 Promotor..." oninput="renderHistorial()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;color:var(--text);">
-      <select id="hFiltEstado" onchange="renderHistorial()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;color:var(--text);">
-        <option value="">Todos los estados</option>
-        <option value="sin-estado">Sin estado</option>
-        <option value="resuelto">✅ Resuelto</option>
-        <option value="pendiente">⏳ Pendiente</option>
-        <option value="retiro">📦 Retiro</option>
-      </select>
+
       <input type="date" id="hFiltDesde" onchange="renderHistorial()" style="padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;color:var(--text);">
       <input type="date" id="hFiltHasta" onchange="renderHistorial()" style="padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;color:var(--text);">
     </div>
@@ -648,10 +642,10 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
         <th>Fecha</th>
         <th>PDV / Cliente</th>
         <th>Promotor</th>
+        <th>Supervisor</th>
         <th>Marca</th>
         <th>EDF</th>
         <th>Falla</th>
-        <th>Estado</th>
         <th>Prioridad</th>
         <th>Técnico</th>
         <th>Devolución</th>
@@ -687,7 +681,7 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
 <script>
 
 /* ==================== CONFIGURACIÓN ==================== */
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwC8ibYe4FWKLNQUEHc9CWBnGcKxFTapulU-XNf-pmOtOPFWnIRhtj67QXZhgcHZQIy/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxKvXd1SlxAfQ_hTGrMGLCpRxTj7nOLo66SRSzBopSSlHTD7Soe-mMfIoULN5GsYtBB/exec';
 
 const ESTADO_META = {
   'resuelto':  { label:'Resuelto',  cls:'resuelto',  icon:'✅' },
@@ -697,7 +691,7 @@ const ESTADO_META = {
 };
 
 /* ==================== ESTADO GLOBAL ==================== */
-let allData=[], seguimientos={}, chatData={}, filtered=[], leafMap=null, markers=[], modalLeaf=null;
+let allData=[], seguimientos={}, chatData={}, historialData=[], filtered=[], leafMap=null, markers=[], modalLeaf=null;
 let currentUser=null, currentRole=null, currentPass=null, promotoresPropios=[];
 
 // LOGIN
@@ -792,6 +786,25 @@ function abrirFormRetiro() {
 }
 
 /* ==================== HISTORIAL ==================== */
+function parseHistorial(rows) {
+  if(!rows||rows.length<2) return [];
+  const h = rows[0].map(s=>(s||'').toString().trim().toLowerCase());
+  const col = n => h.findIndex(s=>s.includes(n));
+  const iTs=col('timestamp'), iOt=col('ot'), iCli=col('cliente'), iProm=col('promotor'),
+        iSup=col('supervisor'), iMarca=col('marca'), iEdf=col('edf'), iFalla=col('falla'),
+        iTec=col('tecnico'), iCom=col('comentario'), iPri=col('prioridad');
+  return rows.slice(1).map(c => {
+    const ts=(c[iTs]||'').toString();
+    let fecha='';
+    if(ts){const d=new Date(ts);if(!isNaN(d)) fecha=d.toLocaleDateString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',day:'2-digit',month:'2-digit',year:'numeric'})+' '+d.toLocaleTimeString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',hour:'2-digit',minute:'2-digit'});}
+    return {ts,fecha,ot:(c[iOt]||'').toString().trim(),cliente:(c[iCli]||'').toString().trim(),
+      promotor:(c[iProm]||'').toString().trim(),supervisor:(c[iSup]||'').toString().trim(),
+      marca:(c[iMarca]||'').toString().trim(),edf:(c[iEdf]||'').toString().trim(),
+      falla:(c[iFalla]||'').toString().trim(),tecnico:(c[iTec]||'').toString().trim(),
+      comentario:(c[iCom]||'').toString().trim(),prioridad:(c[iPri]||'').toString().trim()};
+  }).filter(r=>r.ot);
+}
+
 function renderHistorial() {
   const tbody = document.getElementById('tablaHistorialBody');
   if(!tbody) return;
@@ -802,49 +815,34 @@ function renderHistorial() {
   const filtDesde    = document.getElementById('hFiltDesde').value;
   const filtHasta    = document.getElementById('hFiltHasta').value;
 
-  const data = allData.filter(r => {
+  const data = historialData.filter(r => {
     if(filtCliente  && !(r.cliente||'').toLowerCase().includes(filtCliente))  return false;
-    if(filtPromotor && !(r.nombre||'').toLowerCase().includes(filtPromotor))  return false;
-    const eKey = getEstadoKey(r.ot, r.cliente);
-    if(filtEstado === 'sin-estado' && eKey !== '') return false;
-    if(filtEstado && filtEstado !== 'sin-estado' && eKey !== filtEstado) return false;
+    if(filtPromotor && !(r.promotor||'').toLowerCase().includes(filtPromotor)) return false;
     if(filtDesde && r.ts && r.ts < filtDesde) return false;
     if(filtHasta && r.ts && r.ts.slice(0,10) > filtHasta) return false;
     return true;
   });
 
   if(!data.length) {
-    tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:32px;font-size:13px;">Sin registros</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:32px;font-size:13px;">Sin registros resueltos aún</td></tr>';
     return;
   }
 
-  const estadoLabels = {resuelto:'✅ Resuelto', pendiente:'⏳ Pendiente', retiro:'📦 Retiro', '':'Sin estado'};
-  const estadoColors = {
-    resuelto:'background:#D1FAE5;color:#065F46',
-    pendiente:'background:#FEF3C7;color:#92400E',
-    retiro:'background:#DBEAFE;color:#1E40AF',
-    '':'background:#F1F5F9;color:#475569'
-  };
+  const priLabels = {'1':'⚠️ P1 — REPAGO','2':'⚠️ P2 — EJECUCIÓN','3':'P3 — PTC SUGERIDO','4':'P4','5':'P5','':'—'};
 
   tbody.innerHTML = [...data].reverse().map(r => {
-    const seg  = getSegByOt(r.ot, r.cliente);
-    const eKey = seg ? (seg.estado||'').toLowerCase().replace(/ /g,'-') : '';
-    const priA = seg ? (seg.prioridad_aprobada||'') : '';
-    const priS = seg ? (seg.prioridad_sugerida||'') : '';
-    const estLabel = estadoLabels[eKey] || 'Sin estado';
-    const estStyle = estadoColors[eKey] || estadoColors[''];
     return `<tr>
       <td><strong style="font-family:'DM Mono',monospace;color:var(--navy)">${r.ot||'—'}</strong></td>
-      <td>${r.fecha||'—'}<br><small style="color:var(--muted)">${r.hora||''}</small></td>
+      <td>${r.fecha||'—'}</td>
       <td>${r.cliente||'—'}</td>
-      <td>${r.nombre||'—'}</td>
+      <td>${r.promotor||'—'}</td>
+      <td>${r.supervisor||'—'}</td>
       <td>${r.marca||'—'}</td>
       <td>${r.edf||'—'}</td>
       <td>${r.falla||'—'}</td>
-      <td><span style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;${estStyle}">${estLabel}</span></td>
-      <td>${priA ? '✅ P'+priA : priS ? '⏳ P'+priS+' (sug.)' : '—'}</td>
-      <td>${seg&&seg.tecnico ? seg.tecnico : '—'}</td>
-      <td style="max-width:200px;font-size:12px;color:var(--muted)">${seg&&seg.comentario ? seg.comentario : '—'}</td>
+      <td>${priLabels[r.prioridad]||r.prioridad||'—'}</td>
+      <td>${r.tecnico||'—'}</td>
+      <td style="max-width:200px;font-size:12px;color:var(--muted)">${r.comentario||'—'}</td>
     </tr>`;
   }).join('');
 }
@@ -1038,6 +1036,7 @@ async function loadData() {
     allData = parseRegistros(data.registros);
     seguimientos = parseSeguimientos(data.seguimientos);
     chatData = parseChat(data.chat||[]);
+    historialData = parseHistorial(data.historial||[]);
     populateFilter();
     applyFilters();
   } catch(e) {
