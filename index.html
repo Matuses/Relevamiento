@@ -138,6 +138,12 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
 .modal{background:white;border-radius:20px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:modalUp 0.25s ease;}
 @keyframes modalUp{from{opacity:0;transform:translateY(16px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 .modal-head{padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;background:white;z-index:10;border-bottom:1px solid var(--border);}
+.modal-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);padding:0 18px;background:white;position:sticky;top:57px;z-index:9;}
+.modal-tab-btn{background:none;border:none;border-bottom:3px solid transparent;padding:10px 16px;font-family:'Bricolage Grotesque',sans-serif;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;transition:all 0.18s;white-space:nowrap;}
+.modal-tab-btn:hover{color:var(--navy);}
+.modal-tab-btn.active{color:var(--blue);border-bottom-color:var(--blue);}
+.modal-tab-content{display:none;padding:16px 18px;}
+.modal-tab-content.active{display:block;}
 .modal-name{font-size:22px;font-weight:800;color:var(--navy);margin-bottom:4px;}
 .modal-ts{font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;}
 .modal-close{background:var(--bg);border:1px solid var(--border);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;}
@@ -397,6 +403,12 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
 .modal{background:white;border-radius:20px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:modalUp 0.25s ease;}
 @keyframes modalUp{from{opacity:0;transform:translateY(16px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 .modal-head{padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;background:white;z-index:10;border-bottom:1px solid var(--border);}
+.modal-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);padding:0 18px;background:white;position:sticky;top:57px;z-index:9;}
+.modal-tab-btn{background:none;border:none;border-bottom:3px solid transparent;padding:10px 16px;font-family:'Bricolage Grotesque',sans-serif;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;transition:all 0.18s;white-space:nowrap;}
+.modal-tab-btn:hover{color:var(--navy);}
+.modal-tab-btn.active{color:var(--blue);border-bottom-color:var(--blue);}
+.modal-tab-content{display:none;padding:16px 18px;}
+.modal-tab-content.active{display:block;}
 .modal-name{font-size:22px;font-weight:800;color:var(--navy);margin-bottom:4px;}
 .modal-ts{font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;}
 .modal-close{background:var(--bg);border:1px solid var(--border);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;}
@@ -663,14 +675,19 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
       </div>
       <button class="modal-close" onclick="closeModalDirect()">✕</button>
     </div>
-    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-tabs" id="modalTabs" style="display:none;">
+      <button class="modal-tab-btn active" id="mtbDetalle" onclick="switchModalTab('detalle')">📋 Detalle</button>
+      <button class="modal-tab-btn" id="mtbChat" onclick="switchModalTab('chat')">💬 Chat</button>
+    </div>
+    <div class="modal-tab-content active" id="mtDetalle"></div>
+    <div class="modal-tab-content" id="mtChat"></div>
   </div>
 </div>
 
 <script>
 
 /* ==================== CONFIGURACIÓN ==================== */
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwZMagrRVSM07DOjsypB80YRX0HyMD_dQi93Avo9zgEADiwd91eahjIkRMk_fUQzwY/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbybYYG47uIk1r3ca52LTIVX0Ocy3w-Ibb9vNRTrfN2iQLoYQREzMnzC4Htn4kKG0O1X/exec';
 
 const ESTADO_META = {
   'resuelto':  { label:'Resuelto',  cls:'resuelto',  icon:'✅' },
@@ -740,56 +757,6 @@ async function doLogin() {
 }
 
 /* ==================== CHAT ==================== */
-async function enviarChat(ot) {
-  const input = document.getElementById('modalOverlay').querySelector('[data-mid="chatInput"]');
-  const msg = (input.value||'').trim();
-  if(!msg) return;
-  input.value = '';
-  input.disabled = true;
-
-  const payload = {
-    tipo: 'chat',
-    timestamp: new Date().toISOString(),
-    ot,
-    autor: currentUser,
-    rol: currentRole,
-    mensaje: msg
-  };
-
-  try {
-    fetch(SCRIPT_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(payload)});
-    // Actualizar local
-    if(!chatData[ot]) chatData[ot]=[];
-    const ts = new Date().toISOString();
-    const fecha = new Date().toLocaleDateString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',day:'2-digit',month:'2-digit',year:'numeric'})+' '+new Date().toLocaleTimeString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',hour:'2-digit',minute:'2-digit'});
-    chatData[ot].push({ts, fecha, autor:currentUser, rol:currentRole, mensaje:msg});
-
-    // Actualizar chatBox sin cerrar el modal
-    const chatBox = document.getElementById('modalOverlay').querySelector('[data-mid="chatBox"]');
-    if(chatBox) {
-      const m = chatData[ot].slice(-1)[0];
-      const isMe = m.rol === currentRole;
-      const align = currentRole==='trade' ? 'flex-end' : 'flex-start';
-      const bg = currentRole==='trade' ? '#EDE9FE' : '#F0FDF4';
-      const border = currentRole==='trade' ? '#DDD6FE' : '#BBF7D0';
-      const radius = currentRole==='trade' ? '12px 4px 12px 12px' : '4px 12px 12px 12px';
-      const color = currentRole==='trade' ? '#6D28D9' : '#15803D';
-      const newMsg = document.createElement('div');
-      newMsg.style.cssText = `display:flex;flex-direction:column;align-items:${align};margin-bottom:8px;`;
-      newMsg.innerHTML = `<div style="max-width:80%;background:${bg};border:1px solid ${border};border-radius:${radius};padding:8px 12px;"><div style="font-size:11px;font-weight:700;color:${color};margin-bottom:3px;">${currentUser}</div><div style="font-size:13px;color:#0F2A4A;">${msg}</div><div style="font-size:10px;color:#94A3B8;margin-top:4px;text-align:right;">${fecha}</div></div>`;
-      // Quitar mensaje "Sin mensajes"
-      if(chatBox.querySelector('div[style*="text-align:center"]')) chatBox.innerHTML='';
-      chatBox.appendChild(newMsg);
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
-    // Actualizar lista para técnico (puede reaparecer OT)
-    applyFilters();
-  } catch(e) {
-    console.error('Error enviando chat:', e);
-  }
-  input.disabled = false;
-  input.focus();
-}
 
 /* ==================== RETIRO / ENTREGA ==================== */
 let solicitudesRetiro = []; // Se llenará desde Google Sheets en el futuro
@@ -988,11 +955,10 @@ function exportarExcel() {
 
 /* ==================== PARSERS CHAT ==================== */
 function parseChat(rows) {
-  // Retorna { ot: [{ts, autor, rol, mensaje}, ...] }
   if(!rows||rows.length<2) return {};
   const h=rows[0].map(s=>(s||'').toString().trim().toLowerCase());
   const col=n=>h.findIndex(s=>s.includes(n));
-  const iTs=col('timestamp'),iOt=col('ot'),iAut=col('autor'),iRol=col('rol'),iMsg=col('mensaje');
+  const iTs=col('timestamp'),iOt=col('ot'),iAut=col('autor'),iRol=col('rol'),iChatTipo=col('chat_tipo'),iMsg=col('mensaje');
   const map={};
   rows.slice(1).forEach(c=>{
     const ot=(c[iOt]||'').toString().trim();
@@ -1001,7 +967,7 @@ function parseChat(rows) {
     let fecha='';
     if(ts){const d=new Date(ts);if(!isNaN(d)) fecha=d.toLocaleDateString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',day:'2-digit',month:'2-digit',year:'numeric'})+' '+d.toLocaleTimeString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',hour:'2-digit',minute:'2-digit'});}
     if(!map[ot]) map[ot]=[];
-    map[ot].push({ts,fecha,autor:(c[iAut]||'').toString().trim(),rol:(c[iRol]||'').toString().trim(),mensaje:(c[iMsg]||'').toString().trim()});
+    map[ot].push({ts,fecha,autor:(c[iAut]||'').toString().trim(),rol:(c[iRol]||'').toString().trim(),chat_tipo:(iChatTipo>=0?(c[iChatTipo]||'').toString().trim():''),mensaje:(c[iMsg]||'').toString().trim()});
   });
   return map;
 }
@@ -1254,6 +1220,88 @@ function renderList(data) {
 // MODAL
 
 /* ==================== MODAL ==================== */
+function buildChatBox(msgs, chatRol, ot, otherLabel, otherColor, myColor) {
+  // chatRol: 'tecnico', 'supervisor', 'trade-tecnico', 'trade-supervisor'
+  // Determinar qué rol "soy yo" en este chat
+  const myRol = currentRole;
+  const isTradeChat = chatRol.startsWith('trade');
+  const targetRol = chatRol === 'trade-tecnico' ? 'tecnico' : chatRol === 'trade-supervisor' ? 'supervisor' : chatRol;
+
+  const inputId = 'chatInput-' + chatRol;
+  const boxId   = 'chatBox-' + chatRol;
+
+  const msgsHTML = msgs.length ? msgs.map(m => {
+    const isMe = isTradeChat ? m.rol === 'trade' : m.rol === myRol;
+    const bg     = isMe ? '#EDE9FE' : '#F0F9FF';
+    const border = isMe ? '#DDD6FE' : '#BAE6FD';
+    const radius = isMe ? '12px 4px 12px 12px' : '4px 12px 12px 12px';
+    const color  = isMe ? '#6D28D9' : '#0369A1';
+    const align  = isMe ? 'flex-end' : 'flex-start';
+    return `<div style="display:flex;flex-direction:column;align-items:${align};margin-bottom:8px;">
+      <div style="max-width:80%;background:${bg};border:1px solid ${border};border-radius:${radius};padding:8px 12px;">
+        <div style="font-size:11px;font-weight:700;color:${color};margin-bottom:3px;">${m.autor}</div>
+        <div style="font-size:13px;color:#0F2A4A;">${m.mensaje}</div>
+        <div style="font-size:10px;color:#94A3B8;margin-top:4px;text-align:right;">${m.fecha}</div>
+      </div>
+    </div>`;
+  }).join('') : '<div style="text-align:center;color:#94A3B8;font-size:12px;padding:12px 0;">Sin mensajes aún</div>';
+
+  return `
+    <div id="${boxId}" style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:12px;margin-bottom:8px;max-height:180px;overflow-y:auto;">${msgsHTML}</div>
+    <div style="display:flex;gap:8px;">
+      <input id="${inputId}" placeholder="Escribí un mensaje..." style="flex:1;padding:9px 12px;border:1.5px solid #E2E8F0;border-radius:8px;font-size:13px;color:#0F2A4A;background:white;" onkeydown="if(event.key==='Enter')enviarChatRol('${ot}','${chatRol}','${targetRol}')">
+      <button onclick="enviarChatRol('${ot}','${chatRol}','${targetRol}')" style="background:#0F2A4A;color:white;border:none;padding:9px 16px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;">Enviar</button>
+    </div>`;
+}
+
+async function enviarChatRol(ot, chatRol, targetRol) {
+  const inputId = 'chatInput-' + chatRol;
+  const boxId   = 'chatBox-' + chatRol;
+  const input   = document.getElementById(inputId);
+  if(!input) return;
+  const msg = (input.value||'').trim();
+  if(!msg) return;
+  input.value = '';
+  input.disabled = true;
+
+  const payload = {
+    tipo: 'chat',
+    timestamp: new Date().toISOString(),
+    ot, autor: currentUser, rol: currentRole,
+    chat_tipo: chatRol.startsWith('trade') ? chatRol : (currentRole + '-' + targetRol),
+    mensaje: msg
+  };
+
+  fetch(SCRIPT_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(payload)});
+
+  if(!chatData[ot]) chatData[ot]=[];
+  const d = new Date();
+  const fecha = d.toLocaleDateString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',day:'2-digit',month:'2-digit',year:'numeric'})+' '+d.toLocaleTimeString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',hour:'2-digit',minute:'2-digit'});
+  chatData[ot].push({ts:d.toISOString(), fecha, autor:currentUser, rol:currentRole, chat_tipo:payload.chat_tipo, mensaje:msg});
+
+  const box = document.getElementById(boxId);
+  if(box) {
+    const isMe = true;
+    const newMsg = document.createElement('div');
+    newMsg.style.cssText = 'display:flex;flex-direction:column;align-items:flex-end;margin-bottom:8px;';
+    newMsg.innerHTML = `<div style="max-width:80%;background:#EDE9FE;border:1px solid #DDD6FE;border-radius:12px 4px 12px 12px;padding:8px 12px;"><div style="font-size:11px;font-weight:700;color:#6D28D9;margin-bottom:3px;">${currentUser}</div><div style="font-size:13px;color:#0F2A4A;">${msg}</div><div style="font-size:10px;color:#94A3B8;margin-top:4px;text-align:right;">${fecha}</div></div>`;
+    const sinMsg = box.querySelector('div[style*="text-align:center"]');
+    if(sinMsg) box.innerHTML='';
+    box.appendChild(newMsg);
+    box.scrollTop = box.scrollHeight;
+  }
+  applyFilters();
+  input.disabled = false;
+  input.focus();
+}
+
+function switchModalTab(tab) {
+  document.getElementById('mtbDetalle').classList.toggle('active', tab==='detalle');
+  document.getElementById('mtbChat').classList.toggle('active', tab==='chat');
+  document.getElementById('mtDetalle').classList.toggle('active', tab==='detalle');
+  document.getElementById('mtChat').classList.toggle('active', tab==='chat');
+}
+
 function openModal(r) {
   if(typeof r==='string') r=JSON.parse(r);
   document.getElementById('modalNombre').textContent='OT ' + (r.ot||'—');
@@ -1300,12 +1348,7 @@ function openModal(r) {
           <div class="save-ok" data-mid="saveOk">✅ Guardado correctamente</div>
         </div>
       </div>
-      <div class="modal-sec">💬 Chat</div>
-      <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:12px;margin-bottom:8px;max-height:200px;overflow-y:auto;" data-mid="chatBox">${chatHTML}</div>
-      <div style="display:flex;gap:8px;">
-        <input data-mid="chatInput" placeholder="Escribí un mensaje..." style="flex:1;padding:9px 12px;border:1.5px solid #E2E8F0;border-radius:8px;font-size:13px;color:#0F2A4A;background:white;">
-        <button onclick="enviarChat('${r.ot}')" style="background:#0F2A4A;color:white;border:none;padding:9px 16px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;">Enviar</button>
-      </div>`;
+`;
 
   } else if(currentRole==='supervisor') {
     // Supervisor: sugiere prioridad + ve estado
@@ -1318,7 +1361,11 @@ function openModal(r) {
           <label>Prioridad sugerida ${priA?`<span style="color:var(--success)">· Aprobada: P${priA} por ${seg2.aprobado_por}</span>`:''}</label>
           <select data-mid="segPriSug">
             <option value="">Sin prioridad</option>
-            ${[1,2,3,4,5].map(n=>`<option value="${n}" ${priS==n?'selected':''}>${n==='1'||n===1?'⚠️ ':n==='2'||n===2?'⚠️ ':''}P${n}</option>`).join('')}
+            <option value="1" ${priS=='1'?'selected':''}>⚠️ P1 — REPAGO</option>
+            <option value="2" ${priS=='2'?'selected':''}>⚠️ P2 — EJECUCIÓN</option>
+            <option value="3" ${priS=='3'?'selected':''}>P3 — PTC SUGERIDO</option>
+            <option value="4" ${priS=='4'?'selected':''}>P4</option>
+            <option value="5" ${priS=='5'?'selected':''}>P5</option>
           </select>
           <button class="btn-guardar" data-mid="btnGuardar" onclick="guardarSeguimiento('${r.cliente}','${r.nombre}','${r.ot}','supervisor')">
             💾 Guardar prioridad
@@ -1348,7 +1395,11 @@ function openModal(r) {
           <label>Aprobar prioridad</label>
           <select data-mid="segPriApr" style="border-color:#DDD6FE;">
             <option value="">Sin prioridad</option>
-            ${[1,2,3,4,5].map(n=>`<option value="${n}" ${priA==n?'selected':''}>${n==='1'||n===1?'⚠️ ':n==='2'||n===2?'⚠️ ':''}P${n}</option>`).join('')}
+            <option value="1" ${priA=='1'?'selected':''}>⚠️ P1 — REPAGO</option>
+            <option value="2" ${priA=='2'?'selected':''}>⚠️ P2 — EJECUCIÓN</option>
+            <option value="3" ${priA=='3'?'selected':''}>P3 — PTC SUGERIDO</option>
+            <option value="4" ${priA=='4'?'selected':''}>P4</option>
+            <option value="5" ${priA=='5'?'selected':''}>P5</option>
           </select>
           <button class="btn-guardar" data-mid="btnGuardar" style="background:#7C3AED;" onclick="guardarSeguimiento('${r.cliente}','${r.nombre}','${r.ot}','trade')">
             ✅ Aprobar prioridad
@@ -1356,15 +1407,11 @@ function openModal(r) {
           <div class="save-ok" data-mid="saveOk">✅ Aprobado correctamente</div>
         </div>
       </div>
-      <div class="modal-sec">💬 Chat con Técnico</div>
-      <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:12px;margin-bottom:8px;max-height:200px;overflow-y:auto;" data-mid="chatBox">${chatHTML}</div>
-      <div style="display:flex;gap:8px;">
-        <input data-mid="chatInput" placeholder="Escribí un mensaje al técnico..." style="flex:1;padding:9px 12px;border:1.5px solid #E2E8F0;border-radius:8px;font-size:13px;color:#0F2A4A;background:white;">
-        <button onclick="enviarChat('${r.ot}')" style="background:#7C3AED;color:white;border:none;padding:9px 16px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;">Enviar</button>
-      </div>`;
+`;
   }
 
-  document.getElementById('modalBody').innerHTML=`
+  // Pestaña DETALLE
+  document.getElementById('mtDetalle').innerHTML=`
     <div class="modal-sec">Detalle del registro</div>
     <div class="modal-grid">
       <div class="mf"><label>N° OT</label><p style="font-family:'DM Mono',monospace;font-size:13px;font-weight:800;color:var(--navy)">${r.ot||'—'}</p></div>
@@ -1383,6 +1430,38 @@ function openModal(r) {
     `:''}
     ${segHTML}
   `;
+
+  // Pestaña CHAT — según rol
+  const chatMsgs = chatData[r.ot]||[];
+  let chatTabHTML = '';
+
+  if(currentRole === 'tecnico') {
+    // Técnico: solo ve chat con Trade
+    const msgs = chatMsgs.filter(m=>m.rol==='trade'||m.rol==='tecnico');
+    chatTabHTML = buildChatBox(msgs, 'tecnico', r.ot, 'Trade Marketing', '#1D4ED8', '#15803D');
+  } else if(currentRole === 'supervisor') {
+    // Supervisor: solo ve chat con Trade
+    const msgs = chatMsgs.filter(m=>m.rol==='trade'||m.rol==='supervisor');
+    chatTabHTML = buildChatBox(msgs, 'supervisor', r.ot, 'Trade Marketing', '#1D4ED8', '#15803D');
+  } else if(currentRole === 'trade') {
+    // Trade: ve dos secciones — chat con técnico y chat con supervisor
+    const msgsT = chatMsgs.filter(m=>m.rol==='trade'||m.rol==='tecnico');
+    const msgsS = chatMsgs.filter(m=>m.rol==='trade'||m.rol==='supervisor');
+    chatTabHTML = \`
+      <div class="modal-sec">💬 Chat con Técnico</div>
+      \${buildChatBox(msgsT, 'trade-tecnico', r.ot, 'Técnico', '#15803D', '#6D28D9')}
+      <div class="modal-sec" style="margin-top:16px;">💬 Chat con Supervisor</div>
+      \${buildChatBox(msgsS, 'trade-supervisor', r.ot, 'Supervisor', '#15803D', '#6D28D9')}
+    \`;
+  }
+
+  document.getElementById('mtChat').innerHTML = chatTabHTML;
+
+  // Mostrar pestañas solo si el rol tiene chat
+  const hasTabs = currentRole === 'tecnico' || currentRole === 'supervisor' || currentRole === 'trade';
+  document.getElementById('modalTabs').style.display = hasTabs ? 'flex' : 'none';
+  // Reset a pestaña detalle
+  switchModalTab('detalle');
 
   document.getElementById('modalOverlay').classList.add('show');
   if(hasGeo){
@@ -1416,7 +1495,13 @@ async function guardarSeguimiento(cliente, promotor, ot, tipoRol) {
     payload.comentario= modal.querySelector('[data-mid="segComentario"]').value.trim();
     payload.tecnico   = currentUser;
   } else if(tipoRol==='supervisor') {
-    payload.prioridad_sugerida = modal.querySelector('[data-mid="segPriSug"]').value;
+    const priVal = modal.querySelector('[data-mid="segPriSug"]').value;
+    payload.prioridad_sugerida = priVal;
+    // P1 y P2 van directo al técnico sin aprobación de Trade
+    if(priVal === '1' || priVal === '2') {
+      payload.prioridad_aprobada = priVal;
+      payload.aprobado_por = currentUser + ' (auto)';
+    }
   } else if(tipoRol==='trade') {
     payload.prioridad_aprobada = modal.querySelector('[data-mid="segPriApr"]').value;
     payload.aprobado_por       = currentUser;
