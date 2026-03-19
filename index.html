@@ -204,6 +204,8 @@ html,body{height:100%;overflow:hidden;}body{font-family:'Bricolage Grotesque',sa
 
 /* Mobile (Samsung A05, Moto E22 — 360-480px) */
 @media(max-width:480px){
+  html,body{overflow:auto;height:auto;}
+  #dashboard{height:auto;overflow:visible;}
   /* Topbar */
   .topbar{padding:0 12px;height:48px;gap:8px;}
   .topbar-title{font-size:13px;}
@@ -213,19 +215,21 @@ html,body{height:100%;overflow:hidden;}body{font-family:'Bricolage Grotesque',sa
   .btn-logout{padding:4px 10px;font-size:11px;}
   .role-badge{font-size:10px;padding:2px 8px;}
 
-  /* Filtros — una fila con scroll horizontal */
-  .filters-bar{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:8px;padding:8px 12px;-webkit-overflow-scrolling:touch;}
+  /* Filtros — fila única con scroll horizontal, muy compacta */
+  .filters-bar{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:6px;padding:6px 10px;-webkit-overflow-scrolling:touch;border-radius:0;border-left:none;border-right:none;}
   .filters-bar label{display:none;}
-  .filters-bar select,.filters-bar input[type="date"]{min-width:130px;font-size:14px;padding:7px 10px;flex-shrink:0;}
-  .btn-refresh{white-space:nowrap;padding:7px 12px;font-size:12px;}
-  .btn-clear{display:none;}
+  .filter-sep{display:none;}
+  .filters-bar select,.filters-bar input[type="date"]{min-width:110px;max-width:130px;font-size:13px;padding:6px 8px;flex-shrink:0;}
+  .btn-refresh{white-space:nowrap;padding:6px 10px;font-size:12px;flex-shrink:0;}
+  .btn-clear{white-space:nowrap;padding:6px 10px;font-size:12px;flex-shrink:0;}
 
-  /* Layout principal — solo lista, mapa colapsado */
-  .main{grid-template-columns:1fr;padding:8px;gap:8px;}
-  .card:first-child{order:2;}  /* mapa abajo */
-  .card:last-child{order:1;}   /* lista arriba */
-  #map{min-height:220px;}
-  .map-legend{flex-wrap:wrap;gap:6px;font-size:10px;}
+  /* Layout principal — mapa arriba, lista abajo con scroll */
+  .main{grid-template-columns:1fr;grid-template-rows:auto 1fr;padding:8px;gap:8px;overflow-y:auto;height:auto;}
+  .card:first-child{order:1;}
+  .card:last-child{order:2;}
+  #map{min-height:240px;max-height:260px;}
+  .map-legend{flex-wrap:wrap;gap:4px;font-size:10px;padding:4px 10px;}
+  .table-scroll{max-height:300px;overflow-y:auto;}
 
   /* Lista */
   .card-header{padding:10px 14px;}
