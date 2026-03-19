@@ -681,7 +681,7 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
 <script>
 
 /* ==================== CONFIGURACIÓN ==================== */
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxYgeZ6Z5uvNW7R85w_VicqjclucdZ3y9RD7dklJZJqKu9ecID9zzxWi2SEhWnyKSCj/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyuKwoNm1lg_m8To20FKNuzxNcMmHDZV4nTCz6to4ACk28ZmmuucnHSv2iMfBwpuLGQ/exec';
 
 const ESTADO_META = {
   'resuelto':  { label:'Resuelto',  cls:'resuelto',  icon:'✅' },
@@ -1219,18 +1219,14 @@ function renderList(data) {
 // MODAL
 
 /* ==================== MODAL ==================== */
-function buildChatBox(msgs, chatRol, ot, otherLabel, otherColor, myColor) {
-  // chatRol: 'tecnico', 'supervisor', 'trade-tecnico', 'trade-supervisor'
-  // Determinar qué rol "soy yo" en este chat
-  const myRol = currentRole;
-  const isTradeChat = chatRol.startsWith('trade');
-  const targetRol = chatRol === 'trade-tecnico' ? 'tecnico' : chatRol === 'trade-supervisor' ? 'supervisor' : chatRol;
-
-  const inputId = 'chatInput-' + chatRol;
-  const boxId   = 'chatBox-' + chatRol;
+function buildChatBox(msgs, canal, ot) {
+  // canal: 'tec-sup' | 'tec-trade' | 'sup-trade'
+  // "soy yo" si mi rol está en el canal
+  const inputId = 'chatInput-' + canal;
+  const boxId   = 'chatBox-'   + canal;
 
   const msgsHTML = msgs.length ? msgs.map(m => {
-    const isMe = isTradeChat ? m.rol === 'trade' : m.rol === myRol;
+    const isMe = m.rol === currentRole;
     const bg     = isMe ? '#EDE9FE' : '#F0F9FF';
     const border = isMe ? '#DDD6FE' : '#BAE6FD';
     const radius = isMe ? '12px 4px 12px 12px' : '4px 12px 12px 12px';
@@ -1246,16 +1242,18 @@ function buildChatBox(msgs, chatRol, ot, otherLabel, otherColor, myColor) {
   }).join('') : '<div style="text-align:center;color:#94A3B8;font-size:12px;padding:12px 0;">Sin mensajes aún</div>';
 
   return `
-    <div id="${boxId}" style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:12px;margin-bottom:8px;max-height:180px;overflow-y:auto;">${msgsHTML}</div>
+    <div id="${boxId}" style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:12px;margin-bottom:8px;max-height:160px;overflow-y:auto;">${msgsHTML}</div>
     <div style="display:flex;gap:8px;">
-      <input id="${inputId}" placeholder="Escribí un mensaje..." style="flex:1;padding:9px 12px;border:1.5px solid #E2E8F0;border-radius:8px;font-size:13px;color:#0F2A4A;background:white;" onkeydown="if(event.key==='Enter')enviarChatRol('${ot}','${chatRol}','${targetRol}')">
-      <button onclick="enviarChatRol('${ot}','${chatRol}','${targetRol}')" style="background:#0F2A4A;color:white;border:none;padding:9px 16px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;">Enviar</button>
+      <input id="${inputId}" placeholder="Escribí un mensaje..." style="flex:1;padding:9px 12px;border:1.5px solid #E2E8F0;border-radius:8px;font-size:13px;color:#0F2A4A;background:white;" onkeydown="if(event.key==='Enter')enviarChatRol('${ot}','${canal}')">
+      <button onclick="enviarChatRol('${ot}','${canal}')" style="background:#0F2A4A;color:white;border:none;padding:9px 16px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;">Enviar</button>
     </div>`;
 }
 
-async function enviarChatRol(ot, chatRol, targetRol) {
-  const inputId = 'chatInput-' + chatRol;
-  const boxId   = 'chatBox-' + chatRol;
+
+async function enviarChatRol(ot, canal) {
+  // canal: 'tec-sup' | 'tec-trade' | 'sup-trade'
+  const inputId = 'chatInput-' + canal;
+  const boxId   = 'chatBox-'   + canal;
   const input   = document.getElementById(inputId);
   if(!input) return;
   const msg = (input.value||'').trim();
@@ -1267,7 +1265,7 @@ async function enviarChatRol(ot, chatRol, targetRol) {
     tipo: 'chat',
     timestamp: new Date().toISOString(),
     ot, autor: currentUser, rol: currentRole,
-    chat_tipo: chatRol.startsWith('trade') ? chatRol : (currentRole + '-' + targetRol),
+    chat_tipo: canal,
     mensaje: msg
   };
 
@@ -1276,11 +1274,11 @@ async function enviarChatRol(ot, chatRol, targetRol) {
   if(!chatData[ot]) chatData[ot]=[];
   const d = new Date();
   const fecha = d.toLocaleDateString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',day:'2-digit',month:'2-digit',year:'numeric'})+' '+d.toLocaleTimeString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',hour:'2-digit',minute:'2-digit'});
-  chatData[ot].push({ts:d.toISOString(), fecha, autor:currentUser, rol:currentRole, chat_tipo:payload.chat_tipo, mensaje:msg});
+  chatData[ot].push({ts:d.toISOString(), fecha, autor:currentUser, rol:currentRole, chat_tipo:canal, mensaje:msg});
 
+  // Agregar burbuja al chatBox
   const box = document.getElementById(boxId);
   if(box) {
-    const isMe = true;
     const newMsg = document.createElement('div');
     newMsg.style.cssText = 'display:flex;flex-direction:column;align-items:flex-end;margin-bottom:8px;';
     newMsg.innerHTML = `<div style="max-width:80%;background:#EDE9FE;border:1px solid #DDD6FE;border-radius:12px 4px 12px 12px;padding:8px 12px;"><div style="font-size:11px;font-weight:700;color:#6D28D9;margin-bottom:3px;">${currentUser}</div><div style="font-size:13px;color:#0F2A4A;">${msg}</div><div style="font-size:10px;color:#94A3B8;margin-top:4px;text-align:right;">${fecha}</div></div>`;
@@ -1293,6 +1291,7 @@ async function enviarChatRol(ot, chatRol, targetRol) {
   input.disabled = false;
   input.focus();
 }
+
 
 function switchModalTab(tab) {
   document.getElementById('mtbDetalle').classList.toggle('active', tab==='detalle');
@@ -1441,26 +1440,33 @@ function openModal(r) {
   `;
 
   // Pestaña CHAT — según rol
+  // Canales: 'tec-sup' | 'tec-trade' | 'sup-trade'
   const chatMsgs = chatData[r.ot]||[];
+  const msgsTecSup   = chatMsgs.filter(m=>m.chat_tipo==='tec-sup');
+  const msgsTecTrade = chatMsgs.filter(m=>m.chat_tipo==='tec-trade');
+  const msgsSupTrade = chatMsgs.filter(m=>m.chat_tipo==='sup-trade');
   let chatTabHTML = '';
 
   if(currentRole === 'tecnico') {
-    // Técnico: solo ve chat con Trade
-    const msgs = chatMsgs.filter(m=>m.rol==='trade'||m.rol==='tecnico');
-    chatTabHTML = buildChatBox(msgs, 'tecnico', r.ot, 'Trade Marketing', '#1D4ED8', '#15803D');
+    chatTabHTML = `
+      <div class="modal-sec">💬 Chat con Supervisor</div>
+      ${buildChatBox(msgsTecSup, 'tec-sup', r.ot)}
+      <div class="modal-sec" style="margin-top:16px;">💬 Chat con Trade</div>
+      ${buildChatBox(msgsTecTrade, 'tec-trade', r.ot)}
+    `;
   } else if(currentRole === 'supervisor') {
-    // Supervisor: solo ve chat con Trade
-    const msgs = chatMsgs.filter(m=>m.rol==='trade'||m.rol==='supervisor');
-    chatTabHTML = buildChatBox(msgs, 'supervisor', r.ot, 'Trade Marketing', '#1D4ED8', '#15803D');
-  } else if(currentRole === 'trade') {
-    // Trade: ve dos secciones — chat con técnico y chat con supervisor
-    const msgsT = chatMsgs.filter(m=>m.rol==='trade'||m.rol==='tecnico');
-    const msgsS = chatMsgs.filter(m=>m.rol==='trade'||m.rol==='supervisor');
     chatTabHTML = `
       <div class="modal-sec">💬 Chat con Técnico</div>
-      ${buildChatBox(msgsT, 'trade-tecnico', r.ot, 'Técnico', '#15803D', '#6D28D9')}
+      ${buildChatBox(msgsTecSup, 'tec-sup', r.ot)}
+      <div class="modal-sec" style="margin-top:16px;">💬 Chat con Trade</div>
+      ${buildChatBox(msgsSupTrade, 'sup-trade', r.ot)}
+    `;
+  } else if(currentRole === 'trade') {
+    chatTabHTML = `
+      <div class="modal-sec">💬 Chat con Técnico</div>
+      ${buildChatBox(msgsTecTrade, 'tec-trade', r.ot)}
       <div class="modal-sec" style="margin-top:16px;">💬 Chat con Supervisor</div>
-      ${buildChatBox(msgsS, 'trade-supervisor', r.ot, 'Supervisor', '#15803D', '#6D28D9')}
+      ${buildChatBox(msgsSupTrade, 'sup-trade', r.ot)}
     `;
   }
 
