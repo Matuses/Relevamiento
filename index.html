@@ -681,7 +681,7 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
 <script>
 
 /* ==================== CONFIGURACIÓN ==================== */
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyuKwoNm1lg_m8To20FKNuzxNcMmHDZV4nTCz6to4ACk28ZmmuucnHSv2iMfBwpuLGQ/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxYgeZ6Z5uvNW7R85w_VicqjclucdZ3y9RD7dklJZJqKu9ecID9zzxWi2SEhWnyKSCj/exec';
 
 const ESTADO_META = {
   'resuelto':  { label:'Resuelto',  cls:'resuelto',  icon:'✅' },
@@ -1003,8 +1003,8 @@ function updateMap(data) {
     const isAlta = priAprobada && (priAprobada==='1'||priAprobada==='2');
     const isSugerida = !priAprobada && priSugerida;
     const excl = isAlta ? `<div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);color:#DC2626;font-size:13px;font-weight:900;line-height:1;text-shadow:0 1px 3px rgba(0,0,0,0.4)">!</div>` : '';
-    const numBadge = priShow ? `<div style="position:absolute;top:-18px;left:50%;transform:translateX(-50%);background:${priAprobada?'#0F2A4A':'#94A3B8'};color:white;font-size:10px;font-weight:800;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1.5px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.3);${isSugerida?'opacity:0.7':''}}">${priShow}</div>` : '';
-    const icon=L.divIcon({html:`<div style="position:relative;width:14px;height:14px">${excl}${numBadge}<div style="width:14px;height:14px;background:${color};border:2.5px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3)"></div></div>`,className:'',iconSize:[14,14],iconAnchor:[7,7]});
+    const numBadge = priShow ? `<div style="position:absolute;top:-20px;left:50%;transform:translateX(-50%);background:${priAprobada?'#0F2A4A':'#94A3B8'};color:white;font-size:11px;font-weight:800;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.3);${isSugerida?'opacity:0.7':''}}">${priShow}</div>` : '';
+    const icon=L.divIcon({html:`<div style="position:relative;width:26px;height:26px">${excl}${numBadge}<div style="width:26px;height:26px;background:${color};border:3px solid white;border-radius:50%;box-shadow:0 2px 10px rgba(0,0,0,0.35);cursor:pointer;"></div></div>`,className:'',iconSize:[26,26],iconAnchor:[13,13]});
     const seg = seguimientos[r.cliente];
     const segLabel = seg ? `<br><small style="color:#059669;font-weight:600">${ESTADO_META[seg.estado]?.icon||''} ${ESTADO_META[seg.estado]?.label||seg.estado}</small>` : '';
     const mk=L.marker([lat,lng],{icon})
@@ -1339,8 +1339,18 @@ function openModal(r) {
             <option value="resuelto"  ${eKey==='resuelto'?'selected':''}>✅ Resuelto</option>
             <option value="retiro"    ${eKey==='retiro'  ?'selected':''}>📦 Retiro</option>
           </select>
-          <label>Devolución</label>
-          <textarea data-mid="segComentario" placeholder="Describí el estado del equipo...">${seg2?seg2.comentario:''}</textarea>
+          <label>Devolución <span style="color:#DC2626">*</span></label>
+          <textarea data-mid="segComentario" placeholder="Describí el estado del equipo (obligatorio)...">${seg2?seg2.comentario:''}</textarea>
+          <label style="margin-top:8px;">Ubicación al resolver <span style="color:#DC2626">*</span></label>
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
+            <button type="button" data-mid="geoTecBtn" onclick="geoTecnico()" style="flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg);color:var(--navy);font-family:'Bricolage Grotesque',sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+              <span data-mid="geoTecIcon">📍 Obtener ubicación</span>
+              <span data-mid="geoTecSpin" style="display:none;">⏳ Obteniendo...</span>
+            </button>
+          </div>
+          <div data-mid="geoTecResult" style="font-size:12px;margin-bottom:8px;min-height:16px;"></div>
+          <input type="hidden" data-mid="geoTecLat" value="">
+          <input type="hidden" data-mid="geoTecLng" value="">
           <button class="btn-guardar" data-mid="btnGuardar" onclick="guardarSeguimiento('${r.cliente}','${r.nombre}','${r.ot}','tecnico')">
             💾 Guardar devolución
           </button>
@@ -1462,6 +1472,11 @@ function openModal(r) {
   // Reset a pestaña detalle
   switchModalTab('detalle');
 
+  // Auto-geolocalizar si es técnico
+  if(currentRole === 'tecnico') {
+    setTimeout(() => geoTecnico(), 300);
+  }
+
   document.getElementById('modalOverlay').classList.add('show');
   if(hasGeo){
     setTimeout(()=>{
@@ -1474,6 +1489,43 @@ function openModal(r) {
       L.circleMarker([lat,lng],{radius:8,fillColor:'#1E88E5',color:'white',weight:2.5,fillOpacity:1}).addTo(modalLeaf);
     },60);
   }
+}
+
+/* ==================== GEO TÉCNICO ==================== */
+function geoTecnico() {
+  const modal = document.getElementById('modalOverlay');
+  const btn   = modal.querySelector('[data-mid="geoTecBtn"]');
+  const icon  = modal.querySelector('[data-mid="geoTecIcon"]');
+  const spin  = modal.querySelector('[data-mid="geoTecSpin"]');
+  const res   = modal.querySelector('[data-mid="geoTecResult"]');
+  const lat   = modal.querySelector('[data-mid="geoTecLat"]');
+  const lng   = modal.querySelector('[data-mid="geoTecLng"]');
+
+  if(!navigator.geolocation) {
+    res.style.color='#DC2626';
+    res.textContent='Tu dispositivo no soporta geolocalización.';
+    return;
+  }
+  icon.style.display='none'; spin.style.display='';
+  btn.disabled=true;
+
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      lat.value = pos.coords.latitude.toFixed(6);
+      lng.value = pos.coords.longitude.toFixed(6);
+      res.style.color='#16A34A';
+      res.textContent=`✅ Ubicación capturada: ${lat.value}, ${lng.value} (±${Math.round(pos.coords.accuracy)}m)`;
+      icon.style.display=''; spin.style.display='none';
+      btn.disabled=false;
+    },
+    err => {
+      res.style.color='#DC2626';
+      res.textContent='No se pudo obtener la ubicación. Intentá de nuevo.';
+      icon.style.display=''; spin.style.display='none';
+      btn.disabled=false;
+    },
+    {enableHighAccuracy:true, timeout:15000, maximumAge:0}
+  );
 }
 
 /* ==================== SEGUIMIENTO ==================== */
@@ -1490,9 +1542,32 @@ async function guardarSeguimiento(cliente, promotor, ot, tipoRol) {
     aprobado_por: prev.aprobado_por||''};
 
   if(tipoRol==='tecnico') {
+    const comentario = modal.querySelector('[data-mid="segComentario"]').value.trim();
+    const tecLat     = modal.querySelector('[data-mid="geoTecLat"]').value;
+    const tecLng     = modal.querySelector('[data-mid="geoTecLng"]').value;
+
+    // Validaciones obligatorias
+    if(!comentario) {
+      const ta = modal.querySelector('[data-mid="segComentario"]');
+      ta.style.borderColor='#DC2626';
+      ta.focus();
+      btn.disabled=false; btn.textContent='💾 Guardar devolución';
+      return;
+    }
+    if(!tecLat || !tecLng) {
+      const res = modal.querySelector('[data-mid="geoTecResult"]');
+      res.style.color='#DC2626';
+      res.textContent='⚠️ Debés capturar tu ubicación antes de guardar.';
+      btn.disabled=false; btn.textContent='💾 Guardar devolución';
+      return;
+    }
+
     payload.estado    = modal.querySelector('[data-mid="segEstado"]').value;
-    payload.comentario= modal.querySelector('[data-mid="segComentario"]').value.trim();
+    payload.comentario= comentario;
     payload.tecnico   = currentUser;
+    payload.tec_lat   = tecLat;
+    payload.tec_lng   = tecLng;
+    payload.tec_timestamp = new Date().toISOString();
   } else if(tipoRol==='supervisor') {
     const priVal = modal.querySelector('[data-mid="segPriSug"]').value;
     payload.prioridad_sugerida = priVal;
