@@ -515,33 +515,28 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
 
   <div class="main">
     <div class="filters-bar">
-      <label>Promotor</label>
-      <select id="filterNombre" onchange="applyFilters()"><option value="">Todos</option></select>
+      <select id="filterNombre" onchange="applyFilters()"><option value="">Promotor</option></select>
       <div class="filter-sep"></div>
-      <label>Estado</label>
       <select id="filterEstado" onchange="applyFilters()">
-        <option value="">Todos</option>
+        <option value="">Estado</option>
         <option value="sin-estado">Sin estado</option>
         <option value="resuelto">✅ Resuelto</option>
         <option value="pendiente">⏳ Pendiente</option>
         <option value="retiro">📦 Retiro</option>
       </select>
       <div class="filter-sep"></div>
-      <label>Desde</label>
-      <input type="date" id="filterDesde" onchange="applyFilters()">
-      <label>Hasta</label>
-      <input type="date" id="filterHasta" onchange="applyFilters()">
-      <div class="filter-sep"></div>
-      <label>Prioridad</label>
       <select id="filterPrioridad" onchange="applyFilters()">
-        <option value="">Todas</option>
-        <option value="1">P1</option>
-        <option value="2">P2</option>
-        <option value="3">P3</option>
+        <option value="">Prioridad</option>
+        <option value="1">P1 — Repago</option>
+        <option value="2">P2 — Ejecución</option>
+        <option value="3">P3 — PTC</option>
         <option value="4">P4</option>
         <option value="5">P5</option>
         <option value="sin-prioridad">Sin prioridad</option>
       </select>
+      <div class="filter-sep"></div>
+      <input type="date" id="filterDesde" onchange="applyFilters()">
+      <input type="date" id="filterHasta" onchange="applyFilters()">
       <div class="filter-sep"></div>
       <button class="btn-clear" onclick="clearFilters()">✕ Limpiar</button>
       <button class="btn-refresh" onclick="loadData()">↻ Actualizar</button>
@@ -553,6 +548,7 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
         <span class="badge-count" id="mapCount">0 puntos</span>
       </div>
       <div id="map"></div>
+      <div class="map-hint" id="mapHintMain" style="display:none;">👉 Usá dos dedos para mover el mapa</div>
       <div class="map-legend" id="mapLegend"></div>
     </div>
 
@@ -975,9 +971,20 @@ function parseChat(rows) {
 /* ==================== MAPA ==================== */
 function initMap() {
   if (leafMap) return;
-  leafMap = L.map('map').setView([-34.62,-58.38],10);
+  leafMap = L.map('map', {
+    scrollWheelZoom: false,
+    dragging: !L.Browser.mobile,
+    tap: false
+  }).setView([-34.62,-58.38],10);
+  if(L.Browser.mobile) {
+    leafMap.addHandler('scrollWheelZoom', L.ScrollWheelZoom);
+    // En mobile: dos dedos para mover
+    leafMap.on('touchstart', function(e){ if(e.originalEvent.touches.length >= 2) leafMap.dragging.enable(); else leafMap.dragging.disable(); });
+    leafMap.on('touchend', function(){ leafMap.dragging.disable(); });
+  }
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © CARTO',maxZoom:19}).addTo(leafMap);
   setTimeout(()=>leafMap.invalidateSize(),300);
+  if(L.Browser.mobile) document.getElementById('mapHintMain').style.display='block';
 }
 
 function ageColor(ts) {
