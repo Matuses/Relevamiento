@@ -522,6 +522,11 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
       </div>
       <div class="filter-sep"></div>
       <div class="filter-field">
+        <label>Localidad</label>
+        <select id="filterLocalidad" onchange="applyFilters()"><option value="">Todas</option></select>
+      </div>
+      <div class="filter-sep"></div>
+      <div class="filter-field">
         <label>Estado</label>
         <select id="filterEstado" onchange="applyFilters()">
           <option value="">Todos</option>
@@ -695,7 +700,7 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
 <script>
 
 /* ==================== CONFIGURACIÓN ==================== */
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxGbv6u6Tzz1Wz9kUu2gulJ_ZDXubOLNM33B4_3StOcQ8MYLyW8QSx11kEsL1e3lCQJ/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxpwUlBz-fhiICE7uwR44r50AfA5eXenGBtpFUsuJa3h56nUqTrwaxvBxgpBSqK2-zz/exec';
 
 const ESTADO_META = {
   'resuelto':  { label:'Resuelto',  cls:'resuelto',  icon:'✅' },
@@ -705,7 +710,7 @@ const ESTADO_META = {
 };
 
 /* ==================== ESTADO GLOBAL ==================== */
-let allData=[], seguimientos={}, chatData={}, historialData=[], clientesData={}, filtered=[], leafMap=null, markers=[], modalLeaf=null;
+let allData=[], seguimientos={}, chatData={}, historialData=[], filtered=[], leafMap=null, markers=[], modalLeaf=null;
 let currentUser=null, currentRole=null, currentPass=null, promotoresPropios=[];
 
 // LOGIN
@@ -1062,7 +1067,6 @@ async function loadData() {
     seguimientos = parseSeguimientos(data.seguimientos);
     chatData = parseChat(data.chat||[]);
     historialData = parseHistorial(data.historial||[]);
-    clientesData  = parseClientes(data.clientes||[]);
     populateFilter();
     applyFilters();
   } catch(e) {
@@ -1078,11 +1082,14 @@ function parseRegistros(rows) {
   const iOt=col('ot'),iTs=col('timestamp'),iProm=col('promotor'),iRol=col('rol'),iCli=col('cliente'),
         iMarca=col('marca'),iEdf=col('edf'),iFalla=col('falla'),
         iLat=col('lat'),iLng=col('lng'),iFoto=col('foto'),iNotas=col('notas');
+  // Columna M=12 localidad, N=13 frecuencia (base 0)
+  const iLocalidad = h.findIndex(s=>s.includes('localidad')) !== -1 ? h.findIndex(s=>s.includes('localidad')) : 12;
+  const iFrecuencia = h.findIndex(s=>s.includes('frecuencia')) !== -1 ? h.findIndex(s=>s.includes('frecuencia')) : 13;
   return rows.slice(1).map((c,i)=>{
     const ts=(c[iTs]||'').toString();
     let fecha='',hora='';
     if(ts){const d=new Date(ts);if(!isNaN(d)){fecha=d.toLocaleDateString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',day:'2-digit',month:'2-digit',year:'numeric'});hora=d.toLocaleTimeString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',hour:'2-digit',minute:'2-digit'});}}
-    return {nro:i+1,ot:(c[iOt]||'').toString().trim(),ts,fecha,hora,nombre:(c[iProm]||'').toString().trim().toUpperCase(),rol:(c[iRol]||'promotor').toString().trim(),cliente:(c[iCli]||'').toString().trim(),marca:(c[iMarca]||'').toString().trim(),edf:(c[iEdf]||'').toString().trim(),falla:(c[iFalla]||'').toString().trim(),lat:(c[iLat]!==undefined&&c[iLat]!==''?c[iLat].toString():''),lng:(c[iLng]!==undefined&&c[iLng]!==''?c[iLng].toString():''),foto:(c[iFoto]||'').toString(),notas:(c[iNotas]||'').toString()};
+    return {nro:i+1,ot:(c[iOt]||'').toString().trim(),ts,fecha,hora,nombre:(c[iProm]||'').toString().trim().toUpperCase(),rol:(c[iRol]||'promotor').toString().trim(),cliente:(c[iCli]||'').toString().trim(),marca:(c[iMarca]||'').toString().trim(),edf:(c[iEdf]||'').toString().trim(),falla:(c[iFalla]||'').toString().trim(),lat:(c[iLat]!==undefined&&c[iLat]!==''?c[iLat].toString():''),lng:(c[iLng]!==undefined&&c[iLng]!==''?c[iLng].toString():''),foto:(c[iFoto]||'').toString(),notas:(c[iNotas]||'').toString(),localidad:(c[iLocalidad]||'').toString().trim(),frecuencia:(c[iFrecuencia]||'').toString().trim()};
   }).filter(r=>r.nombre);
 }
 
@@ -1146,6 +1153,12 @@ function populateFilter() {
   document.getElementById('filterNombre').innerHTML=opts;
   const tp=document.getElementById('tFiltPromotor');
   if(tp) tp.innerHTML=opts;
+  // Poblar localidades
+  const localidades = [...new Set(allData.map(r=>r.localidad).filter(Boolean))].sort();
+  const locOpts = '<option value="">Todas</option>'+localidades.map(l=>`<option value="${l}">${l}</option>`).join('');
+  const filterLoc = document.getElementById('filterLocalidad');
+  if(filterLoc) filterLoc.innerHTML = locOpts;
+
   if(currentRole==='trade'||currentRole==='supervisor') {
     document.getElementById('tabBar').style.display='flex';
     document.getElementById('tabHistorial').style.display='';
@@ -1163,8 +1176,10 @@ function applyFilters() {
   const desde=document.getElementById('filterDesde').value;
   const hasta=document.getElementById('filterHasta').value;
   const prioridad=document.getElementById('filterPrioridad').value;
+  const localidad=document.getElementById('filterLocalidad') ? document.getElementById('filterLocalidad').value : '';
   filtered=allData.filter(r=>{
     if(nombre&&r.nombre!==nombre) return false;
+    if(localidad&&r.localidad!==localidad) return false;
     if(estado){
       const eKey=getEstadoKey(r.ot,r.cliente);
       if(estado==='sin-estado'&&eKey!=='') return false;
@@ -1205,46 +1220,11 @@ function applyFilters() {
 }
 
 function clearFilters(){
-  ['filterNombre','filterEstado','filterPrioridad','filterDesde','filterHasta'].forEach(id=>document.getElementById(id).value='');
+  ['filterNombre','filterLocalidad','filterEstado','filterPrioridad','filterDesde','filterHasta'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   applyFilters();
 }
 
 // LISTA
-
-/* ==================== CLIENTES ==================== */
-function parseClientes(rows) {
-  // Retorna { codCliente: { nombre, frecuencia, promotor, ... } }
-  if(!rows||rows.length<2) return {};
-  const h = rows[0].map(s=>(s||'').toString().trim().toLowerCase());
-  const col = n => h.findIndex(s=>s.includes(n));
-  const iCod  = col('cliente');
-  const iNom  = col('nombre');
-  const iFrec = col('frecuencia');
-  const iProm = col('promotor');
-  const map = {};
-  rows.slice(1).forEach(c => {
-    const cod = (c[iCod]||'').toString().trim();
-    if(!cod) return;
-    map[cod] = {
-      nombre:    (c[iNom] ||'').toString().trim(),
-      frecuencia:(c[iFrec]||'').toString().trim().toUpperCase(),
-      promotor:  (c[iProm]||'').toString().trim()
-    };
-  });
-  return map;
-}
-
-const FREC_ABREV = {
-  'LUN':'LUN','LUN/JUE':'LUJU','JUE':'JUE',
-  'MAR':'MAR','MAR/VIE':'MAVI','VIE':'VIE',
-  'MIE':'MIE','MIE/SAB':'MISA','SAB':'SAB'
-};
-
-function getFrecuencia(codCliente) {
-  const c = clientesData[codCliente];
-  if(!c||!c.frecuencia) return null;
-  return FREC_ABREV[c.frecuencia] || c.frecuencia.slice(0,4);
-}
 
 /* ==================== LISTA ==================== */
 function renderList(data) {
@@ -1252,8 +1232,7 @@ function renderList(data) {
   if(!data.length){el.innerHTML='<div class="empty-state"><div class="ico">📭</div><p>No hay registros.</p></div>';return;}
   el.innerHTML=[...data].reverse().map(r=>{
     const color=ageColor(r.ts);
-    const frecAbrev = getFrecuencia(r.cliente);
-    const initials = frecAbrev || (r.cliente||'?').replace(/[^A-Z0-9]/gi,'').slice(0,3).toUpperCase();
+    const initials = r.frecuencia || (r.cliente||'?').replace(/[^A-Z0-9]/gi,'').slice(0,3).toUpperCase();
     const hasGeo=r.lat&&r.lng&&parseFloat(r.lat)!==0;
     const eKey=getEstadoKey(r.ot,r.cliente);
     const em=ESTADO_META[eKey]||ESTADO_META[''];
@@ -1491,11 +1470,10 @@ function openModal(r) {
       <div class="mf"><label>EDF</label><p>${r.edf||'—'}</p></div>
       <div class="mf"><label>GPS</label><p style="font-family:'DM Mono',monospace;font-size:12px">${hasGeo?lat.toFixed(5)+', '+lng.toFixed(5):'Sin coordenadas'}</p></div>
       <div class="mf full"><label>Falla Sugerida</label><p>${r.falla||'—'}</p></div>
+      ${r.localidad?`<div class="mf"><label>Localidad</label><p>${r.localidad}</p></div>`:''}
+      ${r.frecuencia?`<div class="mf"><label>Frecuencia de visita</label><p style="font-weight:700;color:var(--blue)">${r.frecuencia}</p></div>`:''}
       ${r.notas?`<div class="mf full"><label>Notas</label><p>${r.notas}</p></div>`:''}
-      ${clientesData[r.cliente]?`
-      <div class="mf"><label>Frecuencia de visita</label><p style="font-weight:700;color:var(--blue)">${clientesData[r.cliente].frecuencia||'—'}</p></div>
-      <div class="mf"><label>Vendedor asignado</label><p>${clientesData[r.cliente].promotor||'—'}</p></div>
-      `:''}
+
     </div>
     ${hasGeo?`
       <div class="modal-sec">Ubicación</div>
