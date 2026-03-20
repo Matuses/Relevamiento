@@ -224,11 +224,12 @@ html,body{height:100%;overflow:hidden;}body{font-family:'Bricolage Grotesque',sa
   .btn-clear{white-space:nowrap;padding:6px 10px;font-size:12px;flex-shrink:0;}
 
   /* Layout principal — mapa arriba, lista abajo con scroll */
-  .main{grid-template-columns:1fr;grid-template-rows:auto 1fr;padding:8px;gap:8px;overflow-y:auto;height:auto;}
-  .card:first-child{order:1;}
-  .card:last-child{order:2;}
-  #map{min-height:240px;max-height:260px;}
-  .map-legend{flex-wrap:wrap;gap:4px;font-size:10px;padding:4px 10px;}
+  .main{display:flex;flex-direction:column;padding:8px;gap:8px;overflow-y:auto;height:auto;}
+  .card:first-child{order:1;flex-shrink:0;}
+  .card:last-child{order:2;flex-shrink:0;}
+  .card:first-child{height:auto !important;}
+  #map{height:250px !important;min-height:250px !important;max-height:250px !important;flex:none !important;}
+  .map-legend{flex-wrap:wrap;gap:4px;font-size:10px;padding:4px 10px;flex-shrink:0;}
   .table-scroll{max-height:300px;overflow-y:auto;}
 
   /* Lista */
