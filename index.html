@@ -1470,9 +1470,9 @@ function openModal(r) {
       <div class="mf"><label>EDF</label><p>${r.edf||'—'}</p></div>
       <div class="mf"><label>GPS</label><p style="font-family:'DM Mono',monospace;font-size:12px">${hasGeo?lat.toFixed(5)+', '+lng.toFixed(5):'Sin coordenadas'}</p></div>
       <div class="mf full"><label>Falla Sugerida</label><p>${r.falla||'—'}</p></div>
-      ${r.localidad?`<div class="mf"><label>Localidad</label><p>${r.localidad}</p></div>`:''}
-      ${r.frecuencia?`<div class="mf"><label>Frecuencia de visita</label><p style="font-weight:700;color:var(--blue)">${r.frecuencia}</p></div>`:''}
-      ${r.notas?`<div class="mf full"><label>Notas</label><p>${r.notas}</p></div>`:''}
+      <div class="mf"><label>Localidad</label><p>${r.localidad||'—'}</p></div>
+      <div class="mf"><label>Frecuencia de visita</label><p style="font-weight:700;color:var(--blue)">${r.frecuencia||'—'}</p></div>
+${r.notas?`<div class="mf full"><label>Notas</label><p>${r.notas}</p></div>`:''}
 
     </div>
     ${hasGeo?`
