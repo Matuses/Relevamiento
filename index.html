@@ -44,7 +44,7 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
 
 /* DASHBOARD */
 #dashboard{display:none;}
-.topbar{background:var(--navy);color:white;padding:0 28px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(15,42,74,0.2);}
+.topbar{background:var(--navy);color:white;padding:0 28px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:1000;box-shadow:0 2px 12px rgba(15,42,74,0.2);}
 .topbar-left{display:flex;align-items:center;gap:12px;}
 
 .topbar-title{font-size:16px;font-weight:700;}
@@ -55,7 +55,7 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
 .role-badge.tecnico{background:rgba(22,163,74,0.2);color:#86EFAC;}
 .role-badge.trade{background:rgba(168,85,247,0.2);color:#D8B4FE;}
   .topbar-center{display:none;}
-  .tabbar-wrap{display:none;background:white;border-bottom:1px solid var(--border);padding:0 24px;gap:0;align-items:stretch;justify-content:center;position:sticky;top:60px;z-index:90;box-shadow:0 1px 4px rgba(0,0,0,0.05);}
+  .tabbar-wrap{display:none;background:white;border-bottom:1px solid var(--border);padding:0 24px;gap:0;align-items:stretch;justify-content:center;position:sticky;top:52px;z-index:999;box-shadow:0 1px 4px rgba(0,0,0,0.05);}
   .tab-btn{background:transparent;border:none;border-bottom:3px solid transparent;color:var(--muted);font-size:13px;font-weight:600;padding:8px 20px;cursor:pointer;transition:all 0.18s;white-space:nowrap;letter-spacing:0.02em;}
   .tab-btn:hover{color:var(--navy);}
   .tab-btn.active{color:var(--blue);border-bottom-color:var(--blue);}
@@ -213,13 +213,14 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
   .btn-logout{padding:4px 10px;font-size:11px;}
   .role-badge{font-size:10px;padding:2px 8px;}
 
-  /* Filtros — scroll horizontal */
-  .filters-bar{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:6px;padding:6px 10px;-webkit-overflow-scrolling:touch;}
-  .filters-bar label{display:none;}
+  /* Filtros — fila horizontal con scroll */
+  .filters-bar{display:flex;flex-direction:row;flex-wrap:nowrap;overflow-x:auto;gap:6px;padding:6px 10px;-webkit-overflow-scrolling:touch;align-items:center;}
+  .filters-bar label{font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:2px;white-space:nowrap;}
   .filter-sep{display:none;}
-  .filters-bar select,.filters-bar input[type="date"]{min-width:110px;font-size:13px;padding:6px 8px;flex-shrink:0;}
-  .btn-refresh{white-space:nowrap;padding:6px 10px;font-size:12px;flex-shrink:0;}
-  .btn-clear{white-space:nowrap;padding:6px 10px;font-size:12px;flex-shrink:0;}
+  .filters-bar select,.filters-bar input[type="date"]{min-width:100px;max-width:120px;font-size:13px;padding:5px 7px;flex-shrink:0;display:block;}
+  .filters-bar .filter-field{display:flex;flex-direction:column;flex-shrink:0;}
+  .btn-refresh{white-space:nowrap;padding:6px 10px;font-size:12px;flex-shrink:0;align-self:flex-end;}
+  .btn-clear{white-space:nowrap;padding:6px 10px;font-size:12px;flex-shrink:0;align-self:flex-end;}
 
   /* Layout — columna, mapa fijo arriba, registros abajo */
   .main{grid-template-columns:1fr;padding:8px;gap:8px;}
@@ -311,7 +312,7 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
 
 /* DASHBOARD */
 #dashboard{display:none;}
-.topbar{background:var(--navy);color:white;padding:0 28px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(15,42,74,0.2);}
+.topbar{background:var(--navy);color:white;padding:0 28px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:1000;box-shadow:0 2px 12px rgba(15,42,74,0.2);}
 .topbar-left{display:flex;align-items:center;gap:12px;}
 .topbar-icon{width:32px;height:32px;background:rgba(14,165,233,0.2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;}
 .topbar-title{font-size:16px;font-weight:700;}
@@ -322,7 +323,7 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
 .role-badge.tecnico{background:rgba(22,163,74,0.2);color:#86EFAC;}
 .role-badge.trade{background:rgba(168,85,247,0.2);color:#D8B4FE;}
   .topbar-center{display:none;}
-  .tabbar-wrap{display:none;background:white;border-bottom:1px solid var(--border);padding:0 24px;gap:0;align-items:stretch;justify-content:center;position:sticky;top:60px;z-index:90;box-shadow:0 1px 4px rgba(0,0,0,0.05);}
+  .tabbar-wrap{display:none;background:white;border-bottom:1px solid var(--border);padding:0 24px;gap:0;align-items:stretch;justify-content:center;position:sticky;top:52px;z-index:999;box-shadow:0 1px 4px rgba(0,0,0,0.05);}
   .tab-btn{background:transparent;border:none;border-bottom:3px solid transparent;color:var(--muted);font-size:13px;font-weight:600;padding:8px 20px;cursor:pointer;transition:all 0.18s;white-space:nowrap;letter-spacing:0.02em;}
   .tab-btn:hover{color:var(--navy);}
   .tab-btn.active{color:var(--blue);border-bottom-color:var(--blue);}
@@ -515,28 +516,43 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
 
   <div class="main">
     <div class="filters-bar">
-      <select id="filterNombre" onchange="applyFilters()"><option value="">Promotor</option></select>
+      <div class="filter-field">
+        <label>Promotor</label>
+        <select id="filterNombre" onchange="applyFilters()"><option value="">Todos</option></select>
+      </div>
       <div class="filter-sep"></div>
-      <select id="filterEstado" onchange="applyFilters()">
-        <option value="">Estado</option>
-        <option value="sin-estado">Sin estado</option>
-        <option value="resuelto">✅ Resuelto</option>
-        <option value="pendiente">⏳ Pendiente</option>
-        <option value="retiro">📦 Retiro</option>
-      </select>
+      <div class="filter-field">
+        <label>Estado</label>
+        <select id="filterEstado" onchange="applyFilters()">
+          <option value="">Todos</option>
+          <option value="sin-estado">Sin estado</option>
+          <option value="resuelto">✅ Resuelto</option>
+          <option value="pendiente">⏳ Pendiente</option>
+          <option value="retiro">📦 Retiro</option>
+        </select>
+      </div>
       <div class="filter-sep"></div>
-      <select id="filterPrioridad" onchange="applyFilters()">
-        <option value="">Prioridad</option>
-        <option value="1">P1 — Repago</option>
-        <option value="2">P2 — Ejecución</option>
-        <option value="3">P3 — PTC</option>
-        <option value="4">P4</option>
-        <option value="5">P5</option>
-        <option value="sin-prioridad">Sin prioridad</option>
-      </select>
+      <div class="filter-field">
+        <label>Prioridad</label>
+        <select id="filterPrioridad" onchange="applyFilters()">
+          <option value="">Todas</option>
+          <option value="1">P1 — Repago</option>
+          <option value="2">P2 — Ejecución</option>
+          <option value="3">P3 — PTC</option>
+          <option value="4">P4</option>
+          <option value="5">P5</option>
+          <option value="sin-prioridad">Sin prioridad</option>
+        </select>
+      </div>
       <div class="filter-sep"></div>
-      <input type="date" id="filterDesde" onchange="applyFilters()">
-      <input type="date" id="filterHasta" onchange="applyFilters()">
+      <div class="filter-field">
+        <label>Fecha ini</label>
+        <input type="date" id="filterDesde" onchange="applyFilters()">
+      </div>
+      <div class="filter-field">
+        <label>Fecha fin</label>
+        <input type="date" id="filterHasta" onchange="applyFilters()">
+      </div>
       <div class="filter-sep"></div>
       <button class="btn-clear" onclick="clearFilters()">✕ Limpiar</button>
       <button class="btn-refresh" onclick="loadData()">↻ Actualizar</button>
