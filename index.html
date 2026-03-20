@@ -705,7 +705,7 @@ const ESTADO_META = {
 };
 
 /* ==================== ESTADO GLOBAL ==================== */
-let allData=[], seguimientos={}, chatData={}, historialData=[], filtered=[], leafMap=null, markers=[], modalLeaf=null;
+let allData=[], seguimientos={}, chatData={}, historialData=[], clientesData={}, filtered=[], leafMap=null, markers=[], modalLeaf=null;
 let currentUser=null, currentRole=null, currentPass=null, promotoresPropios=[];
 
 // LOGIN
@@ -1062,6 +1062,7 @@ async function loadData() {
     seguimientos = parseSeguimientos(data.seguimientos);
     chatData = parseChat(data.chat||[]);
     historialData = parseHistorial(data.historial||[]);
+    clientesData  = parseClientes(data.clientes||[]);
     populateFilter();
     applyFilters();
   } catch(e) {
@@ -1210,13 +1211,49 @@ function clearFilters(){
 
 // LISTA
 
+/* ==================== CLIENTES ==================== */
+function parseClientes(rows) {
+  // Retorna { codCliente: { nombre, frecuencia, promotor, ... } }
+  if(!rows||rows.length<2) return {};
+  const h = rows[0].map(s=>(s||'').toString().trim().toLowerCase());
+  const col = n => h.findIndex(s=>s.includes(n));
+  const iCod  = col('cliente');
+  const iNom  = col('nombre');
+  const iFrec = col('frecuencia');
+  const iProm = col('promotor');
+  const map = {};
+  rows.slice(1).forEach(c => {
+    const cod = (c[iCod]||'').toString().trim();
+    if(!cod) return;
+    map[cod] = {
+      nombre:    (c[iNom] ||'').toString().trim(),
+      frecuencia:(c[iFrec]||'').toString().trim().toUpperCase(),
+      promotor:  (c[iProm]||'').toString().trim()
+    };
+  });
+  return map;
+}
+
+const FREC_ABREV = {
+  'LUN':'LUN','LUN/JUE':'LUJU','JUE':'JUE',
+  'MAR':'MAR','MAR/VIE':'MAVI','VIE':'VIE',
+  'MIE':'MIE','MIE/SAB':'MISA','SAB':'SAB'
+};
+
+function getFrecuencia(codCliente) {
+  const c = clientesData[codCliente];
+  if(!c||!c.frecuencia) return null;
+  return FREC_ABREV[c.frecuencia] || c.frecuencia.slice(0,4);
+}
+
 /* ==================== LISTA ==================== */
 function renderList(data) {
   const el=document.getElementById('registrosList');
   if(!data.length){el.innerHTML='<div class="empty-state"><div class="ico">📭</div><p>No hay registros.</p></div>';return;}
   el.innerHTML=[...data].reverse().map(r=>{
     const color=ageColor(r.ts);
-    const initials=(r.cliente||'?').replace(/[^A-Z0-9]/gi,'').slice(0,3).toUpperCase();
+    const frecAbrev = getFrecuencia(r.cliente);
+    const initials = frecAbrev || (r.cliente||'?').replace(/[^A-Z0-9]/gi,'').slice(0,3).toUpperCase();
     const hasGeo=r.lat&&r.lng&&parseFloat(r.lat)!==0;
     const eKey=getEstadoKey(r.ot,r.cliente);
     const em=ESTADO_META[eKey]||ESTADO_META[''];
@@ -1455,6 +1492,10 @@ function openModal(r) {
       <div class="mf"><label>GPS</label><p style="font-family:'DM Mono',monospace;font-size:12px">${hasGeo?lat.toFixed(5)+', '+lng.toFixed(5):'Sin coordenadas'}</p></div>
       <div class="mf full"><label>Falla Sugerida</label><p>${r.falla||'—'}</p></div>
       ${r.notas?`<div class="mf full"><label>Notas</label><p>${r.notas}</p></div>`:''}
+      ${clientesData[r.cliente]?`
+      <div class="mf"><label>Frecuencia de visita</label><p style="font-weight:700;color:var(--blue)">${clientesData[r.cliente].frecuencia||'—'}</p></div>
+      <div class="mf"><label>Vendedor asignado</label><p>${clientesData[r.cliente].promotor||'—'}</p></div>
+      `:''}
     </div>
     ${hasGeo?`
       <div class="modal-sec">Ubicación</div>
