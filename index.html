@@ -77,11 +77,24 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
 .btn-logout{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);color:white;border-radius:8px;padding:6px 14px;font-family:'Bricolage Grotesque',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:background 0.2s;}
 .btn-logout:hover{background:rgba(255,255,255,0.18);}
 
-.main{padding:16px 24px;display:grid;grid-template-columns:1fr 360px;grid-template-rows:auto 1fr;gap:16px;max-width:1400px;margin:0 auto;}
+.main{padding:16px 24px;display:grid;grid-template-columns:1fr 360px;grid-template-rows:auto 1fr;gap:16px;max-width:1400px;margin:0 auto;align-items:start;}
 
 /* FILTROS */
   .filters-bar{grid-column:1/-1;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:var(--shadow);}
 .filters-bar label{font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap;}
+
+/* Filtros multi-check desktop */
+.multi-filter{position:relative;display:inline-block;}
+.multi-filter-btn{padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;background:white;font-family:'Bricolage Grotesque',sans-serif;font-size:13px;color:var(--text);cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px;min-width:100px;}
+.multi-filter-btn:after{content:'▾';font-size:10px;color:var(--muted);margin-left:auto;}
+.multi-filter-btn.active{border-color:var(--blue);color:var(--blue);}
+.multi-filter-dropdown{display:none;position:absolute;top:calc(100% + 4px);left:0;background:white;border:1.5px solid var(--border);border-radius:10px;box-shadow:var(--shadow-lg);z-index:200;min-width:180px;padding:6px 0;max-height:260px;overflow-y:auto;}
+.multi-filter-dropdown.open{display:block;}
+.multi-filter-option{display:flex;align-items:center;gap:8px;padding:7px 14px;cursor:pointer;font-size:13px;color:var(--text);transition:background 0.15s;}
+.multi-filter-option:hover{background:var(--bg);}
+.multi-filter-option input[type=checkbox]{width:14px;height:14px;accent-color:var(--blue);cursor:pointer;flex-shrink:0;}
+.multi-filter-divider{height:1px;background:var(--border);margin:4px 0;}
+.multi-filter-group{padding:4px 14px 2px;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);}
 .filters-bar select,.filters-bar input[type="date"]{padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Bricolage Grotesque',sans-serif;font-size:13px;color:var(--text);background:var(--bg);outline:none;cursor:pointer;transition:border-color 0.2s;}
 .filters-bar select:focus,.filters-bar input[type="date"]:focus{border-color:var(--accent);}
 .filter-sep{width:1px;height:24px;background:var(--border);flex-shrink:0;}
@@ -345,11 +358,24 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
 .btn-logout{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);color:white;border-radius:8px;padding:6px 14px;font-family:'Bricolage Grotesque',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:background 0.2s;}
 .btn-logout:hover{background:rgba(255,255,255,0.18);}
 
-.main{padding:16px 24px;display:grid;grid-template-columns:1fr 360px;grid-template-rows:auto 1fr;gap:16px;max-width:1400px;margin:0 auto;}
+.main{padding:16px 24px;display:grid;grid-template-columns:1fr 360px;grid-template-rows:auto 1fr;gap:16px;max-width:1400px;margin:0 auto;align-items:start;}
 
 /* FILTROS */
 .filters-bar{grid-column:1/-1;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:var(--shadow);}
 .filters-bar label{font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap;}
+
+/* Filtros multi-check desktop */
+.multi-filter{position:relative;display:inline-block;}
+.multi-filter-btn{padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;background:white;font-family:'Bricolage Grotesque',sans-serif;font-size:13px;color:var(--text);cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px;min-width:100px;}
+.multi-filter-btn:after{content:'▾';font-size:10px;color:var(--muted);margin-left:auto;}
+.multi-filter-btn.active{border-color:var(--blue);color:var(--blue);}
+.multi-filter-dropdown{display:none;position:absolute;top:calc(100% + 4px);left:0;background:white;border:1.5px solid var(--border);border-radius:10px;box-shadow:var(--shadow-lg);z-index:200;min-width:180px;padding:6px 0;max-height:260px;overflow-y:auto;}
+.multi-filter-dropdown.open{display:block;}
+.multi-filter-option{display:flex;align-items:center;gap:8px;padding:7px 14px;cursor:pointer;font-size:13px;color:var(--text);transition:background 0.15s;}
+.multi-filter-option:hover{background:var(--bg);}
+.multi-filter-option input[type=checkbox]{width:14px;height:14px;accent-color:var(--blue);cursor:pointer;flex-shrink:0;}
+.multi-filter-divider{height:1px;background:var(--border);margin:4px 0;}
+.multi-filter-group{padding:4px 14px 2px;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);}
 .filters-bar select,.filters-bar input[type="date"]{padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Bricolage Grotesque',sans-serif;font-size:13px;color:var(--text);background:var(--bg);outline:none;cursor:pointer;transition:border-color 0.2s;}
 .filters-bar select:focus,.filters-bar input[type="date"]:focus{border-color:var(--accent);}
 .filter-sep{width:1px;height:24px;background:var(--border);flex-shrink:0;}
@@ -528,48 +554,59 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
       <div class="filter-sep"></div>
       <div class="filter-field">
         <label>Frecuencia</label>
-        <select id="filterFrecuencia" onchange="applyFilters()">
-          <option value="">Todas</option>
-          <optgroup label="Lunes/Jueves">
-            <option value="LU">LU</option>
-            <option value="LUJU">LUJU</option>
-            <option value="JU">JU</option>
-          </optgroup>
-          <optgroup label="Martes/Viernes">
-            <option value="MA">MA</option>
-            <option value="MAVI">MAVI</option>
-            <option value="VI">VI</option>
-          </optgroup>
-          <optgroup label="Miércoles/Sábado">
-            <option value="MI">MI</option>
-            <option value="MISA">MISA</option>
-            <option value="SA">SA</option>
-          </optgroup>
-        </select>
+        <div class="multi-filter" id="mfFrecuencia">
+          <button class="multi-filter-btn" onclick="toggleMultiFilter('mfFrecuencia')">
+            <span id="mfFrecuenciaLabel">Todas</span>
+          </button>
+          <div class="multi-filter-dropdown" id="mfFrecuenciaDropdown">
+            <div class="multi-filter-group">Lunes / Jueves</div>
+            <label class="multi-filter-option"><input type="checkbox" value="LU" onchange="applyFilters()"> LU</label>
+            <label class="multi-filter-option"><input type="checkbox" value="LUJU" onchange="applyFilters()"> LUJU</label>
+            <label class="multi-filter-option"><input type="checkbox" value="JU" onchange="applyFilters()"> JU</label>
+            <div class="multi-filter-divider"></div>
+            <div class="multi-filter-group">Martes / Viernes</div>
+            <label class="multi-filter-option"><input type="checkbox" value="MA" onchange="applyFilters()"> MA</label>
+            <label class="multi-filter-option"><input type="checkbox" value="MAVI" onchange="applyFilters()"> MAVI</label>
+            <label class="multi-filter-option"><input type="checkbox" value="VI" onchange="applyFilters()"> VI</label>
+            <div class="multi-filter-divider"></div>
+            <div class="multi-filter-group">Miércoles / Sábado</div>
+            <label class="multi-filter-option"><input type="checkbox" value="MI" onchange="applyFilters()"> MI</label>
+            <label class="multi-filter-option"><input type="checkbox" value="MISA" onchange="applyFilters()"> MISA</label>
+            <label class="multi-filter-option"><input type="checkbox" value="SA" onchange="applyFilters()"> SA</label>
+          </div>
+        </div>
       </div>
       <div class="filter-sep"></div>
       <div class="filter-field">
         <label>Estado</label>
-        <select id="filterEstado" onchange="applyFilters()">
-          <option value="">Todos</option>
-          <option value="sin-estado">Sin estado</option>
-          <option value="resuelto">✅ Resuelto</option>
-          <option value="pendiente">⏳ Pendiente</option>
-          <option value="retiro">📦 Retiro</option>
-        </select>
+        <div class="multi-filter" id="mfEstado">
+          <button class="multi-filter-btn" onclick="toggleMultiFilter('mfEstado')">
+            <span id="mfEstadoLabel">Todos</span>
+          </button>
+          <div class="multi-filter-dropdown" id="mfEstadoDropdown">
+            <label class="multi-filter-option"><input type="checkbox" value="pendiente" onchange="applyFilters()"> ⏳ Pendiente</label>
+            <label class="multi-filter-option"><input type="checkbox" value="resuelto" onchange="applyFilters()"> ✅ Resuelto</label>
+            <label class="multi-filter-option"><input type="checkbox" value="retiro" onchange="applyFilters()"> 📦 Retiro</label>
+            <label class="multi-filter-option"><input type="checkbox" value="sin-estado" onchange="applyFilters()"> Sin estado</label>
+          </div>
+        </div>
       </div>
       <div class="filter-sep"></div>
       <div class="filter-field">
         <label>Prioridad</label>
-        <select id="filterPrioridad" onchange="applyFilters()">
-          <option value="">Todas</option>
-          <option value="1">P1 — Repago</option>
-          <option value="2">P2 — Ejecución</option>
-          <option value="3">P3 — PTC</option>
-          <option value="4">P4</option>
-          <option value="5">P5</option>
-          <option value="sin-prioridad">Sin prioridad</option>
-        </select>
+        <div class="multi-filter" id="mfPrioridad">
+          <button class="multi-filter-btn" onclick="toggleMultiFilter('mfPrioridad')">
+            <span id="mfPrioridadLabel">Todas</span>
+          </button>
+          <div class="multi-filter-dropdown" id="mfPrioridadDropdown">
+            <label class="multi-filter-option"><input type="checkbox" value="1" onchange="applyFilters()"> ⚠️ P1 — Repago</label>
+            <label class="multi-filter-option"><input type="checkbox" value="2" onchange="applyFilters()"> ⚠️ P2 — Ejecución</label>
+            <label class="multi-filter-option"><input type="checkbox" value="3" onchange="applyFilters()"> P3 — PTC</label>
+            <label class="multi-filter-option"><input type="checkbox" value="4" onchange="applyFilters()"> P4</label>
+            <label class="multi-filter-option"><input type="checkbox" value="5" onchange="applyFilters()"> P5</label>
+            <label class="multi-filter-option"><input type="checkbox" value="sin-prioridad" onchange="applyFilters()"> Sin prioridad</label>
+          </div>
+        </div>
       </div>
       <div class="filter-sep"></div>
       <div class="filter-field">
@@ -587,7 +624,7 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
 
     <div class="card">
       <div class="card-header">
-        <h3>🗺️ Mapa de visitas</h3>
+        <h3>🗺️ Órdenes técnicas</h3>
         <span class="badge-count" id="mapCount">0 puntos</span>
       </div>
       <div id="map"></div>
@@ -722,7 +759,7 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
 <script>
 
 /* ==================== CONFIGURACIÓN ==================== */
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzDwoPEqJXjfLJbCGzs0niMw4rmGNbi-8UVQDEI-E86oZNXysZLK1sgeo3YP66knYfQ/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxpwUlBz-fhiICE7uwR44r50AfA5eXenGBtpFUsuJa3h56nUqTrwaxvBxgpBSqK2-zz/exec';
 
 const ESTADO_META = {
   'resuelto':  { label:'Resuelto',  cls:'resuelto',  icon:'✅' },
@@ -1015,12 +1052,11 @@ function parseChat(rows) {
 function initMap() {
   if (leafMap) return;
   leafMap = L.map('map', {
-    scrollWheelZoom: false,
+    scrollWheelZoom: !L.Browser.mobile,
     dragging: !L.Browser.mobile,
     tap: false
   }).setView([-34.62,-58.38],10);
   if(L.Browser.mobile) {
-    leafMap.addHandler('scrollWheelZoom', L.ScrollWheelZoom);
     // En mobile: dos dedos para mover
     leafMap.on('touchstart', function(e){ if(e.originalEvent.touches.length >= 2) leafMap.dragging.enable(); else leafMap.dragging.disable(); });
     leafMap.on('touchend', function(){ leafMap.dragging.disable(); });
@@ -1197,24 +1233,26 @@ function applyFilters() {
   const estado=document.getElementById('filterEstado').value;
   const desde=document.getElementById('filterDesde').value;
   const hasta=document.getElementById('filterHasta').value;
-  const prioridad=document.getElementById('filterPrioridad').value;
   const localidad=document.getElementById('filterLocalidad') ? document.getElementById('filterLocalidad').value : '';
-  const frecuencia=document.getElementById('filterFrecuencia') ? document.getElementById('filterFrecuencia').value : '';
+  // Multi-filtros con checkbox
+  const estadosSeleccionados = getMultiFilterValues('mfEstado');
+  const prioridadesSeleccionadas = getMultiFilterValues('mfPrioridad');
+  const frecuenciasSeleccionadas = getMultiFilterValues('mfFrecuencia');
   filtered=allData.filter(r=>{
     if(nombre&&r.nombre!==nombre) return false;
     if(localidad&&r.localidad!==localidad) return false;
-    if(frecuencia&&(r.frecuencia||'').toUpperCase().trim()!==frecuencia) return false;
-    if(estado){
-      const eKey=getEstadoKey(r.ot,r.cliente);
-      if(estado==='sin-estado'&&eKey!=='') return false;
-      if(estado!=='sin-estado'&&eKey!==estado) return false;
+    if(frecuenciasSeleccionadas.length > 0){
+      if(!frecuenciasSeleccionadas.includes((r.frecuencia||'').toUpperCase().trim())) return false;
     }
-    if(prioridad){
+    if(estadosSeleccionados.length > 0){
+      const eKey=getEstadoKey(r.ot,r.cliente);
+      if(!estadosSeleccionados.includes(eKey)) return false;
+    }
+    if(prioridadesSeleccionadas.length > 0){
       const priA=getPrioridadAprobada(r.ot,r.cliente);
       const priS=getPrioridadSugerida(r.ot,r.cliente);
-      const priActual=priA||priS;
-      if(prioridad==='sin-prioridad'&&priActual!=='') return false;
-      if(prioridad!=='sin-prioridad'&&priActual!==prioridad) return false;
+      const priActual=priA||priS||'sin-prioridad';
+      if(!prioridadesSeleccionadas.includes(priActual)) return false;
     }
     // Técnico solo ve solicitudes con prioridad aprobada
     if(currentRole==='tecnico' && !getPrioridadAprobada(r.ot,r.cliente)) return false;
@@ -1239,12 +1277,20 @@ function applyFilters() {
     return true;
   });
   document.getElementById('listCount').textContent=filtered.length;
+  updateMultiFilterLabel('mfEstado','Todos');
+  updateMultiFilterLabel('mfPrioridad','Todas');
+  updateMultiFilterLabel('mfFrecuencia','Todas');
   updateMap(filtered);
   renderList(filtered);
 }
 
 function clearFilters(){
-  ['filterNombre','filterLocalidad','filterFrecuencia','filterEstado','filterPrioridad','filterDesde','filterHasta'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['filterNombre','filterLocalidad','filterDesde','filterHasta'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['mfEstado','mfPrioridad','mfFrecuencia'].forEach(id=>{
+    const dd = document.getElementById(id+'Dropdown');
+    if(dd) dd.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.checked=false);
+    updateMultiFilterLabel(id, id==='mfEstado'?'Todos':id==='mfPrioridad'?'Todas':'Todas');
+  });
   applyFilters();
 }
 
@@ -1573,6 +1619,46 @@ ${r.notas?`<div class="mf full"><label>Notas</label><p>${r.notas}</p></div>`:''}
       L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(modalLeaf);
       L.circleMarker([lat,lng],{radius:8,fillColor:'#1E88E5',color:'white',weight:2.5,fillOpacity:1}).addTo(modalLeaf);
     },60);
+  }
+}
+
+/* ==================== MULTI FILTROS ==================== */
+function toggleMultiFilter(id) {
+  const dropdown = document.getElementById(id + 'Dropdown');
+  // Cerrar todos los otros
+  document.querySelectorAll('.multi-filter-dropdown.open').forEach(d => {
+    if(d.id !== id + 'Dropdown') d.classList.remove('open');
+  });
+  dropdown.classList.toggle('open');
+}
+
+// Cerrar dropdowns al clickear fuera
+document.addEventListener('click', e => {
+  if(!e.target.closest('.multi-filter')) {
+    document.querySelectorAll('.multi-filter-dropdown.open').forEach(d => d.classList.remove('open'));
+  }
+});
+
+function getMultiFilterValues(id) {
+  const dropdown = document.getElementById(id + 'Dropdown');
+  if(!dropdown) return [];
+  return [...dropdown.querySelectorAll('input[type=checkbox]:checked')].map(cb => cb.value);
+}
+
+function updateMultiFilterLabel(id, defaultLabel) {
+  const vals = getMultiFilterValues(id);
+  const label = document.getElementById(id + 'Label');
+  const btn   = document.querySelector('#' + id + ' .multi-filter-btn');
+  if(!label) return;
+  if(vals.length === 0) {
+    label.textContent = defaultLabel;
+    btn.classList.remove('active');
+  } else if(vals.length === 1) {
+    label.textContent = vals[0];
+    btn.classList.add('active');
+  } else {
+    label.textContent = vals.length + ' seleccionados';
+    btn.classList.add('active');
   }
 }
 
