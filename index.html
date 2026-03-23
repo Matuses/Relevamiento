@@ -730,7 +730,7 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
         <th>Ubicación</th>
       </tr></thead>
       <tbody id="tablaHistorialBody">
-        <tr><td colspan="11" style="text-align:center;color:var(--muted);padding:32px;font-size:13px;">Cargando...</td></tr>
+        <tr><td colspan="12" style="text-align:center;color:var(--muted);padding:32px;font-size:13px;">Sin registros resueltos aún</td></tr>
       </tbody>
     </table>
   </div>
@@ -760,7 +760,7 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
 <script>
 
 /* ==================== CONFIGURACIÓN ==================== */
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx2xGgh8wrWU1Me2C7_yESn1JW63Deh-gezvabXLVbj3JVZp4WgmQK7J23bDhl2gKn7/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxUCH8vcuIdF9oP6g9_SkLN1m0MP5oGfAFkzYICawVyCjHXBPK2lIREZllN-58uh3U/exec';
 
 const ESTADO_META = {
   'resuelto':  { label:'Resuelto',  cls:'resuelto',  icon:'✅' },
@@ -906,7 +906,7 @@ function renderHistorial() {
   });
 
   if(!data.length) {
-    tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:32px;font-size:13px;">Sin registros resueltos aún</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;color:var(--muted);padding:32px;font-size:13px;">Sin registros resueltos aún</td></tr>';
     return;
   }
 
@@ -1135,6 +1135,9 @@ async function loadData() {
     historialData = parseHistorial(data.historial||[]);
     populateFilter();
     applyFilters();
+    if(document.getElementById('tabHistorial') && document.getElementById('tabHistorial').classList.contains('active')) {
+      renderHistorial();
+    }
   } catch(e) {
     document.getElementById('registrosList').innerHTML='<div class="empty-state"><div class="ico">⚠️</div><p>Error al cargar los datos.</p></div>';
   }
@@ -1148,14 +1151,17 @@ function parseRegistros(rows) {
   const iOt=col('ot'),iTs=col('timestamp'),iProm=col('promotor'),iRol=col('rol'),iCli=col('cliente'),
         iMarca=col('marca'),iEdf=col('edf'),iFalla=col('falla'),
         iLat=col('lat'),iLng=col('lng'),iFoto=col('foto'),iNotas=col('notas');
-  // Columna M=12 localidad, N=13 frecuencia (base 0)
-  const iLocalidad = h.findIndex(s=>s.includes('localidad')) !== -1 ? h.findIndex(s=>s.includes('localidad')) : 12;
+  // Columna M=12 localidad, N=13 frecuencia, O=14 supervisor, P=15 direccion, Q=16 razon_social (base 0)
+  const iLocalidad  = h.findIndex(s=>s.includes('localidad'))  !== -1 ? h.findIndex(s=>s.includes('localidad'))  : 12;
   const iFrecuencia = h.findIndex(s=>s.includes('frecuencia')) !== -1 ? h.findIndex(s=>s.includes('frecuencia')) : 13;
+  const iDireccion  = h.findIndex(s=>s.includes('direcci'))    !== -1 ? h.findIndex(s=>s.includes('direcci'))    : 15;
+  const iRazonSoc   = h.findIndex(s=>s.includes('raz'))        !== -1 ? h.findIndex(s=>s.includes('raz'))        : 16;
   return rows.slice(1).map((c,i)=>{
     const ts=(c[iTs]||'').toString();
     let fecha='',hora='';
     if(ts){const d=new Date(ts);if(!isNaN(d)){fecha=d.toLocaleDateString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',day:'2-digit',month:'2-digit',year:'numeric'});hora=d.toLocaleTimeString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',hour:'2-digit',minute:'2-digit'});}}
-    return {nro:i+1,ot:(c[iOt]||'').toString().trim(),ts,fecha,hora,nombre:(c[iProm]||'').toString().trim().toUpperCase(),rol:(c[iRol]||'promotor').toString().trim(),cliente:(c[iCli]||'').toString().trim(),marca:(c[iMarca]||'').toString().trim(),edf:(c[iEdf]||'').toString().trim(),falla:(c[iFalla]||'').toString().trim(),lat:(c[iLat]!==undefined&&c[iLat]!==''?c[iLat].toString():''),lng:(c[iLng]!==undefined&&c[iLng]!==''?c[iLng].toString():''),foto:(c[iFoto]||'').toString(),notas:(c[iNotas]||'').toString(),localidad:(c[iLocalidad]||'').toString().trim(),frecuencia:(c[iFrecuencia]||'').toString().trim()};
+    return {nro:i+1,ot:(c[iOt]||'').toString().trim(),ts,fecha,hora,nombre:(c[iProm]||'').toString().trim().toUpperCase(),rol:(c[iRol]||'promotor').toString().trim(),cliente:(c[iCli]||'').toString().trim(),marca:(c[iMarca]||'').toString().trim(),edf:(c[iEdf]||'').toString().trim(),falla:(c[iFalla]||'').toString().trim(),lat:(c[iLat]!==undefined&&c[iLat]!==''?c[iLat].toString():''),lng:(c[iLng]!==undefined&&c[iLng]!==''?c[iLng].toString():''),foto:(c[iFoto]||'').toString(),notas:(c[iNotas]||'').toString(),localidad:(c[iLocalidad]||'').toString().trim(),frecuencia:(c[iFrecuencia]||'').toString().trim(),
+      direccion:(c[iDireccion]||'').toString().trim(),razon_social:(c[iRazonSoc]||'').toString().trim()};
   }).filter(r=>r.nombre);
 }
 
@@ -1232,6 +1238,10 @@ function populateFilter() {
     document.getElementById('tabBar').style.display='flex';
     document.getElementById('tabHistorial').style.display='';
     document.getElementById('tabRetiro').style.display='';
+  }
+  if(currentRole==='tecnico') {
+    document.getElementById('tabBar').style.display='flex';
+    document.getElementById('tabHistorial').style.display='';
   }
   // Ajustar sticky del mapa
   const topbarH = document.querySelector('.topbar').offsetHeight;
@@ -1563,6 +1573,8 @@ function openModal(r) {
       <div class="mf"><label>EDF</label><p>${r.edf||'—'}</p></div>
       <div class="mf"><label>GPS</label><p style="font-family:'DM Mono',monospace;font-size:12px">${hasGeo?lat.toFixed(5)+', '+lng.toFixed(5):'Sin coordenadas'}</p></div>
       <div class="mf full"><label>Falla Sugerida</label><p>${r.falla||'—'}</p></div>
+      ${r.razon_social?`<div class="mf full"><label>Razón Social</label><p>${r.razon_social}</p></div>`:''}
+      ${r.direccion?`<div class="mf full"><label>Dirección</label><p>${r.direccion}</p></div>`:''}
       <div class="mf"><label>Localidad</label><p>${r.localidad||'—'}</p></div>
       <div class="mf"><label>Frecuencia de visita</label><p style="font-weight:700;color:${getFrecColor(r.frecuencia)}">${r.frecuencia||'—'}</p></div>
 ${r.notas?`<div class="mf full"><label>Notas</label><p>${r.notas}</p></div>`:''}
