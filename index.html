@@ -587,6 +587,7 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
             <label class="multi-filter-option"><input type="checkbox" value="pendiente" onchange="applyFilters()"> ⏳ Pendiente</label>
             <label class="multi-filter-option"><input type="checkbox" value="resuelto" onchange="applyFilters()"> ✅ Resuelto</label>
             <label class="multi-filter-option"><input type="checkbox" value="retiro" onchange="applyFilters()"> 📦 Retiro</label>
+            <label class="multi-filter-option"><input type="checkbox" value="cliente-cerrado" onchange="applyFilters()"> 🔴 Cliente Cerrado</label>
             <label class="multi-filter-option"><input type="checkbox" value="sin-estado" onchange="applyFilters()"> Sin estado</label>
           </div>
         </div>
@@ -657,6 +658,7 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
         <option value="resuelto">✅ Resuelto</option>
         <option value="pendiente">⏳ Pendiente</option>
         <option value="retiro">📦 Retiro</option>
+        <option value="cliente-cerrado">🔴 Cliente Cerrado</option>
       </select>
     </div>
     <div><label>Desde</label><input type="date" id="tFiltDesde" onchange="renderTabla()"></div>
@@ -763,10 +765,11 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxUCH8vcuIdF9oP6g9_SkLN1m0MP5oGfAFkzYICawVyCjHXBPK2lIREZllN-58uh3U/exec';
 
 const ESTADO_META = {
-  'resuelto':  { label:'Resuelto',  cls:'resuelto',  icon:'✅' },
-  'pendiente': { label:'Pendiente', cls:'pendiente', icon:'⏳' },
-  'retiro':    { label:'Retiro',    cls:'retiro',    icon:'📦' },
-  '':          { label:'Pendiente', cls:'pendiente', icon:'⏳' }
+  'resuelto':        { label:'Resuelto',        cls:'resuelto',        icon:'✅' },
+  'pendiente':       { label:'Pendiente',       cls:'pendiente',       icon:'⏳' },
+  'retiro':          { label:'Retiro',          cls:'retiro',          icon:'📦' },
+  'cliente-cerrado': { label:'Cliente Cerrado', cls:'retiro',          icon:'🔴' },
+  '':                { label:'Pendiente',       cls:'pendiente',       icon:'⏳' }
 };
 
 /* ==================== ESTADO GLOBAL ==================== */
@@ -1476,8 +1479,10 @@ function openModal(r) {
         <div class="seg-form">
           <label>Estado</label>
           <select data-mid="segEstado">
-            <option value="resuelto"  ${eKey==='resuelto'?'selected':''}>✅ Resuelto</option>
-            <option value="retiro"    ${eKey==='retiro'  ?'selected':''}>📦 Retiro</option>
+            <option value="resuelto"        ${eKey==='resuelto'        ?'selected':''}>✅ Resuelto</option>
+            <option value="retiro"          ${eKey==='retiro'          ?'selected':''}>📦 Retiro</option>
+            <option value="pendiente"       ${eKey==='pendiente'       ?'selected':''}>⏳ Pendiente</option>
+            <option value="cliente-cerrado" ${eKey==='cliente-cerrado' ?'selected':''}>🔴 Cliente Cerrado</option>
           </select>
           <label>Devolución <span style="color:#DC2626">*</span></label>
           <textarea data-mid="segComentario" placeholder="Describí el estado del equipo (obligatorio)...">${seg2?seg2.comentario:''}</textarea>
