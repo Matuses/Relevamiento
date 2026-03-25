@@ -893,7 +893,6 @@ function renderHistorial() {
 
   const filtCliente  = (document.getElementById('hFiltCliente').value||'').toLowerCase();
   const filtPromotor = (document.getElementById('hFiltPromotor').value||'').toLowerCase();
-  const filtEstado   = document.getElementById('hFiltEstado').value;
   const filtDesde    = document.getElementById('hFiltDesde').value;
   const filtHasta    = document.getElementById('hFiltHasta').value;
 
@@ -1133,7 +1132,6 @@ async function loadData() {
     seguimientos = parseSeguimientos(data.seguimientos);
     chatData = parseChat(data.chat||[]);
     historialData = parseHistorial(data.historial||[]);
-    console.log('historial rows:', (data.historial||[]).length, '| parsed:', historialData.length);
     populateFilter();
     applyFilters();
     if(document.getElementById('tabHistorial') && document.getElementById('tabHistorial').classList.contains('active')) {
