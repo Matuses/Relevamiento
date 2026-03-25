@@ -762,7 +762,7 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
 <script>
 
 /* ==================== CONFIGURACIÓN ==================== */
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxUCH8vcuIdF9oP6g9_SkLN1m0MP5oGfAFkzYICawVyCjHXBPK2lIREZllN-58uh3U/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwvjd3brw2XTMAX7NMRm_q2-dtA_J5GvaKXRBl8kBIwPqOMxDicsTAgwupygbFgLvGx/exec';
 
 const ESTADO_META = {
   'resuelto':        { label:'Resuelto',        cls:'resuelto',        icon:'✅' },
@@ -1731,14 +1731,18 @@ function geoTecnico() {
 async function guardarSeguimiento(cliente, promotor, ot, tipoRol) {
   const modal = document.getElementById('modalOverlay');
   const btn = modal.querySelector('[data-mid="btnGuardar"]');
+  if(btn.dataset.guardado === '1') return; // ya se guardó, ignorar
   btn.disabled=true; btn.textContent='Guardando...';
 
   const key = ot||cliente;
   const prev = seguimientos[key]||{};
+  // Buscar datos del OT en allData para incluirlos en el payload
+  const otData = allData.find(r => r.ot === ot) || {};
   let payload = {tipo:'seguimiento', timestamp:new Date().toISOString(), ot, cliente, promotor,
     estado: prev.estado||'', comentario: prev.comentario||'', tecnico: prev.tecnico||'',
     prioridad_sugerida: prev.prioridad_sugerida||'', prioridad_aprobada: prev.prioridad_aprobada||'',
-    aprobado_por: prev.aprobado_por||''};
+    aprobado_por: prev.aprobado_por||'',
+    marca: otData.marca||'', edf: otData.edf||'', falla: otData.falla||''};
 
   if(tipoRol==='tecnico') {
     const comentario = modal.querySelector('[data-mid="segComentario"]').value.trim();
@@ -1786,6 +1790,7 @@ async function guardarSeguimiento(cliente, promotor, ot, tipoRol) {
     const ts=new Date().toISOString();
     const fecha=new Date().toLocaleDateString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',day:'2-digit',month:'2-digit',year:'numeric'})+' '+new Date().toLocaleTimeString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',hour:'2-digit',minute:'2-digit'});
     seguimientos[key]={...prev, ...payload, ts, fecha};
+    btn.dataset.guardado = '1';
     btn.style.display='none';
     modal.querySelector('[data-mid="saveOk"]').style.display='block';
     renderList(filtered);
