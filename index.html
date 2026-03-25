@@ -1133,6 +1133,7 @@ async function loadData() {
     seguimientos = parseSeguimientos(data.seguimientos);
     chatData = parseChat(data.chat||[]);
     historialData = parseHistorial(data.historial||[]);
+    console.log('historial rows:', (data.historial||[]).length, '| parsed:', historialData.length);
     populateFilter();
     applyFilters();
     if(document.getElementById('tabHistorial') && document.getElementById('tabHistorial').classList.contains('active')) {
