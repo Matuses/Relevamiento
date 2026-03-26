@@ -781,7 +781,7 @@ document.getElementById('loginUser').addEventListener('keydown', e=>{ if(e.key==
 document.getElementById('loginPass').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
 
 /* ==================== AUTENTICACIÓN ==================== */
-function jsonp(url, timeout=10000) {
+function jsonp(url, timeout=30000) {
   return new Promise((resolve, reject) => {
     const cb = 'cb_' + Date.now();
     const script = document.createElement('script');
