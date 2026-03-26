@@ -259,7 +259,8 @@
         <th>Marca</th>
         <th>EDF</th>
         <th>Falla</th>
-        <th>Estado</th> <th>Prioridad</th>
+        <th>Estado</th>
+        <th>Prioridad</th>
         <th>Técnico</th>
         <th>Devolución</th>
         <th>Ubicación</th>
@@ -418,7 +419,7 @@ tbody.innerHTML='<tr><td colspan="13" style="text-align:center;color: var (--mut
  const priLabels={'1':'⚠️ P1 — REPAGO','2':'⚠️ P2 — EJECUCIÓN','3':'P3 — PTC SUGERIDO','4':'P4','5':'P5','':'—'};
 tbody.innerHTML=[...data].reverse().map(r=>{
  const geoLink=r.tec_lat&&r.tec_lng
-? `<a href="https://www.google.com/maps?q=${r.tec_lat},${r.tec_lng}" target="_blank" style="color: var (--blue);font-size:11px;">📍 Ver</a>`
+? `<a href="http://maps.google.com/maps?q=${r.tec_lat},${r.tec_lng}" target="_blank" style="color: var (--blue);font-size:11px;">📍 Ver</a>`
 : '—';
  const seg = getSegByOt(r.ot, r.cliente);
  const eKey = seg && seg.estado ? seg.estado.toLowerCase().replace(/ /g, '-') : 'resuelto';
@@ -993,7 +994,7 @@ segHTML=`
 <div class ="seguimiento-section">
 <div class ="seg-title">⭐ Sugerir prioridad</div>
 ${seg2&&seg2.comentario?`<div class ="seg-last"><strong>${em.icon} ${em.label}</strong><br>"${seg2.comentario}"${seg2.fecha?`<span class ="seg-ts">${seg2.tecnico} · ${seg2.fecha}</span>`:''}</div>`:''}
-${seg2&&seg2.tec_lat?`<div class ="seg-last">📍<a href="https://www.google.com/maps?q=${seg2.tec_lat},${seg2.tec_lng}" target="_blank" style="color: var (--blue);font-weight:600;">Ver ubicación del técnico</a></div>`:''}
+${seg2&&seg2.tec_lat?`<div class ="seg-last">📍 <a href="http://maps.google.com/maps?q=${seg2.tec_lat},${seg2.tec_lng}" target="_blank" style="color: var (--blue);font-weight:600;">Ver ubicación del técnico</a> <span style="font-size:10px; color:var(--muted); font-family:'DM Mono', monospace;">(${seg2.fecha || ''})</span></div>`:''}
 <div class ="seg-form">
 <label>Prioridad sugerida ${priA?`<span style="color: var (--success)">· Aprobada: P${priA} por ${seg2.aprobado_por}</span>`:''}</label>
 <select data-mid="segPriSug">
@@ -1026,7 +1027,7 @@ segHTML=`
 <div class ="seg-title" style="color:#7C3AED;">🔐 Trade Marketing</div>
 ${priS?`<div class ="seg-last">Prioridad sugerida por supervisor:<strong>P${priS}</strong></div>`:'<div class ="seg-last" style="color: var (--muted)">Sin prioridad sugerida aún.</div>'}
 ${seg2&&seg2.comentario?`<div class ="seg-last"><strong>${em.icon} ${em.label}</strong><br>"${seg2.comentario}"</div>`:''}
-${seg2&&seg2.tec_lat?`<div class ="seg-last">📍<a href="https://www.google.com/maps?q=${seg2.tec_lat},${seg2.tec_lng}" target="_blank" style="color:#7C3AED;font-weight:600;">Ver ubicación del técnico</a></div>`:''}
+${seg2&&seg2.tec_lat?`<div class ="seg-last">📍 <a href="http://maps.google.com/maps?q=${seg2.tec_lat},${seg2.tec_lng}" target="_blank" style="color:#7C3AED;font-weight:600;">Ver ubicación del técnico</a> <span style="font-size:10px; color:var(--muted); font-family:'DM Mono', monospace;">(${seg2.fecha || ''})</span></div>`:''}
 <div class ="seg-form">
 <label>Aprobar prioridad</label>
 <select data-mid="segPriApr" style="border-color:#DDD6FE;">
@@ -1041,21 +1042,25 @@ ${seg2&&seg2.tec_lat?`<div class ="seg-last">📍<a href="https://www.google.com
 ✅ Aprobar prioridad
 </button>
 <div class ="save-ok" data-mid="saveOk">✅ Aprobado correctamente</div>
-
-${seg2 && seg2.comentario && eKey !== 'resuelto' && eKey !== 'retiro' ? `
-<div style="margin-top:16px; padding-top:12px; border-top:1px solid #DDD6FE;">
-  <label>🔒 Cerrar Orden (Enviar al Historial)</label>
-  <select data-mid="segEstadoTrade" style="border-color:#DDD6FE; margin-bottom:8px;">
-    <option value="resuelto">✅ Marcar como Resuelto</option>
-    <option value="retiro">📦 Marcar como Retiro</option>
-  </select>
-  <button class="btn-guardar" style="background:#0F2A4A;" onclick="guardarSeguimiento('${r.cliente}','${r.nombre}','${r.ot}','trade-cerrar')">
-    Archivar en Historial
-  </button>
 </div>
-` : ''}
-
 </div>
+
+<div class="modal-sec" style="margin-top:12px;">🚨 Forzar cierre de OT</div>
+<div class="seguimiento-section" style="background:#FEF2F2;border-color:#FECACA;">
+  <div class="seg-title" style="color:#DC2626;">Archivar manualmente</div>
+  <div class="seg-form">
+    <label style="color:#DC2626;">Estado de cierre</label>
+    <select data-mid="segEstadoTrade" style="border-color:#FECACA;">
+      <option value="resuelto">✅ Resuelto (Forzado)</option>
+      <option value="retiro">📦 Retiro (Forzado)</option>
+      <option value="cliente-cerrado">🔴 Cliente Cerrado</option>
+    </select>
+    <label style="color:#DC2626;">Comentario / Motivo para el técnico</label>
+    <textarea data-mid="segComentarioTrade" placeholder="Ej: Se cancela la orden porque..." style="border-color:#FECACA;min-height:60px;margin-bottom:8px;"></textarea>
+    <button class="btn-guardar" style="background:#DC2626;" onclick="guardarSeguimiento('${r.cliente}','${r.nombre}','${r.ot}','trade-cerrar')">
+      🔒 Cerrar y enviar a Historial
+    </button>
+  </div>
 </div>
 `;
 }
@@ -1078,7 +1083,7 @@ ${r.notas?`<div class ="mf full"><label>Notas</label><p>${r.notas}</p></div>`:''
 ${hasGeo?`
 <div class ="modal-sec">Ubicación</div>
 <div class ="modal-map-wrap"><div class ="map-hint">👉 Dos dedos para mover el mapa</div><div id="modalMap"></div></div>
-<a class ="btn-maps" href="https://www.google.com/maps?q=${lat},${lng}" target="_blank">📍 Abrir en Google Maps</a>
+<a class ="btn-maps" href="http://maps.google.com/maps?q=${lat},${lng}" target="_blank">📍 Abrir en Google Maps</a>
 `:''}
 ${segHTML}
 `;
@@ -1242,10 +1247,18 @@ payload.aprobado_por=currentUser+' (auto)';
 payload.prioridad_aprobada=modal.querySelector('[data-mid="segPriApr"]').value;
 payload.aprobado_por=currentUser;
 } else if (tipoRol==='trade-cerrar') {
-payload.estado = modal.querySelector('[data-mid="segEstadoTrade"]').value;
-payload.aprobado_por=currentUser;
-const priSel = modal.querySelector('[data-mid="segPriApr"]');
-if (priSel) payload.prioridad_aprobada = priSel.value;
+  const comentarioTrade = modal.querySelector('[data-mid="segComentarioTrade"]').value.trim();
+  if (!comentarioTrade) {
+    modal.querySelector('[data-mid="segComentarioTrade"]').style.borderColor = '#DC2626';
+    modal.querySelector('[data-mid="segComentarioTrade"]').focus();
+    btn.disabled = false; btn.textContent = '🔒 Cerrar y enviar a Historial';
+    return;
+  }
+  payload.estado = modal.querySelector('[data-mid="segEstadoTrade"]').value;
+  payload.comentario = comentarioTrade;
+  const priSel = modal.querySelector('[data-mid="segPriApr"]');
+  if (priSel) payload.prioridad_aprobada = priSel.value;
+  payload.aprobado_por = currentUser;
 }
 try {
 fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
