@@ -291,8 +291,8 @@
     <div class="modal-tab-content" id="mtChat"></div>
   </div>
 </div>
-
-<script>const SCRIPT_URL='https://script.google.com/macros/s/AKfycbwreokQunVau5zi-QN-NzPz14IOfk11p4As3PYRqvSh1zqgbPosHJ9nX2RAfotacKxN/exec';
+<script>
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbwreokQunVau5zi-QN-NzPz14IOfk11p4As3PYRqvSh1zqgbPosHJ9nX2RAfotacKxN/exec';
  const ESTADO_META={
 'resuelto': { label:'Resuelto',cls:'resuelto',icon:'✅' },
 'pendiente': { label:'Pendiente',cls:'pendiente',icon:'⏳' },
@@ -408,6 +408,11 @@ tec_lng:(iTecLng>=0?(c[iTecLng]||'').toString().trim():'')};
  const filtDesde=document.getElementById('hFiltDesde').value;
  const filtHasta=document.getElementById('hFiltHasta').value;
  const data=historialData.filter(r=>{
+ // 🔥 CANDADO SUPERVISOR: Solo ve a sus promotores en el historial
+ if (currentRole === 'supervisor') {
+   if (!promotoresPropios.includes((r.promotor||'').toUpperCase().trim())) return false;
+ }
+
  if (filtCliente&&!(r.cliente||'').toLowerCase().includes(filtCliente)) return false ;
  if (filtPromotor&&!(r.promotor||'').toLowerCase().includes(filtPromotor)) return false ;
  if (filtDesde&&r.ts&&r.ts<filtDesde) return false ;
@@ -493,6 +498,7 @@ document.getElementById('vistaRetiro').style.display=tab==='retiro' ? 'block' : 
  if (prom&&r.nombre!==prom) return false ;
  const seg=getSegByOt(r.ot,r.cliente);
  const eKey=seg ? (seg.estado||'').toLowerCase().replace(/ /g,'-') : '';
+ if (!estado && (eKey==='resuelto' || eKey==='retiro' || eKey==='cliente-cerrado')) return false; 
  if (estado==='sin-estado'&&eKey!=='') return false ;
  if (estado&&estado!=='sin-estado'&&eKey!==estado) return false ;
  if (desde&&r.ts&&r.ts<desde) return false ;
@@ -730,6 +736,8 @@ panel.style.display='flex';
  document.getElementById('notifResueltos').textContent = resueltosSemana;
 
  const sinPrioridad=allData.filter(r=>{
+ const eKey=getEstadoKey(r.ot,r.cliente);
+ if (eKey==='resuelto' || eKey==='retiro' || eKey==='cliente-cerrado') return false; 
  const priA=getPrioridadAprobada(r.ot,r.cliente);
  const priS=getPrioridadSugerida(r.ot,r.cliente);
  return !priA&&!priS;
@@ -780,14 +788,22 @@ document.querySelector('.filters-bar').style.top=(topbarH+tabbarH)+'px';
  const prioridadesSeleccionadas=getMultiFilterValues('mfPrioridad');
  const frecuenciasSeleccionadas=getMultiFilterValues('mfFrecuencia');
 filtered=allData.filter(r=>{
+ // 🔥 CANDADO SUPERVISOR: Solo ve a su equipo en la lista de activos
+ if (currentRole === 'supervisor' && promotoresPropios.length > 0) {
+   if (!promotoresPropios.includes((r.nombre || '').toUpperCase().trim())) return false;
+ }
+
  if (nombre&&r.nombre!==nombre) return false ;
  if (localidad&&r.localidad!==localidad) return false ;
  if (frecuenciasSeleccionadas.length>0){
  if (!frecuenciasSeleccionadas.includes((r.frecuencia||'').toUpperCase().trim())) return false ;
 }
- if (estadosSeleccionados.length>0){
  const eKey=getEstadoKey(r.ot,r.cliente);
+ if (estadosSeleccionados.length>0){
  if (!estadosSeleccionados.includes(eKey)) return false ;
+} else {
+ // MAGIA AUTOMÁTICA: Si no eligieron filtro, las ocultamos para limpiar la pantalla
+ if (eKey==='resuelto' || eKey==='retiro' || eKey==='cliente-cerrado') return false ;
 }
  if (prioridadesSeleccionadas.length>0){
  const priA=getPrioridadAprobada(r.ot,r.cliente);
@@ -815,7 +831,7 @@ filtered=allData.filter(r=>{
  return true ;
 });
 document.getElementById('listCount').textContent=filtered.length;
-updateMultiFilterLabel('mfEstado','Todos');
+updateMultiFilterLabel('mfEstado', estadosSeleccionados.length ? estadosSeleccionados.length + ' sel.' : 'Activos');
 updateMultiFilterLabel('mfPrioridad','Todas');
 updateMultiFilterLabel('mfFrecuencia','Todas');
  if (currentRole==='supervisor' || currentRole==='trade') updateNotificaciones();
@@ -827,7 +843,7 @@ renderList(filtered);
 ['mfEstado','mfPrioridad','mfFrecuencia'].forEach(id=>{
  const dd=document.getElementById(id+'Dropdown');
  if (dd) dd.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.checked= false );
-updateMultiFilterLabel(id,id==='mfEstado'?'Todos':id==='mfPrioridad'?'Todas':'Todas');
+updateMultiFilterLabel(id,id==='mfEstado'?'Activos':id==='mfPrioridad'?'Todas':'Todas');
 });
 applyFilters();
 }
@@ -841,7 +857,7 @@ applyFilters();
 }
  function renderList(data) {
  const el=document.getElementById('registrosList');
- if (!data.length){el.innerHTML='<div class ="empty-state"><div class ="ico">📭</div><p>No hay registros.</p></div>'; return ;}
+ if (!data.length){el.innerHTML='<div class ="empty-state"><div class ="ico">📭</div><p>No hay registros activos.</p></div>'; return ;}
 el.innerHTML=[...data].reverse().map(r=>{
  const color=ageColor(r.ts);
  const initials=r.frecuencia||(r.cliente||'?').replace(/[^A-Z0-9]/gi,'').slice(0,3).toUpperCase();
@@ -1271,8 +1287,10 @@ btn.dataset.guardado='1';
 btn.style.display='none';
  const saveOk=modal.querySelector('[data-mid="saveOk"]');
  if (saveOk) saveOk.style.display='block';
-renderList(filtered);
-updateMap(filtered);
+ 
+ // 🔥 ACA OCURRE LA MAGIA DEL CIERRE AUTOMÁTICO
+ applyFilters();
+ 
 setTimeout(()=>closeModalDirect(),1200);
 } catch(e) {
 btn.disabled= false ;btn.textContent='Reintentar';
@@ -1283,6 +1301,7 @@ btn.disabled= false ;btn.textContent='Reintentar';
 document.getElementById('modalOverlay').classList.remove('show');
  if (modalLeaf){modalLeaf.remove();modalLeaf= null ;}
 }
-document.addEventListener('keydown',e=>{ if (e.key==='Escape')closeModalDirect();});</script>
+document.addEventListener('keydown',e=>{ if (e.key==='Escape')closeModalDirect();});
+</script>
 </body>
 </html>
