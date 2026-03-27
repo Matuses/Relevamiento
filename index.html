@@ -324,6 +324,18 @@ document.body.appendChild(script);
 });
 }
 
+// 🔥 FUNCIÓN MÁGICA: Arregla las coordenadas arruinadas por Google Sheets
+function fixCoord(val) {
+  if (!val) return '';
+  let s = val.toString().replace(/,/g, '.');
+  let dotCount = (s.match(/\./g) || []).length;
+  if (dotCount > 1) s = s.replace(/\./g, ''); // Si tiene formato de miles, sacamos los puntos
+  let n = parseFloat(s);
+  if (isNaN(n)) return '';
+  if (Math.abs(n) > 1000) n = n / 1000000; // Restauramos el decimal de la coordenada
+  return n.toString();
+}
+
  async function doLogin() {
  const u=document.getElementById('loginUser').value.trim().toUpperCase();
  const p=document.getElementById('loginPass').value;
@@ -415,11 +427,9 @@ tec_lng:(iTecLng>=0?(c[iTecLng]||'').toString().trim():'')};
  const filtDesde=document.getElementById('hFiltDesde').value;
  const filtHasta=document.getElementById('hFiltHasta').value;
  const data=historialData.filter(r=>{
- // 🔥 CANDADO SUPERVISOR
  if (currentRole === 'supervisor' && promotoresPropios.length > 0) {
    if (!promotoresPropios.includes((r.promotor||'').toUpperCase().trim())) return false;
  }
-
  if (filtCliente&&!(r.cliente||'').toLowerCase().includes(filtCliente)) return false ;
  if (filtPromotor&&!(r.promotor||'').toLowerCase().includes(filtPromotor)) return false ;
  if (filtDesde&&r.ts&&r.ts<filtDesde) return false ;
@@ -433,9 +443,10 @@ tbody.innerHTML='<tr><td colspan="13" style="text-align:center;color: var (--mut
  const priLabels={'1':'⚠️ P1 — REPAGO','2':'⚠️ P2 — EJECUCIÓN','3':'P3 — PTC SUGERIDO','4':'P4','5':'P5','':'—'};
 tbody.innerHTML=[...data].reverse().map(r=>{
  // 🔥 LINK OFICIAL A GOOGLE MAPS
- const geoLink=r.tec_lat&&r.tec_lng
-? `<a href="https://www.google.com/maps?q=${r.tec_lat.replace(',', '.')},${r.tec_lng.replace(',', '.')}" target="_blank" style="color: var (--blue);font-size:11px;">📍 Ver</a>`
-: '—';
+ const tLat = fixCoord(r.tec_lat);
+ const tLng = fixCoord(r.tec_lng);
+ const geoLink = tLat && tLng ? `<a href="https://maps.google.com/?q=${tLat},${tLng}" target="_blank" style="color: var (--blue);font-size:11px;">📍 Ver</a>` : '—';
+ 
  const seg = getSegByOt(r.ot, r.cliente);
  const eKey = seg && seg.estado ? seg.estado.toLowerCase().replace(/ /g, '-') : 'resuelto';
  const em = ESTADO_META[eKey] || ESTADO_META['resuelto'];
@@ -590,13 +601,13 @@ setTimeout(()=>leafMap.invalidateSize(),300);
  function updateMap(data) {
 markers.forEach(m=>leafMap.removeLayer(m));markers=[];
  const valid=data.filter(r=>{
- const lat=parseFloat((r.lat||'').toString().replace(',','.')),lng=parseFloat((r.lng||'').toString().replace(',','.'));
+ const lat=parseFloat(fixCoord(r.lat)),lng=parseFloat(fixCoord(r.lng));
  return !isNaN(lat)&&!isNaN(lng)&&lat!==0&&lng!==0;
 });
 document.getElementById('mapCount').textContent=valid.length+' punto'+(valid.length!==1?'s':'');
  const bounds=[];
 valid.forEach(r=>{
- const lat=parseFloat(r.lat.toString().replace(',','.')),lng=parseFloat(r.lng.toString().replace(',','.'));
+ const lat=parseFloat(fixCoord(r.lat)),lng=parseFloat(fixCoord(r.lng));
  const color=ageColor(r.ts);
  const priAprobada=getPrioridadAprobada(r.ot,r.cliente);
  const priSugerida=getPrioridadSugerida(r.ot,r.cliente);
@@ -733,7 +744,6 @@ document.getElementById('notifSinPrioridad').textContent=sinPrioridad;
 document.getElementById('notifVencidos').textContent=vencidos;
 }
 
- // 🔥 MAGIA JS: BOTÓN PARA ORDENAR REGISTROS
  function toggleSortRegistros() {
    ordenDescendente = !ordenDescendente;
    const btn = document.getElementById('btnSortRegistros');
@@ -791,7 +801,6 @@ document.querySelector('.filters-bar').style.top=(topbarH+tabbarH)+'px';
  const prioridadesSeleccionadas=getMultiFilterValues('mfPrioridad');
  const frecuenciasSeleccionadas=getMultiFilterValues('mfFrecuencia');
 filtered=allData.filter(r=>{
- // 🔥 CANDADO SUPERVISOR
  if (currentRole === 'supervisor' && promotoresPropios.length > 0) {
    if (!promotoresPropios.includes((r.nombre || '').toUpperCase().trim())) return false;
  }
@@ -805,7 +814,6 @@ filtered=allData.filter(r=>{
  if (estadosSeleccionados.length>0){
  if (!estadosSeleccionados.includes(eKey)) return false ;
 } else {
- // Auto-limpieza
  if (eKey==='resuelto' || eKey==='retiro' || eKey==='cliente-cerrado') return false ;
 }
  if (prioridadesSeleccionadas.length>0){
@@ -863,10 +871,9 @@ applyFilters();
  const el=document.getElementById('registrosList');
  if (!data.length){el.innerHTML='<div class ="empty-state"><div class ="ico">📭</div><p>No hay registros activos.</p></div>'; return ;}
  
- // 🔥 ORDEN ASCENDENTE / DESCENDENTE
  let dataParaMostrar = [...data];
  if (ordenDescendente) {
-   dataParaMostrar.reverse(); // Pone los más recientes arriba
+   dataParaMostrar.reverse(); 
  }
 
 el.innerHTML=dataParaMostrar.map(r=>{
@@ -970,7 +977,7 @@ document.getElementById('mtChat').classList.toggle('active',tab==='chat');
  if ( typeof r==='string') r=JSON.parse(r);
 document.getElementById('modalNombre').textContent='OT '+(r.ot||'—');
 document.getElementById('modalTs').textContent=r.fecha+(r.hora?' · '+r.hora:'');
- const lat=parseFloat((r.lat||'').replace(',','.')),lng=parseFloat((r.lng||'').replace(',','.'));
+ const lat=parseFloat(fixCoord(r.lat)),lng=parseFloat(fixCoord(r.lng));
  const hasGeo=!isNaN(lat)&&!isNaN(lng)&&lat!==0;
  const seg=getSegByOt(r.ot,r.cliente);
  const eKey=seg?(seg.estado.toLowerCase().replace(/ /g,'-')||''):'';
@@ -1022,13 +1029,15 @@ ${seg2&&seg2.comentario?`<div class ="seg-last">Última devolución:<strong>${em
 </div>
 `;
 } else if (currentRole==='supervisor') {
+ const tLat = seg2 ? fixCoord(seg2.tec_lat) : '';
+ const tLng = seg2 ? fixCoord(seg2.tec_lng) : '';
 segHTML=`
 <div class ="modal-sec">📋 Seguimiento</div>
 <div class ="seguimiento-section">
 <div class ="seg-title">⭐ Sugerir prioridad</div>
 ${seg2&&seg2.comentario?`<div class ="seg-last"><strong>${em.icon} ${em.label}</strong><br>"${seg2.comentario}"${seg2.fecha?`<span class ="seg-ts">${seg2.tecnico} · ${seg2.fecha}</span>`:''}</div>`:''}
 
-${seg2&&seg2.tec_lat?`<div class ="seg-last">📍 <a href="https://www.google.com/maps?q=${seg2.tec_lat.replace(',', '.')},${seg2.tec_lng.replace(',', '.')}" target="_blank" style="color: var (--blue);font-weight:600;">Ver ubicación del técnico</a> <span style="font-size:10px; color:var(--muted); font-family:'DM Mono', monospace;">(${seg2.fecha || ''})</span></div>`:''}
+${tLat&&tLng?`<div class ="seg-last">📍 <a href="https://maps.google.com/?q=${tLat},${tLng}" target="_blank" style="color: var (--blue);font-weight:600;">Ver ubicación del técnico</a> <span style="font-size:10px; color:var(--muted); font-family:'DM Mono', monospace;">(${seg2.fecha || ''})</span></div>`:''}
 
 <div class ="seg-form">
 <label>Prioridad sugerida ${priA?`<span style="color: var (--success)">· Aprobada: P${priA} por ${seg2.aprobado_por}</span>`:''}</label>
@@ -1056,6 +1065,8 @@ ${seg2&&seg2.tec_lat?`<div class ="seg-last">📍 <a href="https://www.google.co
 <div style="font-size:10px;color:#94A3B8;margin-top:4px;text-align:right;">${m.fecha}</div>
 </div>
 </div>`).join('') : '<div style="text-align:center;color:#94A3B8;font-size:12px;padding:12px 0;">Sin mensajes aún</div>';
+ const tLat = seg2 ? fixCoord(seg2.tec_lat) : '';
+ const tLng = seg2 ? fixCoord(seg2.tec_lng) : '';
 segHTML=`
 <div class ="modal-sec">✅ Aprobación de prioridad</div>
 <div class ="seguimiento-section" style="background:#F5F3FF;border-color:#DDD6FE;">
@@ -1063,7 +1074,7 @@ segHTML=`
 ${priS?`<div class ="seg-last">Prioridad sugerida por supervisor:<strong>P${priS}</strong></div>`:'<div class ="seg-last" style="color: var (--muted)">Sin prioridad sugerida aún.</div>'}
 ${seg2&&seg2.comentario?`<div class ="seg-last"><strong>${em.icon} ${em.label}</strong><br>"${seg2.comentario}"</div>`:''}
 
-${seg2&&seg2.tec_lat?`<div class ="seg-last">📍 <a href="https://www.google.com/maps?q=${seg2.tec_lat.replace(',', '.')},${seg2.tec_lng.replace(',', '.')}" target="_blank" style="color:#7C3AED;font-weight:600;">Ver ubicación del técnico</a> <span style="font-size:10px; color:var(--muted); font-family:'DM Mono', monospace;">(${seg2.fecha || ''})</span></div>`:''}
+${tLat&&tLng?`<div class ="seg-last">📍 <a href="https://maps.google.com/?q=${tLat},${tLng}" target="_blank" style="color:#7C3AED;font-weight:600;">Ver ubicación del técnico</a> <span style="font-size:10px; color:var(--muted); font-family:'DM Mono', monospace;">(${seg2.fecha || ''})</span></div>`:''}
 
 <div class ="seg-form">
 <label>Aprobar prioridad</label>
@@ -1121,7 +1132,7 @@ ${hasGeo?`
 <div class ="modal-sec">Ubicación</div>
 <div class ="modal-map-wrap"><div class ="map-hint">👉 Dos dedos para mover el mapa</div><div id="modalMap"></div></div>
 
-<a class ="btn-maps" href="https://www.google.com/maps?q=${lat},${lng}" target="_blank">📍 Abrir en Google Maps</a>
+<a class ="btn-maps" href="https://maps.google.com/?q=${lat},${lng}" target="_blank">📍 Abrir en Google Maps</a>
 `:''}
 ${segHTML}
 `;
