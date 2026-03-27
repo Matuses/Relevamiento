@@ -432,9 +432,9 @@ tbody.innerHTML='<tr><td colspan="13" style="text-align:center;color: var (--mut
 }
  const priLabels={'1':'⚠️ P1 — REPAGO','2':'⚠️ P2 — EJECUCIÓN','3':'P3 — PTC SUGERIDO','4':'P4','5':'P5','':'—'};
 tbody.innerHTML=[...data].reverse().map(r=>{
- // 🔥 CORRECCIÓN LINK MAPS (Historial)
+ // 🔥 LINK OFICIAL A GOOGLE MAPS
  const geoLink=r.tec_lat&&r.tec_lng
-? `<a href="https://maps.google.com/?q=${r.tec_lat.replace(',', '.')},${r.tec_lng.replace(',', '.')}" target="_blank" style="color: var (--blue);font-size:11px;">📍 Ver</a>`
+? `<a href="https://www.google.com/maps?q=${r.tec_lat.replace(',', '.')},${r.tec_lng.replace(',', '.')}" target="_blank" style="color: var (--blue);font-size:11px;">📍 Ver</a>`
 : '—';
  const seg = getSegByOt(r.ot, r.cliente);
  const eKey = seg && seg.estado ? seg.estado.toLowerCase().replace(/ /g, '-') : 'resuelto';
@@ -771,7 +771,6 @@ document.getElementById('tabHistorial').style.display='';
  const tabbarH=document.getElementById('tabBar').offsetHeight;
 document.querySelector('.filters-bar').style.top=(topbarH+tabbarH)+'px';
 
- // Dibujar el botón de ordenar arriba de la lista
  const listContainer = document.getElementById('registrosList');
  if (listContainer && !document.getElementById('btnSortRegistros')) {
    const sortBtn = document.createElement('button');
@@ -867,7 +866,7 @@ applyFilters();
  // 🔥 ORDEN ASCENDENTE / DESCENDENTE
  let dataParaMostrar = [...data];
  if (ordenDescendente) {
-   dataParaMostrar.reverse(); // Esto pone los más recientes arriba
+   dataParaMostrar.reverse(); // Pone los más recientes arriba
  }
 
 el.innerHTML=dataParaMostrar.map(r=>{
@@ -1029,7 +1028,7 @@ segHTML=`
 <div class ="seg-title">⭐ Sugerir prioridad</div>
 ${seg2&&seg2.comentario?`<div class ="seg-last"><strong>${em.icon} ${em.label}</strong><br>"${seg2.comentario}"${seg2.fecha?`<span class ="seg-ts">${seg2.tecnico} · ${seg2.fecha}</span>`:''}</div>`:''}
 
-${seg2&&seg2.tec_lat?`<div class ="seg-last">📍 <a href="https://maps.google.com/?q=${seg2.tec_lat.replace(',', '.')},${seg2.tec_lng.replace(',', '.')}" target="_blank" style="color: var (--blue);font-weight:600;">Ver ubicación del técnico</a> <span style="font-size:10px; color:var(--muted); font-family:'DM Mono', monospace;">(${seg2.fecha || ''})</span></div>`:''}
+${seg2&&seg2.tec_lat?`<div class ="seg-last">📍 <a href="https://www.google.com/maps?q=${seg2.tec_lat.replace(',', '.')},${seg2.tec_lng.replace(',', '.')}" target="_blank" style="color: var (--blue);font-weight:600;">Ver ubicación del técnico</a> <span style="font-size:10px; color:var(--muted); font-family:'DM Mono', monospace;">(${seg2.fecha || ''})</span></div>`:''}
 
 <div class ="seg-form">
 <label>Prioridad sugerida ${priA?`<span style="color: var (--success)">· Aprobada: P${priA} por ${seg2.aprobado_por}</span>`:''}</label>
@@ -1064,7 +1063,7 @@ segHTML=`
 ${priS?`<div class ="seg-last">Prioridad sugerida por supervisor:<strong>P${priS}</strong></div>`:'<div class ="seg-last" style="color: var (--muted)">Sin prioridad sugerida aún.</div>'}
 ${seg2&&seg2.comentario?`<div class ="seg-last"><strong>${em.icon} ${em.label}</strong><br>"${seg2.comentario}"</div>`:''}
 
-${seg2&&seg2.tec_lat?`<div class ="seg-last">📍 <a href="https://maps.google.com/?q=${seg2.tec_lat.replace(',', '.')},${seg2.tec_lng.replace(',', '.')}" target="_blank" style="color:#7C3AED;font-weight:600;">Ver ubicación del técnico</a> <span style="font-size:10px; color:var(--muted); font-family:'DM Mono', monospace;">(${seg2.fecha || ''})</span></div>`:''}
+${seg2&&seg2.tec_lat?`<div class ="seg-last">📍 <a href="https://www.google.com/maps?q=${seg2.tec_lat.replace(',', '.')},${seg2.tec_lng.replace(',', '.')}" target="_blank" style="color:#7C3AED;font-weight:600;">Ver ubicación del técnico</a> <span style="font-size:10px; color:var(--muted); font-family:'DM Mono', monospace;">(${seg2.fecha || ''})</span></div>`:''}
 
 <div class ="seg-form">
 <label>Aprobar prioridad</label>
@@ -1122,7 +1121,7 @@ ${hasGeo?`
 <div class ="modal-sec">Ubicación</div>
 <div class ="modal-map-wrap"><div class ="map-hint">👉 Dos dedos para mover el mapa</div><div id="modalMap"></div></div>
 
-<a class ="btn-maps" href="https://maps.google.com/?q=${lat},${lng}" target="_blank">📍 Abrir en Google Maps</a>
+<a class ="btn-maps" href="https://www.google.com/maps?q=${lat},${lng}" target="_blank">📍 Abrir en Google Maps</a>
 `:''}
 ${segHTML}
 `;
