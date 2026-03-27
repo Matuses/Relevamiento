@@ -408,7 +408,7 @@ tec_lng:(iTecLng>=0?(c[iTecLng]||'').toString().trim():'')};
  const filtDesde=document.getElementById('hFiltDesde').value;
  const filtHasta=document.getElementById('hFiltHasta').value;
  const data=historialData.filter(r=>{
- // 🔥 CANDADO SUPERVISOR: Solo ve a sus promotores en el historial
+ // 🔥 CANDADO SUPERVISOR
  if (currentRole === 'supervisor') {
    if (!promotoresPropios.includes((r.promotor||'').toUpperCase().trim())) return false;
  }
@@ -426,7 +426,7 @@ tbody.innerHTML='<tr><td colspan="13" style="text-align:center;color: var (--mut
  const priLabels={'1':'⚠️ P1 — REPAGO','2':'⚠️ P2 — EJECUCIÓN','3':'P3 — PTC SUGERIDO','4':'P4','5':'P5','':'—'};
 tbody.innerHTML=[...data].reverse().map(r=>{
  const geoLink=r.tec_lat&&r.tec_lng
-? `<a href="http://maps.google.com/maps?q=${r.tec_lat},${r.tec_lng}" target="_blank" style="color: var (--blue);font-size:11px;">📍 Ver</a>`
+? `<a href="https://maps.google.com/?q=${r.tec_lat.replace(',', '.')},${r.tec_lng.replace(',', '.')}" target="_blank" style="color: var (--blue);font-size:11px;">📍 Ver</a>`
 : '—';
  const seg = getSegByOt(r.ot, r.cliente);
  const eKey = seg && seg.estado ? seg.estado.toLowerCase().replace(/ /g, '-') : 'resuelto';
@@ -1012,7 +1012,7 @@ segHTML=`
 <div class ="seguimiento-section">
 <div class ="seg-title">⭐ Sugerir prioridad</div>
 ${seg2&&seg2.comentario?`<div class ="seg-last"><strong>${em.icon} ${em.label}</strong><br>"${seg2.comentario}"${seg2.fecha?`<span class ="seg-ts">${seg2.tecnico} · ${seg2.fecha}</span>`:''}</div>`:''}
-${seg2&&seg2.tec_lat?`<div class ="seg-last">📍 <a href="http://maps.google.com/maps?q=${seg2.tec_lat},${seg2.tec_lng}" target="_blank" style="color: var (--blue);font-weight:600;">Ver ubicación del técnico</a> <span style="font-size:10px; color:var(--muted); font-family:'DM Mono', monospace;">(${seg2.fecha || ''})</span></div>`:''}
+${seg2&&seg2.tec_lat?`<div class ="seg-last">📍 <a href="https://maps.google.com/?q=${seg2.tec_lat.replace(',', '.')},${seg2.tec_lng.replace(',', '.')}" target="_blank" style="color: var (--blue);font-weight:600;">Ver ubicación del técnico</a> <span style="font-size:10px; color:var(--muted); font-family:'DM Mono', monospace;">(${seg2.fecha || ''})</span></div>`:''}
 <div class ="seg-form">
 <label>Prioridad sugerida ${priA?`<span style="color: var (--success)">· Aprobada: P${priA} por ${seg2.aprobado_por}</span>`:''}</label>
 <select data-mid="segPriSug">
@@ -1045,7 +1045,7 @@ segHTML=`
 <div class ="seg-title" style="color:#7C3AED;">🔐 Trade Marketing</div>
 ${priS?`<div class ="seg-last">Prioridad sugerida por supervisor:<strong>P${priS}</strong></div>`:'<div class ="seg-last" style="color: var (--muted)">Sin prioridad sugerida aún.</div>'}
 ${seg2&&seg2.comentario?`<div class ="seg-last"><strong>${em.icon} ${em.label}</strong><br>"${seg2.comentario}"</div>`:''}
-${seg2&&seg2.tec_lat?`<div class ="seg-last">📍 <a href="http://maps.google.com/maps?q=${seg2.tec_lat},${seg2.tec_lng}" target="_blank" style="color:#7C3AED;font-weight:600;">Ver ubicación del técnico</a> <span style="font-size:10px; color:var(--muted); font-family:'DM Mono', monospace;">(${seg2.fecha || ''})</span></div>`:''}
+${seg2&&seg2.tec_lat?`<div class ="seg-last">📍 <a href="https://maps.google.com/?q=${seg2.tec_lat.replace(',', '.')},${seg2.tec_lng.replace(',', '.')}" target="_blank" style="color:#7C3AED;font-weight:600;">Ver ubicación del técnico</a> <span style="font-size:10px; color:var(--muted); font-family:'DM Mono', monospace;">(${seg2.fecha || ''})</span></div>`:''}
 <div class ="seg-form">
 <label>Aprobar prioridad</label>
 <select data-mid="segPriApr" style="border-color:#DDD6FE;">
@@ -1101,7 +1101,7 @@ ${r.notas?`<div class ="mf full"><label>Notas</label><p>${r.notas}</p></div>`:''
 ${hasGeo?`
 <div class ="modal-sec">Ubicación</div>
 <div class ="modal-map-wrap"><div class ="map-hint">👉 Dos dedos para mover el mapa</div><div id="modalMap"></div></div>
-<a class ="btn-maps" href="http://maps.google.com/maps?q=${lat},${lng}" target="_blank">📍 Abrir en Google Maps</a>
+<a class ="btn-maps" href="https://maps.google.com/?q=${lat},${lng}" target="_blank">📍 Abrir en Google Maps</a>
 `:''}
 ${segHTML}
 `;
