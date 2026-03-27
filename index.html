@@ -445,7 +445,7 @@ tbody.innerHTML=[...data].reverse().map(r=>{
  // 🔥 LINK OFICIAL A GOOGLE MAPS
  const tLat = fixCoord(r.tec_lat);
  const tLng = fixCoord(r.tec_lng);
- const geoLink = tLat && tLng ? `<a href="https://maps.google.com/?q=${tLat},${tLng}" target="_blank" style="color: var (--blue);font-size:11px;">📍 Ver</a>` : '—';
+ const geoLink = tLat && tLng ? `<a href="https://www.google.com/maps/search/?api=1&query=${tLat},${tLng}" target="_blank" style="color: var (--blue);font-size:11px;">📍 Ver</a>` : '—';
  
  const seg = getSegByOt(r.ot, r.cliente);
  const eKey = seg && seg.estado ? seg.estado.toLowerCase().replace(/ /g, '-') : 'resuelto';
@@ -484,14 +484,9 @@ btn.disabled= false ;
 }
 }
 
+// 🔥 ACÁ ESTÁ LA FUNCIÓN PARA QUE CHROME GUARDE LAS CONTRASEÑAS
  function doLogout() {
-currentUser= null ;currentRole= null ;currentPass= null ;
-diasCargados=30;
-document.getElementById('loginScreen').style.display='flex';
-document.getElementById('dashboard').style.display='none';
-document.getElementById('loginUser').value='';
-document.getElementById('userNameBadge').style.display='none';
-document.getElementById('loginPass').value='';
+  window.location.reload();
 }
 
  function switchTab(tab) {
@@ -598,7 +593,9 @@ setTimeout(()=>leafMap.invalidateSize(),300);
  return '#DC2626';
 }
 
+// 🔥 ACÁ ESTÁ EL SALVAVIDAS PARA EL ERROR AMARILLO DEL MAPA
  function updateMap(data) {
+ if (!leafMap) return; // Salvavidas: si el mapa no cargó, no intentes ponerle pines
 markers.forEach(m=>leafMap.removeLayer(m));markers=[];
  const valid=data.filter(r=>{
  const lat=parseFloat(fixCoord(r.lat)),lng=parseFloat(fixCoord(r.lng));
@@ -1037,7 +1034,7 @@ segHTML=`
 <div class ="seg-title">⭐ Sugerir prioridad</div>
 ${seg2&&seg2.comentario?`<div class ="seg-last"><strong>${em.icon} ${em.label}</strong><br>"${seg2.comentario}"${seg2.fecha?`<span class ="seg-ts">${seg2.tecnico} · ${seg2.fecha}</span>`:''}</div>`:''}
 
-${tLat&&tLng?`<div class ="seg-last">📍 <a href="https://maps.google.com/?q=${tLat},${tLng}" target="_blank" style="color: var (--blue);font-weight:600;">Ver ubicación del técnico</a> <span style="font-size:10px; color:var(--muted); font-family:'DM Mono', monospace;">(${seg2.fecha || ''})</span></div>`:''}
+${tLat&&tLng?`<div class ="seg-last">📍 <a href="https://www.google.com/maps/search/?api=1&query=${tLat},${tLng}" target="_blank" style="color: var (--blue);font-weight:600;">Ver ubicación del técnico</a> <span style="font-size:10px; color:var(--muted); font-family:'DM Mono', monospace;">(${seg2.fecha || ''})</span></div>`:''}
 
 <div class ="seg-form">
 <label>Prioridad sugerida ${priA?`<span style="color: var (--success)">· Aprobada: P${priA} por ${seg2.aprobado_por}</span>`:''}</label>
@@ -1074,7 +1071,7 @@ segHTML=`
 ${priS?`<div class ="seg-last">Prioridad sugerida por supervisor:<strong>P${priS}</strong></div>`:'<div class ="seg-last" style="color: var (--muted)">Sin prioridad sugerida aún.</div>'}
 ${seg2&&seg2.comentario?`<div class ="seg-last"><strong>${em.icon} ${em.label}</strong><br>"${seg2.comentario}"</div>`:''}
 
-${tLat&&tLng?`<div class ="seg-last">📍 <a href="https://maps.google.com/?q=${tLat},${tLng}" target="_blank" style="color:#7C3AED;font-weight:600;">Ver ubicación del técnico</a> <span style="font-size:10px; color:var(--muted); font-family:'DM Mono', monospace;">(${seg2.fecha || ''})</span></div>`:''}
+${tLat&&tLng?`<div class ="seg-last">📍 <a href="https://www.google.com/maps/search/?api=1&query=${tLat},${tLng}" target="_blank" style="color:#7C3AED;font-weight:600;">Ver ubicación del técnico</a> <span style="font-size:10px; color:var(--muted); font-family:'DM Mono', monospace;">(${seg2.fecha || ''})</span></div>`:''}
 
 <div class ="seg-form">
 <label>Aprobar prioridad</label>
@@ -1132,7 +1129,7 @@ ${hasGeo?`
 <div class ="modal-sec">Ubicación</div>
 <div class ="modal-map-wrap"><div class ="map-hint">👉 Dos dedos para mover el mapa</div><div id="modalMap"></div></div>
 
-<a class ="btn-maps" href="https://maps.google.com/?q=${lat},${lng}" target="_blank">📍 Abrir en Google Maps</a>
+<a class ="btn-maps" href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}" target="_blank">📍 Abrir en Google Maps</a>
 `:''}
 ${segHTML}
 `;
