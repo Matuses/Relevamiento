@@ -260,12 +260,12 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
   }
   
   #registrosList {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    height: auto !important;
-    max-height: none !important;
+    height: calc(100vh - 320px) !important; /* 🔥 TAMAÑO FIJO ATADO A LA PANTALLA 🔥 */
+    min-height: 300px !important;
+    max-height: 800px !important;
+    overflow-y: auto !important; /* ESTO FUERZA EL SCROLL BAR */
     padding-right: 6px;
+    display: block !important;
   }
   #registrosList::-webkit-scrollbar { width: 5px; }
   #registrosList::-webkit-scrollbar-track { background: #F1F5F9; border-radius: 4px; }
