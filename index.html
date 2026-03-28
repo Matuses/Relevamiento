@@ -13,7 +13,7 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var(--text);height:100vh;width:100vw;overflow:hidden}
 
-/* 🔥 LOGIN - DISEÑO ORIGINAL RESTAURADO */
+/* 🔥 LOGIN - DISEÑO PREMIUM */
 #loginScreen{position:fixed;inset:0;background:var(--navy);display:flex;align-items:center;justify-content:center;z-index:10000;padding:24px}
 .login-box{background:white;border-radius:24px;padding:48px 40px;width:100%;max-width:400px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.4);animation:fadeInUp 0.5s ease}
 @keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
@@ -26,6 +26,7 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
 .lf input:focus{border-color:var(--accent);background:white;box-shadow:0 0 0 4px rgba(14,165,233,0.1)}
 .btn-primary{width:100%;background:var(--navy);color:white;border:none;border-radius:12px;padding:16px;font-size:16px;font-weight:700;cursor:pointer;transition:all 0.2s;margin-top:10px}
 .btn-primary:hover{background:var(--blue);transform:translateY(-1px)}
+.btn-primary:disabled{opacity:0.6;cursor:not-allowed}
 .login-error{background:#FEF2F2;border:1px solid #FECACA;color:#DC2626;border-radius:10px;padding:12px;font-size:13px;margin-bottom:20px;display:none;font-weight:600}
 
 /* 🔥 DASHBOARD OCULTO HASTA LOGIN */
@@ -33,63 +34,56 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
 #dashboard.active{display:flex !important}
 
 .topbar{background:var(--navy);color:white;padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:1001;box-shadow:0 2px 10px rgba(0,0,0,0.1)}
-.topbar-title{font-size:16px;font-weight:700;display:flex;align-items:center;gap:10px}
+.topbar-title{font-size:16px;font-weight:700}
 .btn-logout{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.1);color:white;padding:7px 14px;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;transition:0.2s}
-.btn-logout:hover{background:rgba(255,255,255,0.2)}
 
 .tabbar-wrap{background:white;border-bottom:1px solid var(--border);display:flex;justify-content:center;flex-shrink:0;z-index:1000}
-.tab-btn{background:none;border:none;padding:14px 24px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;font-size:13px;transition:0.2s}
+.tab-btn{background:none;border:none;padding:14px 24px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;font-size:13px}
 .tab-btn.active{color:var(--blue);border-bottom-color:var(--blue)}
 
-/* 🔥 CONTENEDOR PRINCIPAL PC ADAPTATIVO */
 .main-container{flex:1;display:flex;flex-direction:column;gap:12px;padding:12px 20px;max-width:1650px;margin:0 auto;width:100%;overflow:hidden}
 
-/* FILTROS COMPACTOS Y SEGUROS */
+/* FILTROS Z-INDEX MÁXIMO */
 .filters-bar{display:flex;flex-wrap:wrap;gap:10px 14px;padding:12px 18px;background:white;border:1px solid var(--border);border-radius:var(--radius);position:relative;z-index:99999;flex-shrink:0;box-shadow:var(--shadow)}
 .filter-field{display:flex;flex-direction:column;gap:4px;position:relative}
 .filter-field label{font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:0.03em}
-.std-input{height:36px;padding:0 12px;border:1.5px solid var(--border);border-radius:9px;font-size:13px;outline:none;font-family:inherit;transition:0.2s}
-.std-input:focus{border-color:var(--blue)}
+.std-input{height:36px;padding:0 12px;border:1.5px solid var(--border);border-radius:9px;font-size:13px;outline:none;font-family:inherit}
 
-/* DROPDOWNS MULTISELECCIÓN */
+/* DROPDOWNS MULTISELECCIÓN QUE FLOTAN */
 .dd-wrap{position:relative}
-.dd-btn{height:36px;padding:0 12px;border:1.5px solid var(--border);border-radius:9px;font-size:13px;background:white;cursor:pointer;display:flex;align-items:center;justify-content:space-between;min-width:135px;transition:0.2s;font-family:inherit}
+.dd-btn{height:36px;padding:0 12px;border:1.5px solid var(--border);border-radius:9px;font-size:13px;background:white;cursor:pointer;display:flex;align-items:center;justify-content:space-between;min-width:140px;font-family:inherit}
 .dd-btn:after{content:'▾';color:var(--muted);font-size:10px}
 .dd-btn.active{border-color:var(--blue);color:var(--blue);font-weight:700}
 .dd-menu{display:none;position:absolute;top:calc(100% + 5px);left:0;background:white;border:1.5px solid var(--border);border-radius:12px;box-shadow:0 12px 35px rgba(0,0,0,0.18);z-index:999999 !important;min-width:210px;max-height:260px;overflow-y:auto;padding:8px 0}
 .dd-menu.show{display:block}
-.dd-item{display:flex;align-items:center;gap:10px;padding:9px 14px;font-size:13px;cursor:pointer;transition:0.1s}
+.dd-item{display:flex;align-items:center;gap:10px;padding:9px 14px;font-size:13px;cursor:pointer}
 .dd-item:hover{background:#F0F4FF}
-.dd-item input{cursor:pointer;accent-color:var(--blue)}
 
-/* SEMÁFORO ESTÉTICO */
+/* SEMÁFORO */
 .notif-panel{display:flex;gap:12px;flex-shrink:0}
 .notif-item{background:white;border:1px solid var(--border);border-radius:14px;padding:12px 18px;flex:1;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow)}
-.notif-count{font-size:22px;font-weight:800;display:block;line-height:1}
-.notif-label{font-size:11px;font-weight:700;opacity:0.8;margin-top:2px}
+.notif-count{font-size:22px;font-weight:800;display:block}
+.notif-label{font-size:11px;font-weight:700;opacity:0.8}
 .notif-green{border-left:5px solid #16A34A;color:#15803D}.notif-yellow{border-left:5px solid #D97706;color:#92400E}.notif-red{border-left:5px solid #DC2626;color:#DC2626}
 
-/* LAYOUT DINÁMICO PC */
+/* LAYOUT PC 1366 / 1080 */
 .content-layout{flex:1;display:grid;grid-template-columns:1fr 350px;gap:12px;min-height:0}
 .card{background:white;border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;overflow:hidden;min-height:0;box-shadow:var(--shadow)}
-.card-header{padding:12px 18px;background:#F8FAFC;border-bottom:1px solid var(--border);font-size:13px;font-weight:800;display:flex;justify-content:space-between;align-items:center;color:var(--navy)}
+.card-header{padding:12px 18px;background:#F8FAFC;border-bottom:1px solid var(--border);font-size:13px;font-weight:800;display:flex;justify-content:space-between;align-items:center}
 #map{flex:1;width:100%;z-index:1}
 .list-container{flex:1;overflow-y:auto;background:white}
 
-/* ITEMS DEL LISTADO */
-.reg-item{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;cursor:pointer;transition:0.15s}
+.reg-item{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;cursor:pointer}
 .reg-item:hover{background:#F8FAFF}
-.avatar{width:38px;height:38px;border-radius:50%;background:var(--navy);color:white;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;box-shadow:0 2px 5px rgba(0,0,0,0.1)}
-.reg-info h4{font-size:13px;font-weight:700;margin-bottom:2px}
-.reg-info p{font-size:11px;color:var(--muted);font-weight:500}
+.avatar{width:38px;height:38px;border-radius:50%;background:var(--navy);color:white;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0}
 
 @media (max-width: 1023px) {
-  .content-layout{grid-template-columns:1fr;grid-template-rows:380px 1fr}
+  .content-layout{grid-template-columns:1fr;grid-template-rows:350px 1fr}
   body{overflow-y:auto;height:auto}
   #dashboard{height:auto}
 }
 
-.spin{width:28px;height:28px;border:3px solid #E2E8F0;border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite}
+.spin{width:24px;height:24px;border:3px solid #E2E8F0;border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
@@ -97,11 +91,11 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
 
 <div id="loginScreen">
   <div class="login-box">
-    <img src="Logo_Suralnor_Emcala.jpeg" alt="EMCALA">
+    <img src="Logo_Suralnor_Emcala.jpeg" alt="Logo">
     <h2>PANEL DE GESTIÓN</h2>
-    <p class="login-subtitle">Control de Reparaciones y Activos</p>
+    <p class="login-subtitle">Gestión de Activos y Reparaciones</p>
     <div class="login-error" id="loginError">Usuario o contraseña incorrectos.</div>
-    <div class="lf"><label>Usuario</label><input type="text" id="loginUser" placeholder="Ingresá tu usuario" autocomplete="username"></div>
+    <div class="lf"><label>Usuario</label><input type="text" id="loginUser" placeholder="Usuario" autocomplete="username"></div>
     <div class="lf"><label>Contraseña</label><input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password"></div>
     <button class="btn-primary" id="loginBtn" onclick="doLogin()">Ingresar al Sistema →</button>
   </div>
@@ -125,7 +119,7 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
         <label>Buscador</label>
         <input type="text" id="filterBusqueda" class="std-input" style="min-width: 200px;" placeholder="🔍 Buscar OT o Cliente..." oninput="applyFilters()">
       </div>
-      <div class="filter-field">
+      <div class="filter-field" id="supFilterWrap">
         <label>Supervisor</label>
         <div class="dd-wrap">
           <button class="dd-btn" id="btn-ddSupervisor" onclick="toggleDD('ddSupervisor')"><span id="lbl-ddSupervisor">Todos</span></button>
@@ -137,4 +131,206 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
         <div class="dd-wrap">
           <button class="dd-btn" id="btn-ddEstado" onclick="toggleDD('ddEstado')"><span id="lbl-ddEstado">Activos</span></button>
           <div class="dd-menu" id="ddEstado">
-            <label class="dd-
+            <label class="dd-item"><input type="checkbox" value="pendiente" onchange="applyFilters()"> ⏳ Pendiente</label>
+            <label class="dd-item"><input type="checkbox" value="resuelto" onchange="applyFilters()"> ✅ Resuelto</label>
+            <label class="dd-item"><input type="checkbox" value="retiro" onchange="applyFilters()"> 📦 Retiro</label>
+          </div>
+        </div>
+      </div>
+      <button onclick="clearFilters()" style="margin-left:auto;background:none;border:none;color:var(--muted);font-weight:700;cursor:pointer;font-size:11px">✕ LIMPIAR</button>
+      <button onclick="loadData()" style="background:var(--navy);color:white;border:none;width:34px;height:34px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center">↻</button>
+    </div>
+
+    <div class="notif-panel">
+      <div class="notif-item notif-green"><span style="font-size:22px">🚨</span><div class="notif-text"><span class="notif-count" id="notifAlta">0</span><span class="notif-label">OTs P1 y P2</span></div></div>
+      <div class="notif-item notif-yellow"><span style="font-size:22px">⏳</span><div class="notif-text"><span class="notif-count" id="notifSinPri">0</span><span class="notif-label">Sin prioridad</span></div></div>
+      <div class="notif-item notif-red"><span style="font-size:22px">🔴</span><div class="notif-text"><span class="notif-count" id="notifVencidos">0</span><span class="notif-label">Vencidas (+21d)</span></div></div>
+    </div>
+
+    <div class="content-layout">
+      <div class="card">
+        <div class="card-header">Mapa <span id="mapCount" style="font-weight:400;opacity:0.7">0 registros</span></div>
+        <div id="map"></div>
+      </div>
+      <div class="card">
+        <div class="card-header">Listado <button onclick="cargarMas()" style="font-size:10px;background:none;border:none;color:var(--blue);cursor:pointer;font-weight:800">Ver más</button></div>
+        <div class="list-container" id="registrosList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwreokQunVau5zi-QN-NzPz14IOfk11p4As3PYRqvSh1zqgbPosHJ9nX2RAfotacKxN/exec';
+let allData=[], seguimientos={}, filtered=[], markers=[], leafMap=null;
+let currentUser='', currentRole='', currentPass='', promotoresPropios=[];
+
+// 🔥 CONEXIÓN ROBUSTA CON TIMEOUT
+function jsonp(url, timeout=30000) {
+  return new Promise((resolve, reject) => {
+    const cb = 'cb_' + Date.now();
+    const script = document.createElement('script');
+    script.src = url + '&callback=' + cb;
+    const timer = setTimeout(() => {
+      delete window[cb];
+      document.body.removeChild(script);
+      reject(new Error('Timeout de conexión'));
+    }, timeout);
+    window[cb] = (data) => {
+      clearTimeout(timer);
+      delete window[cb];
+      document.body.removeChild(script);
+      resolve(data);
+    };
+    script.onerror = () => {
+      clearTimeout(timer);
+      delete window[cb];
+      document.body.removeChild(script);
+      reject(new Error('Error de red'));
+    };
+    document.body.appendChild(script);
+  });
+}
+
+async function doLogin() {
+  const u = document.getElementById('loginUser').value.trim().toUpperCase();
+  const p = document.getElementById('loginPass').value;
+  const btn = document.getElementById('loginBtn');
+  if(!u || !p) return;
+  btn.disabled = true; btn.textContent = 'Verificando...';
+  document.getElementById('loginError').style.display = 'none';
+
+  try {
+    const data = await jsonp(`${SCRIPT_URL}?action=login&usuario=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`);
+    if(data.ok) {
+      currentUser = u; currentRole = data.rol; currentPass = p;
+      promotoresPropios = data.promotores ? data.promotores.split(',').map(x=>x.trim().toUpperCase()) : [];
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('dashboard').classList.add('active');
+      document.getElementById('topbarTitle').textContent = 'PANEL · ' + data.rol.toUpperCase();
+      initMap(); loadData();
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+    }
+  } catch(e) { 
+    alert("Error de conexión con Google. Reintentá."); 
+  }
+  btn.disabled = false; btn.textContent = 'Ingresar al Sistema →';
+}
+
+async function loadData() {
+  const list = document.getElementById('registrosList');
+  list.innerHTML = '<div style="padding:40px;text-align:center;"><div class="spin" style="margin:0 auto 10px"></div><p style="font-size:12px">Cargando datos...</p></div>';
+  try {
+    const data = await jsonp(`${SCRIPT_URL}?action=datos&usuario=${encodeURIComponent(currentUser)}&password=${encodeURIComponent(currentPass)}&dias=30`);
+    if(data.ok) {
+      allData = parseRegistros(data.registros);
+      seguimientos = parseSeguimientos(data.seguimientos);
+      populateSupervisores();
+      applyFilters();
+    }
+  } catch(e) { 
+    list.innerHTML = '<p style="padding:20px;text-align:center;color:red">Error al recibir datos.</p>'; 
+  }
+}
+
+function parseRegistros(rows) {
+  if(!rows || rows.length < 2) return [];
+  const h = rows[0].map(s => (s||'').toLowerCase());
+  return rows.slice(1).map(c => ({
+    ot: c[h.indexOf('ot')], ts: c[h.indexOf('timestamp')], nombre: (c[h.indexOf('promotor')]||'').toUpperCase(),
+    cliente: c[h.indexOf('cliente')], lat: c[h.indexOf('lat')], lng: c[h.indexOf('lng')],
+    supervisor: c[h.indexOf('supervisor')] || ''
+  })).filter(r => r.nombre);
+}
+
+function parseSeguimientos(rows) {
+  if(!rows) return {};
+  const map = {};
+  rows.slice(1).forEach(c => { map[c[2]] = { estado: c[4], prioridad: c[8] || c[7] }; });
+  return map;
+}
+
+function initMap() {
+  if(leafMap) return;
+  leafMap = L.map('map').setView([-34.62, -58.38], 10);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(leafMap);
+}
+
+function populateSupervisores() {
+  const sups = [...new Set(allData.map(r => r.supervisor).filter(Boolean))].sort();
+  const menu = document.getElementById('ddSupervisor');
+  menu.innerHTML = sups.map(s => `<label class="dd-item"><input type="checkbox" value="${s}" onchange="applyFilters()"> ${s}</label>`).join('');
+}
+
+function toggleDD(id) {
+  const m = document.getElementById(id);
+  const isShow = m.classList.contains('show');
+  document.querySelectorAll('.dd-menu').forEach(x => x.classList.remove('show'));
+  if(!isShow) m.classList.add('show');
+}
+
+function applyFilters() {
+  const busq = document.getElementById('filterBusqueda').value.toLowerCase();
+  const sups = Array.from(document.querySelectorAll('#ddSupervisor input:checked')).map(i => i.value);
+  const ests = Array.from(document.querySelectorAll('#ddEstado input:checked')).map(i => i.value);
+
+  filtered = allData.filter(r => {
+    if(currentRole === 'supervisor' && promotoresPropios.length > 0) {
+      if(!promotoresPropios.includes(r.nombre)) return false;
+    }
+    if(busq && !r.ot.toLowerCase().includes(busq) && !r.cliente.toLowerCase().includes(busq)) return false;
+    if(sups.length && !sups.includes(r.supervisor)) return false;
+    const seg = seguimientos[r.cliente] || {};
+    const e = (seg.estado || 'pendiente').toLowerCase();
+    if(ests.length && !ests.includes(e)) return false;
+    return true;
+  });
+
+  renderList(); updateMap(); updateNotif();
+}
+
+function renderList() {
+  const list = document.getElementById('registrosList');
+  if(!filtered.length) { list.innerHTML = '<p style="padding:20px;text-align:center;font-size:12px;">Sin registros.</p>'; return; }
+  list.innerHTML = [...filtered].reverse().map(r => `
+    <div class="reg-item">
+      <div class="avatar">${r.nombre.slice(0,2)}</div>
+      <div style="flex:1">
+        <div style="font-weight:700; font-size:13px;">OT ${r.ot}</div>
+        <div style="font-size:11px; color:var(--muted);">${r.cliente}</div>
+      </div>
+      <div style="text-align:right; font-size:10px; color:gray; font-family:monospace;">${r.ts ? r.ts.split('T')[0] : ''}</div>
+    </div>
+  `).join('');
+}
+
+function updateMap() {
+  markers.forEach(m => leafMap.removeLayer(m)); markers = [];
+  filtered.forEach(r => {
+    if(!r.lat || !r.lng || isNaN(parseFloat(r.lat))) return;
+    const m = L.circleMarker([parseFloat(r.lat), parseFloat(r.lng)], {radius:8, color:'white', weight:2, fillOpacity:1, fillColor:'#1B5FA8'}).addTo(leafMap);
+    markers.push(m);
+  });
+  document.getElementById('mapCount').textContent = markers.length + ' registros';
+}
+
+function updateNotif() {
+  document.getElementById('notifAlta').textContent = filtered.filter(r => {
+    const s = seguimientos[r.cliente]; return s && (s.prioridad === '1' || s.prioridad === '2');
+  }).length;
+  document.getElementById('notifSinPri').textContent = filtered.filter(r => {
+    const s = seguimientos[r.cliente]; return !s || !s.prioridad;
+  }).length;
+}
+
+function clearFilters() {
+  document.getElementById('filterBusqueda').value = '';
+  document.querySelectorAll('.dd-menu input').forEach(i => i.checked = false);
+  applyFilters();
+}
+
+document.addEventListener('click', e => { if(!e.target.closest('.dd-wrap')) document.querySelectorAll('.dd-menu').forEach(m => m.classList.remove('show')); });
+</script>
+</body>
+</html>
