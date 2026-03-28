@@ -175,12 +175,12 @@
       <button class="btn-refresh" onclick="loadData()">↻ Actualizar</button>
     </div>
 
-    <div class="notif-panel" id="notifPanel" style="display:none;">
+    <div class="notif-panel" id="notifPanel">
       <div class="notif-item notif-green">
-        <span class="notif-icon">✅</span>
+        <span class="notif-icon">🚨</span>
         <div class="notif-text">
-          <span class="notif-count" id="notifResueltos">0</span>
-          <span class="notif-label">OTs resueltos (últimos 7 días)</span>
+          <span class="notif-count" id="notifPrioridadAlta">0</span>
+          <span class="notif-label">OTs activas (P1 y P2)</span>
         </div>
       </div>
       <div class="notif-item notif-yellow">
@@ -929,7 +929,8 @@ applyFilters();
    dataParaMostrar.reverse(); 
  }
 
-el.innerHTML=dataParaMostrar.map(r=>{
+window._otData = {};
+el.innerHTML=dataParaMostrar.map((r,_idx)=>{
  const color=ageColor(r.ts);
  const initials=r.frecuencia||(r.cliente||'?').replace(/[^A-Z0-9]/gi,'').slice(0,3).toUpperCase();
  const avatarColor=r.frecuencia ? getFrecColor(r.frecuencia) : ageColor(r.ts);
@@ -941,7 +942,8 @@ el.innerHTML=dataParaMostrar.map(r=>{
  const priShow=priA||priS;
  const isAlta=priA&&(priA==='1'||priA==='2');
  const priBadge=priShow?`<span style="margin-left:4px;font-size:10px;font-weight:800;padding:2px 7px;border-radius:100px;background:${priA?'#0F2A4A':'#E2E8F0'};color:${priA?'white':'#64748B'}">${isAlta?'⚠️ ':''} P${priShow}${!priA?' (sugerida)':''}</span>`:'';
- return `<div class ="reg-item" onclick='openModal(${JSON.stringify(r).replace(/'/g,"'")})'>
+ window._otData[_idx] = r;
+return `<div class ="reg-item" onclick='openModal(window._otData[${_idx}])'>
 <div class ="reg-avatar" style="background:${avatarColor};font-size:${initials.length>2?'10px':'12px'}">${initials}</div>
 <div class ="reg-info">
 <div class ="reg-nombre">OT ${r.ot||'—'} ${isAlta?'<span style="color:#DC2626">❗</span>':''}</div>
