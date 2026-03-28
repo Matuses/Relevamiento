@@ -533,16 +533,15 @@ btn.disabled= false ;
   allData = []; seguimientos = {}; chatData = {}; historialData = []; filtered = [];
   document.getElementById('dashboard').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('loginUser').value = '';
-  document.getElementById('loginPass').value = '';
   document.getElementById('userNameBadge').style.display = 'none';
   document.getElementById('loginError').style.display = 'none';
-  // Resetear tabs
   document.getElementById('tabBar').style.display = 'none';
-  document.getElementById('tabMapa').classList.add('active');
-  document.getElementById('tabHistorial').classList.remove('active');
-  document.getElementById('tabRetiro').classList.remove('active');
-  // Limpiar mapa
+  // Limpiar campos con delay para que Chrome no los restaure antes de mostrar el form
+  setTimeout(() => {
+    document.getElementById('loginUser').value = '';
+    document.getElementById('loginPass').value = '';
+    document.getElementById('loginUser').focus();
+  }, 50);
   if (leafMap) { leafMap.remove(); leafMap = null; markers = []; }
 }
 
@@ -770,32 +769,32 @@ ts,fecha,ot,cli
  function getPrioridadSugerida(ot,cli) { const seg=getSegByOt(ot,cli); return seg ? (seg.prioridad_sugerida||'') : '';}
 
  function updateNotificaciones() {
- const panel=document.getElementById('notifPanel');
- if (!panel) return ;
-panel.style.display='flex';
- 
- const unaSemanaAtras = Date.now() - (7 * 86400000);
- const resueltosSemana = historialData.filter(r => {
-   if (!r.ts) return false;
-   return new Date(r.ts).getTime() > unaSemanaAtras;
- }).length;
- document.getElementById('notifResueltos').textContent = resueltosSemana;
+  // Usa filtered para que el semáforo sea dinámico según los filtros activos
+  const activasP1P2 = filtered.filter(r => {
+    const eKey = getEstadoKey(r.ot, r.cliente);
+    if (eKey === 'resuelto' || eKey === 'retiro' || eKey === 'cliente-cerrado') return false;
+    const pri = getPrioridadAprobada(r.ot, r.cliente) || getPrioridadSugerida(r.ot, r.cliente);
+    return pri === '1' || pri === '2';
+  }).length;
+  const boxAlta = document.getElementById('notifPrioridadAlta');
+  if (boxAlta) boxAlta.textContent = activasP1P2;
 
- const sinPrioridad=allData.filter(r=>{
- const eKey=getEstadoKey(r.ot,r.cliente);
- if (eKey==='resuelto' || eKey==='retiro' || eKey==='cliente-cerrado') return false; 
- const priA=getPrioridadAprobada(r.ot,r.cliente);
- const priS=getPrioridadSugerida(r.ot,r.cliente);
- return !priA&&!priS;
-}).length;
-document.getElementById('notifSinPrioridad').textContent=sinPrioridad;
- const vencidos=allData.filter(r=>{
- const eKey=getEstadoKey(r.ot,r.cliente);
- if (eKey==='resuelto' || eKey==='retiro' || eKey==='cliente-cerrado') return false;
- if (!r.ts) return false ;
- return (Date.now()- new Date(r.ts))/86400000>21;
-}).length;
-document.getElementById('notifVencidos').textContent=vencidos;
+  const sinPrioridad = filtered.filter(r => {
+    const eKey = getEstadoKey(r.ot, r.cliente);
+    if (eKey === 'resuelto' || eKey === 'retiro' || eKey === 'cliente-cerrado') return false;
+    return !getPrioridadAprobada(r.ot, r.cliente) && !getPrioridadSugerida(r.ot, r.cliente);
+  }).length;
+  const boxSinPri = document.getElementById('notifSinPrioridad');
+  if (boxSinPri) boxSinPri.textContent = sinPrioridad;
+
+  const vencidos = filtered.filter(r => {
+    const eKey = getEstadoKey(r.ot, r.cliente);
+    if (eKey === 'resuelto' || eKey === 'retiro' || eKey === 'cliente-cerrado') return false;
+    if (!r.ts) return false;
+    return (Date.now() - new Date(r.ts)) / 86400000 > 21;
+  }).length;
+  const boxVencidos = document.getElementById('notifVencidos');
+  if (boxVencidos) boxVencidos.textContent = vencidos;
 }
 
  function toggleSortRegistros() {
@@ -899,7 +898,7 @@ document.getElementById('listCount').textContent=filtered.length;
 updateMultiFilterLabel('mfEstado', estadosSeleccionados.length ? estadosSeleccionados.length + ' sel.' : 'Activos');
 updateMultiFilterLabel('mfPrioridad','Todas');
 updateMultiFilterLabel('mfFrecuencia','Todas');
- if (currentRole==='supervisor' || currentRole==='trade') updateNotificaciones();
+ updateNotificaciones();
 updateMap(filtered);
 renderList(filtered);
 }
