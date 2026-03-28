@@ -27,26 +27,75 @@
 @media(max-width:900px){.main{grid-template-columns:1fr;padding:12px;gap:12px}#map{min-height:280px}.table-scroll{max-height:350px}.topbar{padding:0 16px;height:52px}.topbar-title{font-size:14px}.topbar-user{display:none}.filters-bar{padding:10px 12px;gap:8px}.filters-bar select,.filters-bar input[type="date"]{font-size:13px;padding:7px 10px}.card-header{padding:12px 16px}.reg-item{padding:11px 14px}.modal{border-radius:16px 16px 0 0;max-height:95vh;position:fixed;bottom:0;left:0;right:0;width:100%;max-width:100%}.modal-overlay{align-items:flex-end;padding:0}}@media(max-width:480px){.filters-bar label{display:none}input,select,textarea{font-size:16px !important}}input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}#btnNuevaSolicitud:hover{background:var(--blue) !important}#vistaRetiro .excel-table th{background:var(--navy);color:white}
 /* 🔥 AJUSTES RESPONSIVOS PARA PC (Con espacio para la leyenda del mapa) */
 @media (min-width: 1024px) {
-  body { overflow-y: hidden !important; }
-
-  .main { align-items: stretch; }
-
-  #map {
-    height: calc(100vh - 420px) !important;
-    min-height: 280px !important;
+  html, body {
+    height: 100%;
+    overflow: hidden !important;
   }
 
+  /* Dashboard ocupa toda la pantalla */
+  #dashboard {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .topbar  { flex-shrink: 0; }
+  .tabbar-wrap { flex-shrink: 0; }
+
+  /* Main ocupa el espacio sobrante */
+  .main {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    padding: 10px 16px 10px;
+    gap: 10px;
+    align-items: stretch;
+    /* grid: filtros | semáforo | [mapa + lista] */
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    grid-template-rows: auto auto 1fr;
+  }
+
+  .filters-bar { grid-column: 1 / -1; flex-shrink: 0; }
+  .notif-panel  { grid-column: 1 / -1; flex-shrink: 0; }
+  #tecnicoBanner { grid-column: 1 / -1; flex-shrink: 0; }
+
+  /* Cards se estiran */
+  .card {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Mapa llena el espacio de su card */
+  #map {
+    flex: 1;
+    min-height: 0 !important;
+    height: auto !important;
+  }
+
+  /* Lista con scroll interno */
   #registrosList {
-    height: calc(100vh - 380px) !important;
-    max-height: none !important;
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
-    padding-right: 8px;
+    height: auto !important;
+    max-height: none !important;
+    padding-right: 6px;
   }
 
   #registrosList::-webkit-scrollbar { width: 5px; }
   #registrosList::-webkit-scrollbar-track { background: #F1F5F9; border-radius: 4px; }
   #registrosList::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
   #registrosList::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+  /* Compactar filtros */
+  .filters-bar { padding: 7px 14px; gap: 8px 10px; }
+  .notif-item { padding: 7px 12px; min-width: 140px; }
+  .notif-item .notif-count { font-size: 18px; }
+  .notif-item .notif-label { font-size: 10px; }
 }
 </style>
 </head>
@@ -592,21 +641,8 @@ btn.disabled= false ;
 
 // 🔥 ACÁ ESTÁ LA FUNCIÓN PARA QUE CHROME GUARDE LAS CONTRASEÑAS
  function doLogout() {
-  currentUser=null; currentRole=null; currentPass=null; diasCargados=30;
-  allData=[]; seguimientos={}; chatData={}; historialData=[]; filtered=[];
-  document.getElementById('dashboard').style.display='none';
-  document.getElementById('loginScreen').style.display='flex';
-  document.getElementById('userNameBadge').style.display='none';
-  document.getElementById('loginError').style.display='none';
-  document.getElementById('tabBar').style.display='none';
-  if(leafMap){ leafMap.remove(); leafMap=null; markers=[]; }
-  // Limpiar campos y forzar que Chrome muestre el picker de cuentas
-  const u=document.getElementById('loginUser');
-  const p=document.getElementById('loginPass');
-  u.value=''; p.value='';
-  u.dispatchEvent(new Event('input'));
-  p.dispatchEvent(new Event('input'));
-  requestAnimationFrame(()=>{ u.focus(); u.click(); });
+  // Reload limpio — Chrome muestra el picker de cuentas automáticamente
+  window.location.reload();
 }
 
  function switchTab(tab) {
