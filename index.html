@@ -261,17 +261,17 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
 
   /* 🔥 LE CLAVAMOS EL TAMAÑO AL MAPA PARA QUE ACOMPAÑE A LA LISTA */
   #map {
-    height: calc(100vh - 380px) !important; 
+    height: calc(100vh - 420px) !important; /* Aumentamos para dar margen inferior */
     min-height: 300px !important;
     width: 100% !important;
     flex: none !important;
   }
   
   #registrosList {
-    height: calc(100vh - 380px) !important; /* Le restamos 380px en vez de 320px */
+    height: calc(100vh - 420px) !important; /* Aumentamos para dar margen inferior */
     min-height: 300px !important;
     max-height: 800px !important;
-    overflow-y: auto !important; /* ESTO FUERZA EL SCROLL BAR */
+    overflow-y: auto !important;
     padding-right: 6px;
     display: block !important;
   }
