@@ -258,15 +258,25 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
     flex-direction: column;
     overflow: hidden;
   }
+
+  /* 🔥 LE CLAVAMOS EL TAMAÑO AL MAPA PARA QUE ACOMPAÑE A LA LISTA */
+  #map {
+    height: calc(100vh - 380px) !important; 
+    min-height: 300px !important;
+    width: 100% !important;
+    flex: none !important;
+  }
   
   #registrosList {
-    height: calc(100vh - 320px) !important; /* 🔥 TAMAÑO FIJO ATADO A LA PANTALLA 🔥 */
+    height: calc(100vh - 380px) !important; /* Le restamos 380px en vez de 320px */
     min-height: 300px !important;
     max-height: 800px !important;
     overflow-y: auto !important; /* ESTO FUERZA EL SCROLL BAR */
     padding-right: 6px;
     display: block !important;
   }
+}
+
   #registrosList::-webkit-scrollbar { width: 5px; }
   #registrosList::-webkit-scrollbar-track { background: #F1F5F9; border-radius: 4px; }
   #registrosList::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
