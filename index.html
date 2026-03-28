@@ -200,7 +200,29 @@
     </div>
 
     <div class="notif-panel" id="notifPanel" style="display:none;">
+      <div class="notif-panel" id="notifPanel">
       <div class="notif-item notif-green">
+        <span class="notif-icon">🚨</span>
+        <div class="notif-text">
+          <span class="notif-count" id="notifPrioridadAlta">0</span>
+          <span class="notif-label">OTs activas (P1 y P2)</span>
+        </div>
+      </div>
+      <div class="notif-item notif-yellow">
+        <span class="notif-icon">⏳</span>
+        <div class="notif-text">
+          <span class="notif-count" id="notifSinPrioridad">0</span>
+          <span class="notif-label">Sin prioridad asignada</span>
+        </div>
+      </div>
+      <div class="notif-item notif-red">
+        <span class="notif-icon">🔴</span>
+        <div class="notif-text">
+          <span class="notif-count" id="notifVencidos">0</span>
+          <span class="notif-label">+21 días sin resolver</span>
+        </div>
+      </div>
+    </div><div class="notif-item notif-green">
         <span class="notif-icon">✅</span>
         <div class="notif-text">
           <span class="notif-count" id="notifResueltos">0</span>
@@ -566,11 +588,17 @@ btn.disabled= false ;
   document.getElementById('loginError').style.display='none';
   document.getElementById('tabBar').style.display='none';
   if(leafMap){ leafMap.remove(); leafMap=null; markers=[]; }
+  // Forzar limpieza de campos — necesario para que Chrome permita nueva cuenta
+  const u = document.getElementById('loginUser');
+  const p = document.getElementById('loginPass');
+  u.setAttribute('autocomplete','off');
+  p.setAttribute('autocomplete','off');
+  u.value=''; p.value='';
   setTimeout(()=>{
-    document.getElementById('loginUser').value='';
-    document.getElementById('loginPass').value='';
-    document.getElementById('loginUser').focus();
-  },50);
+    u.setAttribute('autocomplete','username');
+    p.setAttribute('autocomplete','current-password');
+    u.focus();
+  }, 100);
 }
 
  function switchTab(tab) {
@@ -819,32 +847,35 @@ ts,fecha,ot,cli
 }
 
  function updateNotificaciones() {
- const panel=document.getElementById('notifPanel');
- if (!panel) return ;
-panel.style.display='flex';
- 
- const unaSemanaAtras = Date.now() - (7 * 86400000);
- const resueltosSemana = historialData.filter(r => {
-   if (!r.ts) return false;
-   return new Date(r.ts).getTime() > unaSemanaAtras;
- }).length;
- document.getElementById('notifResueltos').textContent = resueltosSemana;
+  const panel = document.getElementById('notifPanel');
+  if (!panel) return;
+  panel.style.display = 'flex';
 
- const sinPrioridad=allData.filter(r=>{
- const eKey=getEstadoKey(r.ot,r.cliente);
- if (eKey==='resuelto' || eKey==='retiro' || eKey==='cliente-cerrado') return false; 
- const priA=getPrioridadAprobada(r.ot,r.cliente);
- const priS=getPrioridadSugerida(r.ot,r.cliente);
- return !priA&&!priS;
-}).length;
-document.getElementById('notifSinPrioridad').textContent=sinPrioridad;
- const vencidos=allData.filter(r=>{
- const eKey=getEstadoKey(r.ot,r.cliente);
- if (eKey==='resuelto' || eKey==='retiro' || eKey==='cliente-cerrado') return false;
- if (!r.ts) return false ;
- return (Date.now()- new Date(r.ts))/86400000>21;
-}).length;
-document.getElementById('notifVencidos').textContent=vencidos;
+  const p1p2 = filtered.filter(r => {
+    const eKey = getEstadoKey(r.ot, r.cliente);
+    if (eKey === 'resuelto' || eKey === 'retiro' || eKey === 'cliente-cerrado') return false;
+    const pri = getPrioridadAprobada(r.ot, r.cliente) || getPrioridadSugerida(r.ot, r.cliente);
+    return pri === '1' || pri === '2';
+  }).length;
+  const boxAlta = document.getElementById('notifPrioridadAlta');
+  if (boxAlta) boxAlta.textContent = p1p2;
+
+  const sinPri = filtered.filter(r => {
+    const eKey = getEstadoKey(r.ot, r.cliente);
+    if (eKey === 'resuelto' || eKey === 'retiro' || eKey === 'cliente-cerrado') return false;
+    return !getPrioridadAprobada(r.ot, r.cliente) && !getPrioridadSugerida(r.ot, r.cliente);
+  }).length;
+  const boxSin = document.getElementById('notifSinPrioridad');
+  if (boxSin) boxSin.textContent = sinPri;
+
+  const vencidos = filtered.filter(r => {
+    const eKey = getEstadoKey(r.ot, r.cliente);
+    if (eKey === 'resuelto' || eKey === 'retiro' || eKey === 'cliente-cerrado') return false;
+    if (!r.ts) return false;
+    return (Date.now() - new Date(r.ts)) / 86400000 > 21;
+  }).length;
+  const boxVenc = document.getElementById('notifVencidos');
+  if (boxVenc) boxVenc.textContent = vencidos;
 }
 
  function toggleSortRegistros() {
@@ -907,7 +938,7 @@ filtered=allData.filter(r=>{
    if (!promotoresPropios.includes((r.nombre || '').toUpperCase().trim())) return false;
  }
 
- if(promotoresSeleccionados.length>0&&!promotoresSeleccionados.includes(r.nombre)) return false;
+ if(promotoresSeleccionados.length>0&&!promotoresSeleccionados.map(x=>x.toUpperCase()).includes((r.nombre||'').toUpperCase())) return false;
  if(localidadesSeleccionadas.length>0&&!localidadesSeleccionadas.includes(r.localidad)) return false;
  if (frecuenciasSeleccionadas.length>0){
  if (!frecuenciasSeleccionadas.includes((r.frecuencia||'').toUpperCase().trim())) return false ;
