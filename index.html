@@ -27,73 +27,26 @@
 @media(max-width:900px){.main{grid-template-columns:1fr;padding:12px;gap:12px}#map{min-height:280px}.table-scroll{max-height:350px}.topbar{padding:0 16px;height:52px}.topbar-title{font-size:14px}.topbar-user{display:none}.filters-bar{padding:10px 12px;gap:8px}.filters-bar select,.filters-bar input[type="date"]{font-size:13px;padding:7px 10px}.card-header{padding:12px 16px}.reg-item{padding:11px 14px}.modal{border-radius:16px 16px 0 0;max-height:95vh;position:fixed;bottom:0;left:0;right:0;width:100%;max-width:100%}.modal-overlay{align-items:flex-end;padding:0}}@media(max-width:480px){.filters-bar label{display:none}input,select,textarea{font-size:16px !important}}input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}#btnNuevaSolicitud:hover{background:var(--blue) !important}#vistaRetiro .excel-table th{background:var(--navy);color:white}
 /* 🔥 AJUSTES RESPONSIVOS PARA PC (Con espacio para la leyenda del mapa) */
 @media (min-width: 1024px) {
-  html, body { height: 100%; overflow: hidden !important; }
+  body { overflow-y: hidden !important; }
 
-  #dashboard {
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
+  .main { align-items: stretch; }
 
-  /* Topbar + tabbar fijos */
-  .topbar, .tabbar-wrap { flex-shrink: 0; }
-
-  /* El .main ocupa el espacio restante */
-  .main {
-    flex: 1;
-    min-height: 0;
-    overflow: hidden;
-    display: grid;
-    grid-template-columns: 1fr 340px;
-    grid-template-rows: auto auto 1fr;
-    gap: 10px;
-    padding: 10px 16px 12px;
-    align-items: stretch;
-  }
-
-  /* Filtros y semáforo ocupan ambas columnas */
-  .filters-bar { grid-column: 1 / -1; }
-  .notif-panel  { grid-column: 1 / -1; }
-  #tecnicoBanner { grid-column: 1 / -1; }
-
-  /* Las dos cards se estiran para llenar */
-  .card {
-    min-height: 0;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-  }
-
-  /* Mapa ocupa todo el espacio disponible en su card */
   #map {
-    flex: 1;
-    min-height: 0 !important;
-    height: auto !important;
+    height: calc(100vh - 420px) !important;
+    min-height: 280px !important;
   }
 
-  /* Lista con scroll interno */
   #registrosList {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    height: auto !important;
+    height: calc(100vh - 380px) !important;
     max-height: none !important;
-    padding-right: 6px;
+    overflow-y: auto;
+    padding-right: 8px;
   }
 
   #registrosList::-webkit-scrollbar { width: 5px; }
   #registrosList::-webkit-scrollbar-track { background: #F1F5F9; border-radius: 4px; }
   #registrosList::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
   #registrosList::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
-
-  /* Semáforo más compacto */
-  .notif-item { min-width: 150px; padding: 8px 12px; }
-  .notif-item .notif-count { font-size: 20px; }
-  .notif-item .notif-label { font-size: 10px; }
-
-  /* Filtros más compactos */
-  .filters-bar { padding: 8px 12px; gap: 8px 10px; }
 }
 </style>
 </head>
@@ -137,6 +90,14 @@
 
   <div class="main">
     <div class="filters-bar">
+      <div class="filter-field">
+        <label>Buscar</label>
+        <input type="text" id="filterBusqueda"
+          style="padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:'Bricolage Grotesque',sans-serif;outline:none;min-width:200px;height:34px;"
+          placeholder="🔍 OT, cliente, promotor..."
+          oninput="applyFilters()">
+      </div>
+      <div class="filter-sep"></div>
       <div class="filter-field">
         <label>Promotor</label>
         <div class="multi-filter" id="mfPromotor">
@@ -639,17 +600,13 @@ btn.disabled= false ;
   document.getElementById('loginError').style.display='none';
   document.getElementById('tabBar').style.display='none';
   if(leafMap){ leafMap.remove(); leafMap=null; markers=[]; }
-  // Forzar limpieza de campos — necesario para que Chrome permita nueva cuenta
-  const u = document.getElementById('loginUser');
-  const p = document.getElementById('loginPass');
-  u.setAttribute('autocomplete','off');
-  p.setAttribute('autocomplete','off');
+  // Limpiar campos y forzar que Chrome muestre el picker de cuentas
+  const u=document.getElementById('loginUser');
+  const p=document.getElementById('loginPass');
   u.value=''; p.value='';
-  setTimeout(()=>{
-    u.setAttribute('autocomplete','username');
-    p.setAttribute('autocomplete','current-password');
-    u.focus();
-  }, 100);
+  u.dispatchEvent(new Event('input'));
+  p.dispatchEvent(new Event('input'));
+  requestAnimationFrame(()=>{ u.focus(); u.click(); });
 }
 
  function switchTab(tab) {
