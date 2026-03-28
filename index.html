@@ -287,6 +287,16 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
   .notif-item .notif-count { font-size: 18px; }
   .notif-item .notif-label { font-size: 10px; }
 }
+/* 🔥 FIX PARA LEVANTAR EL HISTORIAL A LA PANTALLA 🔥 */
+#vistaTabla, #vistaRetiro, #vistaHistorial {
+    position: absolute !important;
+    top: 90px !important; /* Altura exacta del menú superior + las pestañas */
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--bg);
+    z-index: 50;
+}  
 </style>
 </head>
 <body>
