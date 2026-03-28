@@ -744,7 +744,11 @@ if(typeof L.Control !== 'undefined' && L.Control.Measure && (currentRole==='tecn
 }
 setTimeout(()=>leafMap.invalidateSize(),300);
 if (L.Browser.mobile) document.getElementById('mapHintMain').style.display='block';
-}
+const mapDiv = document.getElementById('map');
+  const resizeObserver = new ResizeObserver(() => {
+    leafMap.invalidateSize();
+  });
+  resizeObserver.observe(mapDiv);}
 
  function ageColor(ts) {
  if (!ts) return '#94A3B8';
