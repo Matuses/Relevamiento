@@ -1052,7 +1052,7 @@ function updateTecnicoBanner() {
 
 function filtrarDiaHoy() {
   if(currentRole !== 'tecnico') return;
-  const dia = 1; // TEMP TEST — revertir a new Date().getDay()
+  const dia = new Date().getDay();
   const freqs = FREQ_DIA[dia] || [];
   if(!freqs.length) return;
 
@@ -1145,7 +1145,7 @@ function updateNotificaciones() {
   // 1. Semáforo VERDE
   // Para técnico: P1/P2 de la frecuencia de hoy (es un botón filtro)
   // Para supervisor/trade: total P1/P2 activas
-  const dia = 1; // TEMP TEST — revertir a new Date().getDay()
+  const dia = new Date().getDay();
   const freqsHoy = FREQ_DIA[dia] || [];
   let countVerde;
   if(currentRole === 'tecnico' && freqsHoy.length) {
@@ -1205,9 +1205,7 @@ function updateNotificaciones() {
     const label = document.getElementById('notifBtnLabel');
     const diaLabel = DIA_LABEL[dia];
     if(label && freqsHoy.length) {
-      label.textContent = countVerde
-        ? `${countVerde} urgente${countVerde>1?'s':''} · ${diaLabel}`
-        : `Sin urgentes · ${diaLabel}`;
+      label.textContent = `${countVerde} OT${countVerde!==1?'s':''} · Frecuencia ${diaLabel}`;
     } else if(label) {
       label.textContent = dia === 0 ? 'Sin visitas hoy (Domingo)' : 'OTs activas (P1 y P2)';
     }
