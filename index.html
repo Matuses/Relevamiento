@@ -1124,6 +1124,17 @@ function populateFilter() {
     sortBtn.innerHTML = '🔽 Más recientes';
     listContainer.parentNode.insertBefore(sortBtn, listContainer);
   }
+  // 🔥 MODO CELULAR PARA EL TÉCNICO: Ocultamos filtros extra, dejamos solo buscador
+  if (currentRole === 'tecnico' && window.innerWidth <= 900) {
+    const fields = document.querySelectorAll('.filters-bar .filter-field');
+    // El índice 0 es el buscador, a partir del 1 los ocultamos
+    fields.forEach((f, i) => { if (i > 0) f.style.display = 'none'; });
+    
+    // Volamos las barritas grises separadoras y el botón de Limpiar
+    document.querySelectorAll('.filter-sep').forEach(s => s.style.display = 'none');
+    const btnClear = document.querySelector('.btn-clear');
+    if (btnClear) btnClear.style.display = 'none';
+  }
 }
 
 function applyFilters() {
