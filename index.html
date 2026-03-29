@@ -1052,7 +1052,7 @@ function updateTecnicoBanner() {
 
 function filtrarDiaHoy() {
   if(currentRole !== 'tecnico') return;
-  const dia = new Date().getDay();
+  const dia = 1; // TEMP TEST — cambiar a new Date().getDay() para producción
   const freqs = FREQ_DIA[dia] || [];
   if(!freqs.length) return;
 
@@ -1187,7 +1187,7 @@ function updateNotificaciones() {
 
   // Actualizar label del botón inteligente (solo técnico)
   if(currentRole === 'tecnico') {
-    const dia = new Date().getDay();
+    const dia = 1; // TEMP TEST — cambiar a new Date().getDay() para producción
     const freqs = FREQ_DIA[dia] || [];
     const label = document.getElementById('notifBtnLabel');
     const diaLabel = DIA_LABEL[dia];
