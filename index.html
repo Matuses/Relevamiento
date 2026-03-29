@@ -1036,6 +1036,7 @@ function updateNotificaciones() {
   if (!panel) return;
   panel.style.display = 'flex';
 
+  // 1. Semáforo VERDE (P1 y P2 activas para todos)
   const p1p2 = filtered.filter(r => {
     const eKey = getEstadoKey(r.ot, r.cliente);
     if (eKey === 'resuelto' || eKey === 'retiro' || eKey === 'cliente-cerrado') return false;
@@ -1045,14 +1046,30 @@ function updateNotificaciones() {
   const boxAlta = document.getElementById('notifPrioridadAlta');
   if (boxAlta) boxAlta.textContent = p1p2;
 
-  const sinPri = filtered.filter(r => {
-    const eKey = getEstadoKey(r.ot, r.cliente);
-    if (eKey === 'resuelto' || eKey === 'retiro' || eKey === 'cliente-cerrado') return false;
-    return !getPrioridadAprobada(r.ot, r.cliente) && !getPrioridadSugerida(r.ot, r.cliente);
-  }).length;
+  // 2. Semáforo AMARILLO (Dinámico según el Rol)
+  let countAmarillo = 0;
+  const labelAmarillo = document.querySelector('.notif-yellow .notif-label');
   const boxSin = document.getElementById('notifSinPrioridad');
-  if (boxSin) boxSin.textContent = sinPri;
+  
+  if (currentRole === 'tecnico' || currentRole === 'trade') {
+    // Vista Técnico / Trade: Todo lo que no esté cerrado
+    if (labelAmarillo) labelAmarillo.textContent = 'Pendientes (Totales)';
+    countAmarillo = filtered.filter(r => {
+      const eKey = getEstadoKey(r.ot, r.cliente);
+      return eKey !== 'resuelto' && eKey !== 'retiro' && eKey !== 'cliente-cerrado';
+    }).length;
+  } else {
+    // Vista Supervisor: OTs que le falta asignar prioridad
+    if (labelAmarillo) labelAmarillo.textContent = 'Sin prioridad asignada';
+    countAmarillo = filtered.filter(r => {
+      const eKey = getEstadoKey(r.ot, r.cliente);
+      if (eKey === 'resuelto' || eKey === 'retiro' || eKey === 'cliente-cerrado') return false;
+      return !getPrioridadAprobada(r.ot, r.cliente) && !getPrioridadSugerida(r.ot, r.cliente);
+    }).length;
+  }
+  if (boxSin) boxSin.textContent = countAmarillo;
 
+  // 3. Semáforo ROJO (+21 días sin resolver para todos)
   const vencidos = filtered.filter(r => {
     const eKey = getEstadoKey(r.ot, r.cliente);
     if (eKey === 'resuelto' || eKey === 'retiro' || eKey === 'cliente-cerrado') return false;
@@ -1169,9 +1186,11 @@ function applyFilters() {
   updateMultiFilterLabel('mfEstado', estadosSeleccionados.length ? estadosSeleccionados.length + ' sel.' : 'Activos');
   updateMultiFilterLabel('mfPrioridad','Todas');
   updateMultiFilterLabel('mfFrecuencia','Todas');
-  
-  if (currentRole==='supervisor' || currentRole==='trade') updateNotificaciones();
-  if (currentRole==='tecnico') updateTecnicoBanner();
+
+  // Disparamos el semáforo para todos y ocultamos la agenda vieja del técnico
+  updateNotificaciones();
+  const bannerViejo = document.getElementById('tecnicoBanner');
+  if (bannerViejo) bannerViejo.style.display = 'none';
   
   updateMap(filtered);
   renderList(filtered);
