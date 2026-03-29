@@ -196,6 +196,8 @@ body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var
 .tecnico-task-label{font-size:11px;opacity:0.85;margin-top:2px;}
 .tecnico-task-detalle{font-size:10px;opacity:0.65;margin-top:4px;line-height:1.4;}
 
+.loc-separator{padding:6px 16px 4px;font-size:10px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);background:#F8FAFC;border-bottom:1px solid var(--border);border-top:1px solid var(--border);margin-top:4px;}
+.notif-item.activo-hoy{box-shadow:0 0 0 3px #16A34A !important;}
 @media(max-width:900px){
   .main{grid-template-columns:1fr;padding:12px;gap:12px}
   .table-scroll{max-height:350px}
@@ -440,11 +442,15 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
     </div>
 
     <div class="notif-panel" id="notifPanel">
-      <div class="notif-item notif-green">
+      <div class="notif-item notif-green" id="notifBtnHoy" 
+           onclick="filtrarDiaHoy()" 
+           style="cursor:pointer;transition:transform 0.1s,box-shadow 0.1s;"
+           onmouseover="this.style.transform='scale(1.02)';this.style.boxShadow='0 4px 16px rgba(22,163,74,0.25)'"
+           onmouseout="this.style.transform='';this.style.boxShadow=''">
         <span class="notif-icon">🚨</span>
         <div class="notif-text">
           <span class="notif-count" id="notifPrioridadAlta">0</span>
-          <span class="notif-label">OTs activas (P1 y P2)</span>
+          <span class="notif-label" id="notifBtnLabel">OTs activas (P1 y P2)</span>
         </div>
       </div>
       <div class="notif-item notif-yellow">
@@ -646,6 +652,19 @@ function fixCoord(val) {
   if (Math.abs(n) > 1000) n = n / 1000000;
   return n.toString();
 }
+
+// Mapa día de semana → frecuencias
+const FREQ_DIA = {
+  0: [],              // Domingo
+  1: ['LU','LUJU'],   // Lunes
+  2: ['MA','MAVI'],   // Martes
+  3: ['MI','MISA'],   // Miércoles
+  4: ['JU','LUJU'],   // Jueves
+  5: ['MAVI','VI'],   // Viernes
+  6: ['SA','MISA']    // Sábado
+};
+const DIA_LABEL = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+let filtroHoyActivo = false;
 
 async function doLogin() {
   const u=document.getElementById('loginUser').value.trim().toUpperCase();
@@ -1031,6 +1050,93 @@ function updateTecnicoBanner() {
   `;
 }
 
+function filtrarDiaHoy() {
+  if(currentRole !== 'tecnico') return;
+  const dia = new Date().getDay();
+  const freqs = FREQ_DIA[dia] || [];
+  if(!freqs.length) return;
+
+  filtroHoyActivo = !filtroHoyActivo;
+  const btn = document.getElementById('notifBtnHoy');
+
+  if(filtroHoyActivo) {
+    // Activar: marcar checkboxes de frecuencia + prioridad P1 y P2
+    // Limpiar primero
+    ['mfFrecuencia','mfPrioridad'].forEach(id => {
+      const dd = document.getElementById(id+'Dropdown');
+      if(dd) dd.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked=false);
+    });
+    // Marcar frecuencias del día
+    const ddFrec = document.getElementById('mfFrecuenciaDropdown');
+    if(ddFrec) ddFrec.querySelectorAll('input[type=checkbox]').forEach(cb => {
+      if(freqs.includes(cb.value.toUpperCase())) cb.checked = true;
+    });
+    // Marcar P1 y P2
+    const ddPri = document.getElementById('mfPrioridadDropdown');
+    if(ddPri) ddPri.querySelectorAll('input[type=checkbox]').forEach(cb => {
+      if(cb.value === '1' || cb.value === '2') cb.checked = true;
+    });
+    if(btn) btn.classList.add('activo-hoy');
+    applyFilters(true); // true = activar orden inteligente
+  } else {
+    // Desactivar
+    ['mfFrecuencia','mfPrioridad'].forEach(id => {
+      const dd = document.getElementById(id+'Dropdown');
+      if(dd) dd.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked=false);
+    });
+    if(btn) btn.classList.remove('activo-hoy');
+    applyFilters(false);
+  }
+}
+
+// Nearest neighbor dentro de cada localidad
+function ordenarPorLocalidadYCercania(data) {
+  // Agrupar por localidad
+  const grupos = {};
+  data.forEach(r => {
+    const loc = r.localidad || 'Sin localidad';
+    if(!grupos[loc]) grupos[loc] = [];
+    grupos[loc].push(r);
+  });
+
+  // Ordenar localidades alfabéticamente
+  const locs = Object.keys(grupos).sort();
+
+  const resultado = [];
+  locs.forEach(loc => {
+    const pts = grupos[loc];
+    if(pts.length <= 1) {
+      resultado.push({separador: loc});
+      resultado.push(...pts);
+      return;
+    }
+    // Nearest neighbor
+    const visitados = new Set();
+    let actual = pts[0];
+    const ordenados = [actual];
+    visitados.add(0);
+    while(ordenados.length < pts.length) {
+      let minDist = Infinity, minIdx = -1;
+      const aLat = parseFloat(fixCoord(actual.lat)||0);
+      const aLng = parseFloat(fixCoord(actual.lng)||0);
+      pts.forEach((p,i) => {
+        if(visitados.has(i)) return;
+        const pLat = parseFloat(fixCoord(p.lat)||0);
+        const pLng = parseFloat(fixCoord(p.lng)||0);
+        const d = Math.pow(aLat-pLat,2) + Math.pow(aLng-pLng,2);
+        if(d < minDist) { minDist=d; minIdx=i; }
+      });
+      if(minIdx === -1) break;
+      actual = pts[minIdx];
+      ordenados.push(actual);
+      visitados.add(minIdx);
+    }
+    resultado.push({separador: loc});
+    resultado.push(...ordenados);
+  });
+  return resultado;
+}
+
 function updateNotificaciones() {
   const panel = document.getElementById('notifPanel');
   if (!panel) return;
@@ -1078,6 +1184,26 @@ function updateNotificaciones() {
   }).length;
   const boxVenc = document.getElementById('notifVencidos');
   if (boxVenc) boxVenc.textContent = vencidos;
+
+  // Actualizar label del botón inteligente (solo técnico)
+  if(currentRole === 'tecnico') {
+    const dia = new Date().getDay();
+    const freqs = FREQ_DIA[dia] || [];
+    const label = document.getElementById('notifBtnLabel');
+    const diaLabel = DIA_LABEL[dia];
+    if(label && freqs.length) {
+      const urgentesHoy = filtered.filter(r => {
+        const pri = getPrioridadAprobada(r.ot,r.cliente)||getPrioridadSugerida(r.ot,r.cliente);
+        const frec = (r.frecuencia||'').toUpperCase().trim();
+        return (pri==='1'||pri==='2') && freqs.includes(frec);
+      }).length;
+      label.textContent = urgentesHoy
+        ? `${urgentesHoy} urgente${urgentesHoy>1?'s':''} · ${diaLabel}`
+        : `Sin urgentes · ${diaLabel}`;
+    } else if(label) {
+      label.textContent = 'OTs activas (P1 y P2)';
+    }
+  }
 }
 
 function toggleSortRegistros() {
@@ -1137,7 +1263,7 @@ function populateFilter() {
   }
 }
 
-function applyFilters() {
+function applyFilters(ordenInteligente) {
   const busqueda=(document.getElementById('filterBusqueda')?document.getElementById('filterBusqueda').value:'').toLowerCase().trim();
   const promotoresSeleccionados=getMultiFilterValues('mfPromotor');
   const desde=document.getElementById('filterDesde').value;
@@ -1202,12 +1328,19 @@ function applyFilters() {
   updateNotificaciones();
   const bannerViejo = document.getElementById('tecnicoBanner');
   if (bannerViejo) bannerViejo.style.display = 'none';
-  
+
   updateMap(filtered);
-  renderList(filtered);
+  if(ordenInteligente && currentRole==='tecnico') {
+    renderListInteligente(filtered);
+  } else {
+    renderList(filtered);
+  }
 }
 
 function clearFilters(){
+  filtroHoyActivo = false;
+  const btn = document.getElementById('notifBtnHoy');
+  if(btn) btn.classList.remove('activo-hoy');
   ['filterDesde','filterHasta','filterBusqueda'].forEach(id=>{ const el=document.getElementById(id); if (el)el.value='';});
   ['mfPromotor','mfLocalidad','mfEstado','mfPrioridad','mfFrecuencia'].forEach(id=>{
     const dd=document.getElementById(id+'Dropdown');
@@ -1258,6 +1391,47 @@ function renderList(data) {
     <div class="${hasGeo?'reg-gps':'reg-nogps'}">${hasGeo?'📍 GPS':'Sin GPS'}</div>
     </div>
     </div>`;
+  }).join('');
+}
+
+function renderListInteligente(data) {
+  const el = document.getElementById('registrosList');
+  if(!data.length){ el.innerHTML='<div class="empty-state"><div class="ico">📭</div><p>No hay registros activos.</p></div>'; return; }
+
+  const ordenados = ordenarPorLocalidadYCercania(data);
+
+  el.innerHTML = ordenados.map(item => {
+    // Separador de localidad
+    if(item.separador !== undefined) {
+      return `<div class="loc-separator">📍 ${item.separador}</div>`;
+    }
+    const r = item;
+    const avatarColor = r.frecuencia ? getFrecColor(r.frecuencia) : ageColor(r.ts);
+    const initials = r.frecuencia||(r.cliente||'?').replace(/[^A-Z0-9]/gi,'').slice(0,3).toUpperCase();
+    const hasGeo = r.lat&&r.lng&&parseFloat(r.lat)!==0;
+    const eKey = getEstadoKey(r.ot,r.cliente);
+    const em = ESTADO_META[eKey]||ESTADO_META[''];
+    const priA = getPrioridadAprobada(r.ot,r.cliente);
+    const priS = getPrioridadSugerida(r.ot,r.cliente);
+    const priShow = priA||priS;
+    const isAlta = priA&&(priA==='1'||priA==='2');
+    const priBadge = priShow?`<span style="margin-left:4px;font-size:10px;font-weight:800;padding:2px 7px;border-radius:100px;background:${priA?'#0F2A4A':'#E2E8F0'};color:${priA?'white':'#64748B'}">${isAlta?'⚠️ ':''} P${priShow}${!priA?' (sugerida)':''}</span>`:'';
+    window._otData = window._otData || {};
+    const _idx = r.ot;
+    window._otData[_idx] = r;
+    return `<div class="reg-item" onclick='openModal(window._otData["${_idx}"])'>
+<div class="reg-avatar" style="background:${avatarColor};font-size:${initials.length>2?'10px':'12px'}">${initials}</div>
+<div class="reg-info">
+<div class="reg-nombre">OT ${r.ot||'—'} ${isAlta?'<span style="color:#DC2626">❗</span>':''}</div>
+<div class="reg-sub">${r.cliente||'Sin cliente'} · 👤 ${r.nombre}</div>
+<span class="estado-pill ${em.cls}">${em.icon} ${em.label}</span>${priBadge}
+</div>
+<div class="reg-meta">
+<div class="reg-fecha">${r.fecha}</div>
+<div class="reg-hora">${r.hora}</div>
+<div class="${hasGeo?'reg-gps':'reg-nogps'}">${hasGeo?'📍 GPS':'Sin GPS'}</div>
+</div>
+</div>`;
   }).join('');
 }
 
