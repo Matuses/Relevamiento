@@ -73,7 +73,7 @@ function doLoginHub() {
   window[cb] = (data) => {
     delete window[cb]; document.body.removeChild(script);
     if (data.ok) {
-      const session = { usuario: u, password: p, rol: data.rol, nombre: data.label };
+      const session = { usuario: u, password: p, rol: data.rol, nombre: data.label, promotores: data.promotores };
       localStorage.setItem('user_session', JSON.stringify(session));
       mostrarMenu(session);
     } else {
