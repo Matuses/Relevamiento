@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TRADE MARKETING · Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F5F7FA;--navy:#0F2A4A;--blue:#1B5FA8;--accent:#0EA5E9;--text:#0F2A4A;--muted:#64748B;--white:#FFFFFF}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var(--text);display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}
+.container{width:100%;max-width:400px;text-align:center}
+h1{font-size:26px;font-weight:800;color:var(--navy);margin-bottom:30px;letter-spacing:-0.03em}
+.login-box{background:white;padding:30px;border-radius:24px;box-shadow:0 10px 25px rgba(0,0,0,0.05);margin-bottom:20px}
+input{width:100%;padding:14px;margin-bottom:12px;border:1.5px solid #E2E8F0;border-radius:12px;font-family:inherit;font-size:15px;text-align:center;outline:none}
+input:focus{border-color:var(--accent)}
+.btn-login{width:100%;background:var(--navy);color:white;border:none;padding:15px;border-radius:12px;font-weight:700;cursor:pointer}
+#menuPrincipal{display:none;animation:fadeIn 0.4s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.link-btn{display:block;background:white;color:var(--navy);text-decoration:none;padding:18px;border-radius:16px;margin-bottom:12px;font-weight:700;box-shadow:0 4px 12px rgba(0,0,0,0.05);border:1.5px solid transparent;transition:0.2s}
+.link-btn:hover{border-color:var(--accent);transform:scale(1.02)}
+.user-tag{font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;margin-bottom:4px;display:block}
+.user-name{font-size:18px;font-weight:800;margin-bottom:25px;display:block}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>TRADE MARKETING</h1>
+
+  <div id="sectionLogin" class="login-box">
+    <input type="text" id="user" placeholder="USUARIO">
+    <input type="password" id="pass" placeholder="CONTRASEÑA">
+    <button class="btn-login" onclick="doLoginHub()">INGRESAR</button>
+    <p id="err" style="color:red; font-size:12px; margin-top:10px; display:none">Credenciales inválidas</p>
+  </div>
+
+  <div id="menuPrincipal">
+    <span class="user-tag" id="lblRol"></span>
+    <span class="user-name" id="lblNom"></span>
+    
+    <a href="edf-repago.html" class="link-btn">📊 REPAGO (EDF)</a>
+    <a href="index.html" class="link-btn">🛠️ REPARACIONES</a>
+    <a href="#" class="link-btn" style="opacity:0.5;pointer-events:none">📝 SOLICITUD EDF (Próximamente)</a>
+    
+    <button onclick="logout()" style="background:none; border:none; color:var(--muted); font-size:12px; cursor:pointer; margin-top:20px; text-decoration:underline">Cerrar Sesión</button>
+  </div>
+</div>
+
+<script>
+const SCRIPT_URL = 'TU_URL_DE_APPS_SCRIPT_AQUI'; // 👈 PEGA TU URL DE GAS
+
+function doLoginHub() {
+  const u = document.getElementById('user').value.trim().toUpperCase();
+  const p = document.getElementById('pass').value.trim();
+  const btn = document.querySelector('.btn-login');
+  btn.textContent = 'Verificando...'; btn.disabled = true;
+
+  const cb = 'cb_' + Date.now();
+  const script = document.createElement('script');
+  script.src = `${SCRIPT_URL}?action=login&usuario=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}&callback=${cb}`;
+  
+  window[cb] = (data) => {
+    delete window[cb]; document.body.removeChild(script);
+    if (data.ok) {
+      const session = { usuario: u, password: p, rol: data.rol, nombre: data.label };
+      localStorage.setItem('user_session', JSON.stringify(session));
+      renderMenu(session);
+    } else {
+      document.getElementById('err').style.display='block';
+      btn.textContent='INGRESAR'; btn.disabled=false;
+    }
+  };
+  document.body.appendChild(script);
+}
+
+function renderMenu(s) {
+  document.getElementById('sectionLogin').style.display='none';
+  document.getElementById('menuPrincipal').style.display='block';
+  document.getElementById('lblNom').textContent = s.nombre;
+  document.getElementById('lblRol').textContent = s.rol;
+}
+
+function logout() { localStorage.removeItem('user_session'); location.reload(); }
+
+window.onload = () => {
+  const s = localStorage.getItem('user_session');
+  if (s) renderMenu(JSON.parse(s));
+}
+</script>
+</body>
+</html>
