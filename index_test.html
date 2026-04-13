@@ -610,6 +610,38 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
 </div>
 
 <script>
+  // 🔥 PUENTE DE SESIÓN CENTRAL
+(function() {
+    const session = JSON.parse(localStorage.getItem('user_session'));
+    if (!session) {
+        window.location.href = 'portal.html'; // Si no hay sesión, afuera.
+        return;
+    }
+    // Si hay sesión, inyectamos las credenciales automáticamente
+    currentUser = session.usuario;
+    currentPass = session.password;
+    currentRole = session.rol;
+})();
+
+// Modificá tu función window.onload original para que salte el login:
+window.addEventListener('load', () => {
+    const session = JSON.parse(localStorage.getItem('user_session'));
+    if (session) {
+        // Forzamos el salto de la pantalla de login
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        
+        // Sincronizamos los badges de rol que ya tenías
+        const badge = document.getElementById('roleBadge');
+        if (badge) {
+            badge.textContent = session.rol.toUpperCase();
+            badge.className = 'role-badge ' + session.rol;
+        }
+        
+        initMap();
+        loadData();
+    }
+});
 const SCRIPT_URL='https://script.google.com/macros/s/AKfycbwreokQunVau5zi-QN-NzPz14IOfk11p4As3PYRqvSh1zqgbPosHJ9nX2RAfotacKxN/exec';
 const ESTADO_META={
 'resuelto': { label:'Resuelto',cls:'resuelto',icon:'✅' },
