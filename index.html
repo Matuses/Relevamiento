@@ -610,6 +610,57 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
 </div>
 
 <script>
+  /* =========================================================================
+   🔥 PUENTE CON EL PORTAL (Anula el login viejo y entra directo) 🔥
+========================================================================= */
+let currentUser = null, currentRole = null, currentPass = null;
+
+(function() {
+    // 1. Revisa si venimos del Portal
+    const session = JSON.parse(localStorage.getItem('user_session'));
+    if (!session) {
+        window.location.href = 'portal.html';
+        return;
+    }
+    // 2. Carga las credenciales invisibles
+    currentUser = session.usuario;
+    currentPass = session.password;
+    currentRole = session.rol;
+})();
+
+window.addEventListener('load', () => {
+    const session = JSON.parse(localStorage.getItem('user_session'));
+    if (session) {
+        // 3. Apaga la pantalla azul de login
+        const loginScreen = document.getElementById('loginScreen');
+        if(loginScreen) loginScreen.style.display = 'none';
+        
+        // 4. Prende el Dashboard
+        const dashboard = document.getElementById('dashboard');
+        if(dashboard) dashboard.style.display = 'block';
+        
+        // 5. Ajusta los nombres
+        const badge = document.getElementById('roleBadge');
+        if (badge) {
+            const labels = {supervisor:'SUPERVISOR', tecnico:'TÉCNICO', trade:'TRADE MARKETING'};
+            badge.textContent = labels[currentRole] || currentRole.toUpperCase();
+            badge.className = 'role-badge ' + currentRole;
+        }
+        const userLabel = document.getElementById('topbarUser');
+        if (userLabel) userLabel.innerHTML = `Hola, <strong>${session.nombre}</strong>`;
+
+        // 6. Arranca tu código original del mapa
+        if (typeof initMap === 'function') initMap();
+        if (typeof loadData === 'function') loadData();
+    }
+});
+
+// 7. Fuerza el nuevo sistema de Cerrar Sesión
+window.doLogout = function() {
+    localStorage.removeItem('user_session');
+    window.location.href = 'portal.html';
+};
+/* ========================================================================= */
 const SCRIPT_URL='https://script.google.com/macros/s/AKfycbwreokQunVau5zi-QN-NzPz14IOfk11p4As3PYRqvSh1zqgbPosHJ9nX2RAfotacKxN/exec';
 const ESTADO_META={
 'resuelto': { label:'Resuelto',cls:'resuelto',icon:'✅' },
@@ -621,8 +672,7 @@ const ESTADO_META={
 let allData=[],seguimientos={},chatData={},historialData=[],filtered=[],leafMap=null,markers=[],modalLeaf=null;
 let diasCargados=30;
 let ordenDescendente = true;
-let currentUser=null,currentRole=null,currentPass=null,promotoresPropios=[];
-
+  
 document.getElementById('loginUser').addEventListener('keydown',e=>{ if (e.key==='Enter') document.getElementById('loginPass').focus();});
 document.getElementById('loginPass').addEventListener('keydown',e=>{ if (e.key==='Enter') doLogin();});
 
