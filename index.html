@@ -610,10 +610,10 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
 </div>
 
 <script>
-  /* =========================================================================
+ /* =========================================================================
    🔥 PUENTE CON EL PORTAL (Anula el login viejo y entra directo) 🔥
 ========================================================================= */
-let currentUser = null, currentRole = null, currentPass = null;
+let currentUser = null, currentRole = null, currentPass = null, promotoresPropios = [];
 
 (function() {
     // 1. Revisa si venimos del Portal
@@ -622,10 +622,15 @@ let currentUser = null, currentRole = null, currentPass = null;
         window.location.href = 'portal.html';
         return;
     }
-    // 2. Carga las credenciales invisibles
+    // 2. Carga las credenciales invisibles y la lista de promotores
     currentUser = session.usuario;
     currentPass = session.password;
     currentRole = session.rol;
+    
+    // Si hay promotores en la sesión, los convertimos en una lista (Array)
+    if (session.promotores) {
+        promotoresPropios = session.promotores.split(',').map(p => p.trim().toUpperCase());
+    }
 })();
 
 window.addEventListener('load', () => {
