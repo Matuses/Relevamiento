@@ -339,12 +339,16 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
 
   <div class="main">
     <div class="filters-bar">
-      <div class="filter-field">
-        <label>Buscar</label>
-        <input type="text" id="filterBusqueda"
-          style="padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:'Bricolage Grotesque',sans-serif;outline:none;min-width:200px;height:34px;"
-          placeholder="🔍 OT, cliente, promotor..."
-          oninput="applyFilters()">
+      <div class="filter-field" style="display:flex;align-items:flex-end;gap:6px;">
+        <div>
+          <label>Buscar</label>
+          <input type="text" id="filterBusqueda"
+            style="padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:'Bricolage Grotesque',sans-serif;outline:none;min-width:200px;height:34px;"
+            placeholder="🔍 OT, cliente, promotor..."
+            oninput="applyFilters()"
+            onkeydown="if(event.key==='Enter')applyFilters()">
+        </div>
+        <button onclick="applyFilters()" style="height:34px;padding:0 14px;background:var(--navy);color:white;border:none;border-radius:8px;font-family:'Bricolage Grotesque',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">Buscar</button>
       </div>
       <div class="filter-sep"></div>
       <div class="filter-field">
@@ -435,7 +439,6 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
       </div>
       <div class="filter-sep"></div>
       <button class="btn-clear" onclick="clearFilters()">✕ Limpiar</button>
-      <button class="btn-refresh" onclick="loadData()">↻ Actualizar</button>
     </div>
 
     <div class="notif-panel" id="notifPanel">
@@ -1311,10 +1314,8 @@ function populateFilter() {
   // 🔥 MODO CELULAR PARA EL TÉCNICO: Ocultamos filtros extra, dejamos solo buscador
   if (currentRole === 'tecnico' && window.innerWidth <= 900) {
     const fields = document.querySelectorAll('.filters-bar .filter-field');
-    // El índice 0 es el buscador, a partir del 1 los ocultamos
+    // El índice 0 tiene buscador + botón, a partir del 1 los ocultamos
     fields.forEach((f, i) => { if (i > 0) f.style.display = 'none'; });
-    
-    // Volamos las barritas grises separadoras y el botón de Limpiar
     document.querySelectorAll('.filter-sep').forEach(s => s.style.display = 'none');
     const btnClear = document.querySelector('.btn-clear');
     if (btnClear) btnClear.style.display = 'none';
