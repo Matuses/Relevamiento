@@ -1031,11 +1031,11 @@ async function loadData() {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ 
-        action: 'datos', 
-        usuario: currentUser, 
-        password: currentPass, 
-        dias: diasCargados,
-        token: 'CLAVE_SECRETA_QUILMES_2026'
+      action: 'datos', 
+      usuario: currentUser,
+      userHash: currentUserHash, // Enviamos el hash al servidor
+      dias: diasCargados,
+      token: 'CLAVE_SECRETA_QUILMES_2026'
       })
     });
     
