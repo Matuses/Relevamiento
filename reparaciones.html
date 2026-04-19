@@ -613,18 +613,13 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
  /* =========================================================================
    Puente con el Portal (anula el login viejo y entra directo)
 ========================================================================= */
-let currentUser = null, currentRole = null, currentPass = null, promotoresPropios = [];
+let currentUser = null, currentRole = null, currentUserHash = null, promotoresPropios = [];
 
 (function() {
-    // 1. Revisa si venimos del Portal
     const session = JSON.parse(localStorage.getItem('user_session'));
-    if (!session) {
-        window.location.href = 'index.html';
-        return;
-    }
-    // 2. Carga las credenciales invisibles y la lista de promotores
+    if (!session) { window.location.href = 'index.html'; return; }
     currentUser = session.usuario;
-    currentPass = session.password;
+    currentUserHash = session.userHash; // Leemos el hash
     currentRole = session.rol;
     
     // Si hay promotores en la sesión, los convertimos en una lista (Array)
