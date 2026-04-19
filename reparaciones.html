@@ -657,8 +657,11 @@ window.addEventListener('load', () => {
 
 // 7. Fuerza el nuevo sistema de Cerrar Sesión
 window.doLogout = function() {
+    // 1. Borramos la credencial invisible del navegador
     localStorage.removeItem('user_session');
-    window.location.href = 'index.html';
+    
+    // 2. Lo pateamos a la URL exacta de tu repositorio de Login
+    window.location.href = 'https://matuses.github.io/emcala-login/index.html';
 };
 /* ========================================================================= */
 const SCRIPT_URL='https://script.google.com/macros/s/AKfycbwreokQunVau5zi-QN-NzPz14IOfk11p4As3PYRqvSh1zqgbPosHJ9nX2RAfotacKxN/exec';
