@@ -728,41 +728,59 @@ const DIA_LABEL = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','S
 let filtroHoyActivo = false;
 
 async function doLogin() {
-  const u=document.getElementById('loginUser').value.trim().toUpperCase();
-  const p=document.getElementById('loginPass').value;
-  const btn=document.querySelector('.btn-primary');
-  btn.textContent='Verificando...';btn.disabled=true;
+  const u = document.getElementById('loginUser').value.trim().toUpperCase();
+  const p = document.getElementById('loginPass').value;
+  const btn = document.querySelector('.btn-primary');
+  
+  btn.textContent = 'Verificando...'; 
+  btn.disabled = true;
+  
   try {
-    const data= await jsonp(`${SCRIPT_URL}?action=login&usuario=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`);
+    const response = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'login', usuario: u, password: p })
+    });
+    
+    const data = await response.json();
+    
     if (data.ok) {
-      currentUser=u;currentRole=data.rol;
-      currentPass=p;
-      promotoresPropios=data.promotores ? data.promotores.split(',').map(p=>p.trim().toUpperCase()).filter(Boolean) : [];
-      document.getElementById('loginScreen').style.display='none';
-      document.getElementById('dashboard').style.display='block';
-      document.getElementById('loginError').style.display='none';
-      const _rolLabels={supervisor:'SUPERVISOR',tecnico:'TÉCNICO',trade:'TRADE MARKETING'};
-      const _titleLabels={supervisor:'PANEL DE GESTIÓN · SUPERVISOR',tecnico:'PANEL DE GESTIÓN · TÉCNICO',trade:'PANEL DE GESTIÓN · TRADE MARKETING'};
-      document.getElementById('roleBadge').textContent=_rolLabels[data.rol]||data.rol.toUpperCase();
-      document.getElementById('roleBadge').className='role-badge '+data.rol;
-      if (data.rol==='supervisor') {
-        document.getElementById('userNameBadge').textContent=u;
-        document.getElementById('userNameBadge').style.display='';
+      currentUser = u; 
+      currentRole = data.rol;
+      currentPass = p; // Ojo: idealmente después deberíamos manejar un Token, no guardar la clave
+      promotoresPropios = data.promotores ? data.promotores.split(',').map(p=>p.trim().toUpperCase()).filter(Boolean) : [];
+      
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      document.getElementById('loginError').style.display = 'none';
+      
+      const _rolLabels = {supervisor:'SUPERVISOR', tecnico:'TÉCNICO', trade:'TRADE MARKETING'};
+      const _titleLabels = {supervisor:'PANEL DE GESTIÓN · SUPERVISOR', tecnico:'PANEL DE GESTIÓN · TÉCNICO', trade:'PANEL DE GESTIÓN · TRADE MARKETING'};
+      
+      document.getElementById('roleBadge').textContent = _rolLabels[data.rol] || data.rol.toUpperCase();
+      document.getElementById('roleBadge').className = 'role-badge ' + data.rol;
+      
+      if (data.rol === 'supervisor') {
+        document.getElementById('userNameBadge').textContent = u;
+        document.getElementById('userNameBadge').style.display = '';
       }
-      document.getElementById('topbarTitle').textContent=_titleLabels[data.rol]||'PANEL DE GESTIÓN';
+      document.getElementById('topbarTitle').textContent = _titleLabels[data.rol] || 'PANEL DE GESTIÓN';
+      
       initMap();
       loadData();
     } else {
-      document.getElementById('loginError').textContent='Usuario o contraseña incorrectos.';
-      document.getElementById('loginError').style.display='block';
-      document.getElementById('loginPass').value='';
+      document.getElementById('loginError').textContent = 'Usuario o contraseña incorrectos.';
+      document.getElementById('loginError').style.display = 'block';
+      document.getElementById('loginPass').value = '';
       document.getElementById('loginPass').focus();
     }
   } catch(e) {
-    document.getElementById('loginError').textContent='Error de conexión. Intentá de nuevo.';
-    document.getElementById('loginError').style.display='block';
+    console.error(e);
+    document.getElementById('loginError').textContent = 'Error de conexión. Intentá de nuevo.';
+    document.getElementById('loginError').style.display = 'block';
   }
-  btn.textContent='Ingresar →';btn.disabled=false;
+  btn.textContent = 'Ingresar →'; 
+  btn.disabled = false;
 }
 
 let solicitudesRetiro=[];
@@ -1014,7 +1032,18 @@ function updateMap(data) {
 async function loadData() {
   document.getElementById('registrosList').innerHTML='<div class="loading-state"><div class="spin"></div><p>Cargando registros...</p></div>';
   try {
-    const data= await jsonp(`${SCRIPT_URL}?action=datos&usuario=${encodeURIComponent(currentUser)}&password=${encodeURIComponent(currentPass)}&dias=${diasCargados}&t=${Date.now()}`);
+    const response = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ 
+        action: 'datos', 
+        usuario: currentUser, 
+        password: currentPass, 
+        dias: diasCargados,
+        token: 'CLAVE_SECRETA_QUILMES_2026' // Tu token de seguridad
+      })
+    });
+    const data = await response.json();
     if (!data.ok) {
       document.getElementById('registrosList').innerHTML=`<div class="empty-state"><div class="ico">🚨</div><p style="color:#DC2626;font-weight:bold;">Error de autorización.</p></div>`;
       return;
