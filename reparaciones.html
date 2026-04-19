@@ -1040,28 +1040,34 @@ async function loadData() {
         usuario: currentUser, 
         password: currentPass, 
         dias: diasCargados,
-        token: 'CLAVE_SECRETA_QUILMES_2026' // Tu token de seguridad
+        token: 'CLAVE_SECRETA_QUILMES_2026'
       })
     });
+    
     const data = await response.json();
+    
     if (!data.ok) {
       document.getElementById('registrosList').innerHTML=`<div class="empty-state"><div class="ico">🚨</div><p style="color:#DC2626;font-weight:bold;">Error de autorización.</p></div>`;
       return;
     }
-    allData=parseRegistros(data.registros);
-    seguimientos=parseSeguimientos(data.seguimientos);
-    chatData=parseChat(data.chat||[]);
-    historialData=parseHistorial(data.historial||[]);
+    
+    allData = parseRegistros(data.registros);
+    seguimientos = parseSeguimientos(data.seguimientos);
+    chatData = parseChat(data.chat || []);
+    historialData = parseHistorial(data.historial || []);
+    
     populateFilter();
     applyFilters();
-    if (document.getElementById('tabHistorial')&&document.getElementById('tabHistorial').classList.contains('active')) {
+    
+    if (document.getElementById('tabHistorial') && document.getElementById('tabHistorial').classList.contains('active')) {
       renderHistorial();
     }
   } catch(e) {
+    console.error(e);
     document.getElementById('registrosList').innerHTML=`<div class="empty-state"><div class="ico">⚠️</div><p>Error al cargar los datos.</p></div>`;
   }
 }
-
+  
 function parseRegistros(rows) {
   if (!rows||rows.length<2) return [];
   const h=rows[0].map(s=>(s||'').toString().trim().toLowerCase());
