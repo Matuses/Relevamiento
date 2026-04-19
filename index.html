@@ -65,24 +65,50 @@ function doLoginHub() {
   const u = document.getElementById('user').value.trim().toUpperCase();
   const p = document.getElementById('pass').value.trim();
   const btn = document.querySelector('.btn-login');
-  btn.textContent = 'Verificando...'; btn.disabled = true;
-
-  const cb = 'cb_' + Date.now();
-  const script = document.createElement('script');
-  script.src = `${SCRIPT_URL}?action=login&usuario=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}&callback=${cb}`;
   
-  window[cb] = (data) => {
-    delete window[cb]; document.body.removeChild(script);
+  btn.textContent = 'Verificando...'; 
+  btn.disabled = true;
+  document.getElementById('loginErr').style.display = 'none';
+
+  // Usamos fetch con POST en lugar de crear un <script> (JSONP)
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: {
+      // Usar text/plain es el truco para que Google Apps Script no bloquee por CORS
+      'Content-Type': 'text/plain;charset=utf-8', 
+    },
+    body: JSON.stringify({
+      action: 'login',
+      usuario: u,
+      password: p
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
     if (data.ok) {
-      const session = { usuario: u, password: p, rol: data.rol, nombre: data.label, promotores: data.promotores };
+      // Fíjate que acá ya NO guardamos "password: p" en la sesión
+      const session = { 
+        usuario: u, 
+        rol: data.rol, 
+        nombre: data.label, 
+        promotores: data.promotores 
+      };
       localStorage.setItem('user_session', JSON.stringify(session));
       mostrarMenu(session);
     } else {
+      document.getElementById('loginErr').textContent = 'Credenciales incorrectas';
       document.getElementById('loginErr').style.display = 'block';
-      btn.textContent = 'Ingresar'; btn.disabled = false;
+      btn.textContent = 'Ingresar'; 
+      btn.disabled = false;
     }
-  };
-  document.body.appendChild(script);
+  })
+  .catch(error => {
+    console.error('Error de red:', error);
+    document.getElementById('loginErr').textContent = 'Error de conexión con el servidor';
+    document.getElementById('loginErr').style.display = 'block';
+    btn.textContent = 'Ingresar'; 
+    btn.disabled = false;
+  });
 }
 
 function mostrarMenu(session) {
