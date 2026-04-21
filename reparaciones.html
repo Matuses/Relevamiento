@@ -960,37 +960,12 @@ async function loadData() {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ 
-      action: 'datos', 
-      usuario: currentUser,
-      userHash: currentUserHash, // Enviamos el hash al servidor
-      dias: diasCargados,
+        action: 'datos', 
+        usuario: currentUser,
+        userHash: currentUserHash,
+        dias: diasCargados,
       })
     });
-
-    const INACTIVIDAD_MAX = 10 * 60 * 1000;
-
-function checkInactividad() {
-  const s = localStorage.getItem('user_session');
-  if (!s) return;
-  const session = JSON.parse(s);
-  if (Date.now() - session.lastActivity > INACTIVIDAD_MAX) {
-    localStorage.removeItem('user_session');
-    window.location.replace('https://matuses.github.io/emcala-login/');
-  }
-}
-
-function resetInactividad() {
-  const s = localStorage.getItem('user_session');
-  if (!s) return;
-  const session = JSON.parse(s);
-  session.lastActivity = Date.now();
-  localStorage.setItem('user_session', JSON.stringify(session));
-}
-
-setInterval(checkInactividad, 60 * 1000);
-['click', 'keydown', 'touchstart', 'scroll'].forEach(ev =>
-  document.addEventListener(ev, resetInactividad, { passive: true })
-);
     
     const data = await response.json();
     
