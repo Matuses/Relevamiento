@@ -648,6 +648,37 @@ window.doLogout = function() {
     // 2. Lo pateamos a la URL exacta de tu repositorio de Login
     window.location.href = 'https://matuses.github.io/emcala-login/index.html';
 };
+/* =========================================================================
+   SISTEMA DE CONTROL DE INACTIVIDAD (GLOBAL)
+========================================================================= */
+const INACTIVIDAD_MAX = 10 * 60 * 1000; // 10 minutos
+
+function checkInactividad() {
+  const s = localStorage.getItem('user_session');
+  if (!s) return;
+  const session = JSON.parse(s);
+  if (Date.now() - session.lastActivity > INACTIVIDAD_MAX) {
+    localStorage.removeItem('user_session');
+    // Lo pateamos al login
+    window.location.replace('https://matuses.github.io/emcala-login/index.html');
+  }
+}
+
+function resetInactividad() {
+  const s = localStorage.getItem('user_session');
+  if (!s) return;
+  const session = JSON.parse(s);
+  session.lastActivity = Date.now();
+  localStorage.setItem('user_session', JSON.stringify(session));
+}
+
+function iniciarControlInactividad() {
+  setInterval(checkInactividad, 60 * 1000); // Chequea cada 1 minuto
+  ['click', 'keydown', 'touchstart', 'scroll'].forEach(ev =>
+    document.addEventListener(ev, resetInactividad, { passive: true })
+  );
+}
+  
 /* ========================================================================= */
 const SCRIPT_URL='https://script.google.com/macros/s/AKfycbwreokQunVau5zi-QN-NzPz14IOfk11p4As3PYRqvSh1zqgbPosHJ9nX2RAfotacKxN/exec';
 
