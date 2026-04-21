@@ -615,28 +615,39 @@ let currentUser = null, currentRole = null, currentUserHash = null, promotoresPr
 
 window.addEventListener('load', () => {
     const session = JSON.parse(localStorage.getItem('user_session'));
+    
     if (session) {
-        // 3. Apaga la pantalla azul de login
+        // 1. Apaga la pantalla azul de login
         const loginScreen = document.getElementById('loginScreen');
         if(loginScreen) loginScreen.style.display = 'none';
         
-        // 4. Prende el Dashboard
+        // 2. Prende el Dashboard
         const dashboard = document.getElementById('dashboard');
         if(dashboard) dashboard.style.display = 'block';
         
-        // 5. Ajusta los nombres
+        // 3. Ajusta los nombres y etiquetas según el rol
         const badge = document.getElementById('roleBadge');
         if (badge) {
             const labels = {supervisor:'SUPERVISOR', tecnico:'TÉCNICO', trade:'TRADE MARKETING'};
             badge.textContent = labels[currentRole] || currentRole.toUpperCase();
             badge.className = 'role-badge ' + currentRole;
         }
-        const userLabel = document.getElementById('topbarUser');
-        if (userLabel) userLabel.innerHTML = `Hola, <strong>${session.nombre}</strong>`;
+        
+        // 4. Nombre del usuario usando TU ID real
+        const userLabel = document.getElementById('userNameBadge');
+        if (userLabel) {
+            userLabel.innerHTML = `Hola, <strong>${session.nombre}</strong>`;
+            userLabel.style.display = 'inline-block'; // Lo mostramos porque en tu HTML está oculto
+        }
 
-        // 6. Arranca tu código original del mapa
+        // 5. Arranca tu código original del mapa y carga los datos
         if (typeof initMap === 'function') initMap();
         if (typeof loadData === 'function') loadData();
+        
+        // 6. Iniciamos el control de inactividad
+        if (typeof iniciarControlInactividad === 'function') {
+            iniciarControlInactividad();
+        }
     }
 });
 
