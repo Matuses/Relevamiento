@@ -1510,7 +1510,8 @@ async function enviarChatRol(ot,canal) {
     timestamp: new Date().toISOString(),
     ot,autor: currentUser,rol: currentRole,
     chat_tipo: canal,
-    mensaje: msg
+    mensaje: msg,
+    token:'CLAVE_SECRETA_QUILMES_2026'
   };
   fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});
   if (!chatData[ot]) chatData[ot]=[];
@@ -1792,8 +1793,9 @@ async function guardarSeguimiento(cliente,promotor,ot,tipoRol) {
   estado: prev.estado||'',comentario: prev.comentario||'',tecnico: prev.tecnico||'',
   prioridad_sugerida: prev.prioridad_sugerida||'',prioridad_aprobada: prev.prioridad_aprobada||'',
   aprobado_por: prev.aprobado_por||'',
-  marca: otData.marca||'',edf: otData.edf||'',falla: otData.falla||''};
-
+  marca: otData.marca||'',edf: otData.edf||'',falla: otData.falla||'',
+  token: 'CLAVE_SECRETA_QUILMES_2026'};  // ← esto
+  
   if (tipoRol==='tecnico') {
     const comentario=modal.querySelector('[data-mid="segComentario"]').value.trim();
     const tecLat=modal.querySelector('[data-mid="geoTecLat"]').value;
