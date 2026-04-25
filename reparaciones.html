@@ -1511,7 +1511,7 @@ async function enviarChatRol(ot,canal) {
     ot,autor: currentUser,rol: currentRole,
     chat_tipo: canal,
     mensaje: msg,
-    token:'CLAVE_SECRETA_QUILMES_2026'
+    token: currentUserHash
   };
   fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});
   if (!chatData[ot]) chatData[ot]=[];
@@ -1794,7 +1794,7 @@ async function guardarSeguimiento(cliente,promotor,ot,tipoRol) {
   prioridad_sugerida: prev.prioridad_sugerida||'',prioridad_aprobada: prev.prioridad_aprobada||'',
   aprobado_por: prev.aprobado_por||'',
   marca: otData.marca||'',edf: otData.edf||'',falla: otData.falla||'',
-  token: 'CLAVE_SECRETA_QUILMES_2026'};  // ← esto
+  token: currentUserHash};
   
   if (tipoRol==='tecnico') {
     const comentario=modal.querySelector('[data-mid="segComentario"]').value.trim();
