@@ -821,7 +821,7 @@ async function enviarChatRol(ot,canal){
   const inputId='chatInput-'+canal,boxId='chatBox-'+canal,input=document.getElementById(inputId);
   if(!input)return;const msg=(input.value||'').trim();if(!msg)return;
   input.value='';input.disabled=true;
-  const payload={tipo:'chat',timestamp:new Date().toISOString(),ot,autor:currentUser,rol:currentRole,chat_tipo:canal,mensaje:msg,token:TOKEN_ESCRITURA};
+  const payload={tipo:'chat',timestamp:new Date().toISOString(),ot,autor:currentUser,rol:currentRole,chat_tipo:canal,mensaje:msg,usuario:currentUser,userHash:currentUserHash};
   await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
   if(!chatData[ot])chatData[ot]=[];
   const d=new Date(),fecha=formatFechaAR(d);
@@ -905,7 +905,7 @@ async function guardarSeguimiento(cliente,promotor,ot,tipoRol){
     estado:prev.estado||'',comentario:prev.comentario||'',tecnico:prev.tecnico||'',
     prioridad_sugerida:prev.prioridad_sugerida||'',prioridad_aprobada:prev.prioridad_aprobada||'',
     aprobado_por:prev.aprobado_por||'',marca:otData.marca||'',edf:otData.edf||'',falla:otData.falla||'',
-    token:TOKEN_ESCRITURA};
+    usuario:currentUser,userHash:currentUserHash};
 
   if(tipoRol==='tecnico'){
     const comentario=modal.querySelector('[data-mid="segComentario"]').value.trim();
