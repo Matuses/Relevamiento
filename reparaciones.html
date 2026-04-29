@@ -451,7 +451,7 @@ window.addEventListener('load',()=>{
   if(session){
     document.getElementById('dashboard').style.display='block';
     const badge=document.getElementById('roleBadge');
-    if(badge){const labels={supervisor:'SUPERVISOR',tecnico:'TÉCNICO',trade:'TRADE MARKETING'};badge.textContent=labels[currentRole]||currentRole.toUpperCase();badge.className='role-badge '+currentRole;}
+    if(badge){const labels={supervisor:'SUPERVISOR',tecnico:'TÉCNICO',trade:'TRADE MARKETING'};badge.textContent=labels[currentRole]||currentRole.toUpperCase();badge.className='role-badge '+currentRole;badge.style.display='none';}
     const titleLabels={supervisor:'PANEL DE GESTIÓN · SUPERVISOR',tecnico:'PANEL DE GESTIÓN · TÉCNICO',trade:'PANEL DE GESTIÓN · TRADE MARKETING'};
     const topbarTitle=document.getElementById('topbarTitle');
     if(topbarTitle) topbarTitle.textContent=titleLabels[currentRole]||'PANEL DE GESTIÓN';
