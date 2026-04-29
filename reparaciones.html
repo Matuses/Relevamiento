@@ -455,7 +455,12 @@ window.addEventListener('load',()=>{
     const titleLabels={supervisor:'PANEL DE GESTIÓN · SUPERVISOR',tecnico:'PANEL DE GESTIÓN · TÉCNICO',trade:'PANEL DE GESTIÓN · TRADE MARKETING'};
     const topbarTitle=document.getElementById('topbarTitle');
     if(topbarTitle) topbarTitle.textContent=titleLabels[currentRole]||'PANEL DE GESTIÓN';
-    if(currentRole==='supervisor'){const b=document.getElementById('userNameBadge');if(b){b.textContent=session.usuario;b.style.display='';}}
+    if(currentRole === 'supervisor') {
+  const btnVerMas = document.getElementById('btnVerMas');
+  if(btnVerMas) btnVerMas.style.display = 'none';
+  const periodoLabel = document.getElementById('periodoLabel');
+  if(periodoLabel) periodoLabel.style.display = 'none';
+}
     iniciarControlInactividad();
     if(typeof initMap==='function') initMap();
     if(typeof loadData==='function') loadData();
