@@ -623,7 +623,7 @@ function initMap(){
   if(L.Browser.mobile){leafMap.on('touchstart',function(e){if(e.originalEvent.touches.length>=2)leafMap.dragging.enable();else leafMap.dragging.disable();});leafMap.on('touchend',function(){leafMap.dragging.disable();});}
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © CARTO',maxZoom:19}).addTo(leafMap);
   L.control.scale({imperial:false,position:'bottomleft'}).addTo(leafMap);
-  if(typeof L.Control!=='undefined'&&L.Control.Measure&&(currentRole==='tecnico'||currentRole==='trade'))L.control.measure({position:'topleft',primaryLengthUnit:'kilometers',secondaryLengthUnit:'meters',activeColor:'#0EA5E9',completedColor:'#0F2A4A'}).addTo(leafMap);
+  if(typeof L.Control!=='undefined'&&L.Control.Measure&&currentRole==='trade')L.control.measure({position:'topleft',primaryLengthUnit:'kilometers',secondaryLengthUnit:'meters',activeColor:'#0EA5E9',completedColor:'#0F2A4A'}).addTo(leafMap);
   if(L.Browser.mobile)document.getElementById('mapHintMain').style.display='block';
   // Botón ubicación actual
   const locBtn = L.DomUtil.create('button');
