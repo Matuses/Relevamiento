@@ -625,6 +625,13 @@ function initMap(){
   L.control.scale({imperial:false,position:'bottomleft'}).addTo(leafMap);
   if(typeof L.Control!=='undefined'&&L.Control.Measure&&(currentRole==='tecnico'||currentRole==='trade'))L.control.measure({position:'topleft',primaryLengthUnit:'kilometers',secondaryLengthUnit:'meters',activeColor:'#0EA5E9',completedColor:'#0F2A4A'}).addTo(leafMap);
   if(L.Browser.mobile)document.getElementById('mapHintMain').style.display='block';
+  // Botón ubicación actual
+  const locBtn = L.DomUtil.create('button');
+  locBtn.innerHTML = '📍';
+  locBtn.title = 'Mi ubicación';
+  [locBtn.style](http://locBtn.style).cssText = 'position:absolute;bottom:80px;right:10px;z-index:1000;width:40px;height:40px;background:white;border:none;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3);cursor:pointer;font-size:18px;';
+  document.getElementById('map').appendChild(locBtn);
+  locBtn.addEventListener('click', centrarEnUbicacion);
 }
 
 function ageColor(ts){if(!ts)return'#94A3B8';const days=(Date.now()-new Date(ts))/86400000;if(days<=15)return'#16A34A';if(days<=20)return'#D97706';return'#DC2626';}
@@ -941,6 +948,19 @@ async function guardarSeguimiento(cliente,promotor,ot,tipoRol){
 function closeModal(e){if(e.target===document.getElementById('modalOverlay'))closeModalDirect();}
 function closeModalDirect(){document.getElementById('modalOverlay').classList.remove('show');if(modalLeaf){modalLeaf.remove();modalLeaf=null;}}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModalDirect();});
+let marcadorUbicacion = null;
+function centrarEnUbicacion() {
+  if (!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(pos => {
+    const lat = pos.coords.latitude, lng = pos.coords.longitude;
+    leafMap.setView([lat, lng], 15);
+    if (marcadorUbicacion) leafMap.removeLayer(marcadorUbicacion);
+    marcadorUbicacion = L.circleMarker([lat, lng], {
+      radius: 10, fillColor: '#1B5FA8', color: 'white',
+      weight: 3, fillOpacity: 1
+    }).addTo(leafMap).bindPopup('📍 Tu ubicación').openPopup();
+  }, null, {enableHighAccuracy: true, timeout: 10000});
+}
 </script>
 </body>
 </html>
