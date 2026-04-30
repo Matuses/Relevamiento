@@ -348,9 +348,10 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
 
     <div class="card">
       <div class="card-header">
-        <h3>📋 Registros</h3>
+        <h3>REGISTROS</h3>
         <div style="display:flex;align-items:center;gap:8px;">
           <span class="badge-count" id="listCount">0</span>
+          <button id="btnSortRegistros" onclick="toggleSortRegistros()" style="font-size:12px;padding:6px 12px;border:1.5px solid var(--border);border-radius:6px;background:white;cursor:pointer;color:var(--navy);font-weight:700;">🔽 Más recientes</button>
         </div>
       </div>
       <div class="table-scroll" id="registrosList">
@@ -748,8 +749,6 @@ function populateFilter(){
   const ddLoc=document.getElementById('mfLocalidadDropdown');if(ddLoc)ddLoc.innerHTML=localidades.map(l=>`<label class="multi-filter-option"><input type="checkbox" value="${l}" onchange="applyFilters()"> ${l}</label>`).join('');
   if(currentRole==='trade'||currentRole==='supervisor'){document.getElementById('tabBar').style.display='flex';document.getElementById('tabHistorial').style.display='';document.getElementById('tabRetiro').style.display='';}
   if(currentRole==='tecnico'){document.getElementById('tabBar').style.display='flex';document.getElementById('tabHistorial').style.display='';}
-  const listContainer=document.getElementById('registrosList');
-  if(listContainer&&!document.getElementById('btnSortRegistros')){const sortBtn=document.createElement('button');sortBtn.id='btnSortRegistros';sortBtn.onclick=toggleSortRegistros;sortBtn.style.cssText='font-size:12px;padding:6px 12px;border:1.5px solid var(--border);border-radius:6px;background:white;cursor:pointer;color:var(--navy);font-weight:700;margin-bottom:12px;display:inline-block;';sortBtn.innerHTML='🔽 Más recientes';listContainer.parentNode.insertBefore(sortBtn,listContainer);}
   if(currentRole==='tecnico'&&window.innerWidth<=900){document.querySelectorAll('.filters-bar .filter-field').forEach((f,i)=>{if(i>0)f.style.display='none';});document.querySelectorAll('.filter-sep').forEach(s=>s.style.display='none');const btnClear=document.querySelector('.btn-clear');if(btnClear)btnClear.style.display='none';}
 }
 
