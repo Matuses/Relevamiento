@@ -629,7 +629,7 @@ function initMap(){
   const locBtn = L.DomUtil.create('button');
   locBtn.innerHTML = '📍';
   locBtn.title = 'Mi ubicación';
-  [locBtn.style](http://locBtn.style).cssText = 'position:absolute;bottom:80px;right:10px;z-index:1000;width:40px;height:40px;background:white;border:none;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3);cursor:pointer;font-size:18px;';
+  locBtn.style.cssText = 'position:absolute;bottom:80px;right:10px;z-index:1000;width:40px;height:40px;background:white;border:none;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3);cursor:pointer;font-size:18px;';
   document.getElementById('map').appendChild(locBtn);
   locBtn.addEventListener('click', centrarEnUbicacion);
 }
