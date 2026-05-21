@@ -220,22 +220,59 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
       <div class="grid-2">
         <div class="field">
           <label>Código de Cliente <span class="req">*</span></label>
-          <input type="text" id="codigoCliente" placeholder="Código de cliente" required>
+          <input type="text" id="codigoCliente" placeholder="Código de cliente" required onblur="verificarCliente(this.value)">
+          <div id="clienteFeedback" style="font-size:11px;margin-top:4px;text-align:center;font-weight:600;min-height:15px;color:var(--muted);"></div>
         </div>
         <div class="field">
           <label>Marca Heladera <span class="req">*</span></label>
-          <input type="text" id="tipoLogo" placeholder="Quilmes, Pepsi, Brahma..." required>
+          <select id="tipoLogo" required>
+            <option value="" disabled selected>Seleccionar marca...</option>
+            <option>Quilmes</option>
+            <option>Brahma</option>
+            <option>Pepsi</option>
+            <option>Stella Artois</option>
+            <option>7UP</option>
+            <option>Red Bull</option>
+            <option>Andes</option>
+            <option>Corona</option>
+            <option>Budweiser</option>
+            <option>Patagonia</option>
+            <option>Gatorade</option>
+            <option>Paso de los Toros</option>
+            <option>H2Oh!</option>
+            <option>Otro</option>
+          </select>
         </div>
       </div>
 
       <div class="field">
         <label>EDF <span class="req">*</span></label>
         <input type="text" id="edf" placeholder="Ingresá el número de Activo Fijo" required>
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px;">
+          <input type="checkbox" id="sinEdf" style="width:auto;height:auto;cursor:pointer;margin:0;" onchange="toggleSinEdf(this)">
+          <label for="sinEdf" style="margin:0;font-size:12px;text-transform:none;letter-spacing:normal;font-weight:500;cursor:pointer;color:var(--muted);">El equipo no tiene número de EDF</label>
+        </div>
       </div>
 
       <div class="field">
         <label>Falla Sugerida <span class="req">*</span></label>
         <textarea id="fallaSugerida" placeholder="Describir brevemente la falla..." required></textarea>
+      </div>
+
+      <div class="field">
+        <label>Foto del equipo <span class="req" style="color:var(--muted);font-weight:normal;">(Opcional)</span></label>
+        <button type="button" class="geo-btn" id="fotoBtn" onclick="document.getElementById('fotoInput').click()" style="background:var(--bg);color:var(--navy);border-color:var(--border);">
+          <svg class="geo-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--muted);">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+            <circle cx="12" cy="13" r="4"/>
+          </svg>
+          Seleccionar Foto
+        </button>
+        <input type="file" id="fotoInput" accept="image/*" style="display:none;" onchange="previewFoto(this)">
+        <div id="fotoPreviewContainer" style="display:none;margin-top:10px;position:relative;width:100%;max-width:140px;">
+          <img id="fotoPreview" src="" alt="Vista previa" style="width:100%;border-radius:10px;border:2px solid var(--border);box-shadow:0 4px 10px rgba(0,0,0,0.05);display:block;">
+          <button type="button" onclick="clearFoto()" style="position:absolute;top:-8px;right:-8px;background:#EF4444;color:white;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;font-weight:bold;font-size:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 5px rgba(0,0,0,0.2);">×</button>
+        </div>
       </div>
 
       <div class="divider"></div>
@@ -265,6 +302,7 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
     <div class="success-icon">✅</div>
     <div class="success-title">¡Solicitud enviada!</div>
     <div class="success-sub">Tu OT fue registrada correctamente</div>
+    <div id="otNumber" style="font-family:'DM Mono',monospace;font-size:22px;font-weight:800;color:var(--navy);letter-spacing:0.05em;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;text-align:center;"></div>
     <pre class="success-ot" id="summaryText" style="font-family:'Bricolage Grotesque',sans-serif;font-size:13px;text-align:left;white-space:pre-wrap;line-height:1.7;"></pre>
     <button class="btn-nuevo" onclick="resetForm()">+ Nueva solicitud</button>
   </div>
@@ -273,6 +311,137 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
 
 <script>
   let geoData = null;
+  let lastSubmitHash = '';
+  let lastSubmitTime = 0;
+  let clienteValido = false;
+
+  let base64Foto = '';
+  let mimeTypeFoto = '';
+  let extFoto = '';
+
+  function previewFoto(input) {
+    const file = input.files[0];
+    if (!file) return;
+    
+    if (file.size > 5 * 1024 * 1024) {
+      alert('❌ La imagen es demasiado grande. El tamaño máximo es 5MB.');
+      input.value = '';
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      base64Foto = e.target.result.split(',')[1];
+      mimeTypeFoto = file.type;
+      extFoto = file.name.split('.').pop();
+      
+      document.getElementById('fotoPreview').src = e.target.result;
+      document.getElementById('fotoPreviewContainer').style.display = 'block';
+      const btn = document.getElementById('fotoBtn');
+      btn.innerHTML = `
+        <svg class="geo-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--success);">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+        Foto Seleccionada
+      `;
+      btn.style.borderColor = 'var(--success)';
+      btn.style.color = 'var(--success)';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function clearFoto() {
+    document.getElementById('fotoInput').value = '';
+    document.getElementById('fotoPreview').src = '';
+    document.getElementById('fotoPreviewContainer').style.display = 'none';
+    base64Foto = '';
+    mimeTypeFoto = '';
+    extFoto = '';
+    const btn = document.getElementById('fotoBtn');
+    btn.innerHTML = `
+      <svg class="geo-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--muted);">
+        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+        <circle cx="12" cy="13" r="4"/>
+      </svg>
+      Seleccionar Foto
+    `;
+    btn.style.borderColor = 'var(--border)';
+    btn.style.color = 'var(--navy)';
+  }
+
+  async function verificarCliente(codigo) {
+    const feedback = document.getElementById('clienteFeedback');
+    codigo = (codigo || '').trim();
+    if (!codigo) {
+      feedback.textContent = '';
+      clienteValido = false;
+      return;
+    }
+    feedback.style.color = 'var(--muted)';
+    feedback.textContent = '🔍 Buscando cliente...';
+    try {
+      const response = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'buscarCliente', cliente: codigo })
+      });
+      const data = await response.json();
+      if (data.encontrado) {
+        feedback.style.color = 'var(--success)';
+        feedback.textContent = '👤 ' + data.nombre + (data.localidad ? ' (' + data.localidad + ')' : '');
+        clienteValido = true;
+        document.getElementById('codigoCliente').style.borderColor = '';
+      } else {
+        feedback.style.color = '#DC2626';
+        feedback.textContent = '❌ Código no encontrado en Suralnor';
+        clienteValido = false;
+      }
+    } catch (e) {
+      console.error(e);
+      feedback.style.color = '#D97706';
+      feedback.textContent = '⚠️ No se pudo verificar (sin conexión)';
+      clienteValido = true; // permitimos guardar de todos modos ante falla de red
+    }
+  }
+
+  async function cargarPromotores() {
+    const select = document.getElementById('promotor');
+    try {
+      const response = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'getPromotores' })
+      });
+      const data = await response.json();
+      if (data.promotores && data.promotores.length > 0) {
+        const currentSelected = select.value;
+        select.innerHTML = '<option value="" disabled selected>Seleccionar promotor...</option>';
+        data.promotores.forEach(p => {
+          const opt = document.createElement('option');
+          opt.textContent = p;
+          opt.value = p;
+          select.appendChild(opt);
+        });
+        if (currentSelected) select.value = currentSelected;
+      }
+    } catch (e) {
+      console.error('Error al cargar promotores:', e);
+    }
+  }
+
+  function toggleSinEdf(checkbox) {
+    const edfInput = document.getElementById('edf');
+    if (checkbox.checked) {
+      edfInput.value = 'SIN EDF';
+      edfInput.disabled = true;
+      edfInput.style.opacity = '0.5';
+    } else {
+      edfInput.value = '';
+      edfInput.disabled = false;
+      edfInput.style.opacity = '1';
+    }
+  }
 
   function geolocate() {
     const btn = document.getElementById('geoBtn');
@@ -398,6 +567,38 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
       }
     });
 
+    if (valid) {
+      const edfInput = document.getElementById('edf');
+      const isSinEdf = document.getElementById('sinEdf').checked;
+      if (!isSinEdf) {
+        const edfVal = edfInput.value.trim().replace(/\s/g, '');
+        if (!/^\d{5,12}$/.test(edfVal)) {
+          edfInput.style.borderColor = 'var(--error)';
+          edfInput.style.boxShadow = '0 0 0 3px rgba(255,77,109,0.15)';
+          alert('⚠️ El número de EDF debe ser numérico y tener entre 5 y 12 dígitos.\nSi el equipo no tiene número de EDF / Activo Fijo, marcá la casilla correspondiente.');
+          valid = false;
+          edfInput.addEventListener('input', () => {
+            edfInput.style.borderColor = '';
+            edfInput.style.boxShadow = '';
+          }, { once: true });
+        }
+      }
+    }
+
+    if (valid) {
+      if (!clienteValido) {
+        alert('⚠️ Por favor, ingresá un código de cliente válido de Suralnor.');
+        const el = document.getElementById('codigoCliente');
+        el.style.borderColor = 'var(--error)';
+        el.style.boxShadow = '0 0 0 3px rgba(255,77,109,0.15)';
+        valid = false;
+        el.addEventListener('input', () => {
+          el.style.borderColor = '';
+          el.style.boxShadow = '';
+        }, { once: true });
+      }
+    }
+
     if (!valid) {
       const firstErr = document.querySelector('[style*="error"]');
       if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -415,18 +616,25 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
       lat: geoData ? geoData.lat : '',
       lng: geoData ? geoData.lng : '',
       foto: '',
+      fotoBase64: base64Foto,
+      fotoMimeType: mimeTypeFoto,
+      fotoExtension: extFoto,
       notas: ''
     };
 
-    // Enviar en segundo plano sin esperar respuesta
-    fetch(SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify(payload)
-    });
+    // Anti-duplicado: verificar si el mismo payload fue enviado en los últimos 60 segundos
+    const payloadHash = [payload.promotor, payload.cliente, payload.marca, payload.edf, payload.falla].join('|');
+    const now = Date.now();
+    if (payloadHash === lastSubmitHash && (now - lastSubmitTime) < 60000) {
+      alert('⚠️ Esta solicitud ya fue enviada hace menos de 1 minuto.\nEsperá antes de reenviar.');
+      return;
+    }
 
-    // Mostrar éxito inmediatamente
+    // Deshabilitar botón y mostrar estado de carga
+    const submitBtn = document.querySelector('.submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Enviando...';
+
     const summary = `
 PROMOTOR: ${payload.promotor}
 CÓDIGO CLIENTE: ${payload.cliente}
@@ -436,13 +644,53 @@ FALLA SUGERIDA: ${payload.falla}
 UBICACIÓN: ${geoData ? `Lat ${geoData.lat}, Lng ${geoData.lng}` : 'No capturada'}
     `.trim();
 
-    document.getElementById('summaryText').textContent = summary;
-    document.getElementById('formContent').style.display = 'none';
-    document.getElementById('successOverlay').classList.add('show');
+    try {
+      const response = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await response.json();
+
+      // Guardar hash para prevenir duplicados
+      lastSubmitHash = payloadHash;
+      lastSubmitTime = Date.now();
+
+      // Mostrar éxito con número de OT real
+      document.getElementById('otNumber').textContent = 'OT ' + (result.ot || '—');
+      document.getElementById('summaryText').textContent = summary;
+      document.getElementById('formContent').style.display = 'none';
+      document.getElementById('successOverlay').classList.add('show');
+
+    } catch (err) {
+      console.error('Error al enviar:', err);
+      // Fallback: en muchos casos la solicitud SÍ llegó pero CORS bloqueó la respuesta
+      lastSubmitHash = payloadHash;
+      lastSubmitTime = Date.now();
+
+      document.getElementById('otNumber').textContent = 'Enviado ✓';
+      document.getElementById('summaryText').textContent = summary + '\n\n⚠️ No se pudo confirmar el número de OT.\nLa solicitud fue enviada igualmente.';
+      document.getElementById('formContent').style.display = 'none';
+      document.getElementById('successOverlay').classList.add('show');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Enviar Registro →';
+    }
   });
 
   function resetForm() {
     document.getElementById('mainForm').reset();
+    clearFoto();
+    clienteValido = false;
+    document.getElementById('clienteFeedback').textContent = '';
+
+    const edfInput = document.getElementById('edf');
+    edfInput.disabled = false;
+    edfInput.style.opacity = '1';
+    const sinEdfCheckbox = document.getElementById('sinEdf');
+    if (sinEdfCheckbox) sinEdfCheckbox.checked = false;
+
     document.getElementById('successOverlay').classList.remove('show');
     document.getElementById('formContent').style.display = 'block';
     document.getElementById('geoResult').className = 'geo-result';
@@ -452,7 +700,10 @@ UBICACIÓN: ${geoData ? `Lat ${geoData.lat}, Lng ${geoData.lng}` : 'No capturada
   }
 
   // Iniciar GPS automáticamente al cargar
-  window.addEventListener('load', () => setTimeout(() => geolocate(), 600));
+  window.addEventListener('load', () => {
+    cargarPromotores();
+    setTimeout(() => geolocate(), 600);
+  });
 </script>
 </body>
 </html>
