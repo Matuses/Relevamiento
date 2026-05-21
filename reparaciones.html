@@ -824,6 +824,21 @@ function applyFilters(ordenInteligente){
     if((desde||hasta)&&r.ts){const d=new Date(r.ts);if(desde&&d<new Date(desde))return false;if(hasta&&d>new Date(hasta+'T23:59:59'))return false;}
     return true;
   });
+
+  // Novedad: Anti-Duplicados Inteligente
+  // Ordenamos de más reciente a más antigua
+  filtered.sort((a,b)=> new Date(b.timestamp||0) - new Date(a.timestamp||0));
+  const unicos = [];
+  const clientVisto = new Set();
+  filtered.forEach(r => {
+    const cliKey = r.cliente ? r.cliente.toString().trim() : '';
+    if (!cliKey || !clientVisto.has(cliKey)) {
+      if (cliKey) clientVisto.add(cliKey);
+      unicos.push(r);
+    }
+  });
+  filtered = unicos;
+
   document.getElementById('listCount').textContent=filtered.length;
   updateMultiFilterLabel('mfPromotor','Todos');updateMultiFilterLabel('mfLocalidad','Todas');
   updateMultiFilterLabel('mfEstado',estadosSeleccionados.length?estadosSeleccionados.length+' sel.':'Activos');
@@ -849,10 +864,25 @@ function buildRegItem(r,onclickAttr){
   const initials=r.frecuencia||(r.cliente||'?').replace(/[^A-Z0-9]/gi,'').slice(0,3).toUpperCase();
   const hasGeo=r.lat&&r.lng&&parseFloat(r.lat)!==0;
   const eKey=getEstadoKey(r.ot,r.cliente),em=ESTADO_META[eKey]||ESTADO_META[''];
+  
+  // Anti-Duplicados: Verificar si hay reincidencia (otra OT anterior resuelta para el mismo cliente)
+  let esReincidencia = false;
+  if(r.cliente) {
+    const cliKey = r.cliente.toString().trim();
+    const currOt = r.ot ? r.ot.toString().trim() : '';
+    const segVals = Object.values(seguimientos);
+    for(let i=0; i<segVals.length; i++){
+      if(segVals[i].cli === cliKey && segVals[i].ot !== currOt && (segVals[i].estado||'').toLowerCase() === 'resuelto') {
+        esReincidencia = true; break;
+      }
+    }
+  }
+  const reinBadge = esReincidencia ? `<span style="margin-left:4px;font-size:10px;font-weight:800;padding:2px 7px;border-radius:100px;background:#DC2626;color:white;animation:pulse 2s infinite;">⚠️ REINCIDENCIA</span>` : '';
+
   const priA=getPrioridadAprobada(r.ot,r.cliente),priS=getPrioridadSugerida(r.ot,r.cliente),priShow=priA||priS;
   const isAlta=priA&&(priA==='1'||priA==='2');
   const priBadge=priShow?`<span style="margin-left:4px;font-size:10px;font-weight:800;padding:2px 7px;border-radius:100px;background:${priA?'#0F2A4A':'#E2E8F0'};color:${priA?'white':'#64748B'}">${isAlta?'⚠️ ':''} P${priShow}${!priA?' (sugerida)':''}</span>`:'';
-  return `<div class="reg-item" onclick='${onclickAttr}'><div class="reg-avatar" style="background:${avatarColor};font-size:${initials.length>2?'10px':'12px'}">${initials}</div><div class="reg-info"><div class="reg-nombre">OT ${r.ot||'—'} ${isAlta?'<span style="color:#DC2626">❗</span>':''}</div><div class="reg-sub">${r.cliente||'Sin cliente'} · 👤 ${r.nombre}</div><span class="estado-pill ${em.cls}">${em.icon} ${em.label}</span>${priBadge}</div><div class="reg-meta"><div class="reg-fecha">${r.fecha}</div><div class="reg-hora">${r.hora}</div><div class="${hasGeo?'reg-gps':'reg-nogps'}">${hasGeo?'📍 GPS':'Sin GPS'}</div></div></div>`;
+  return `<div class="reg-item" onclick='${onclickAttr}'><div class="reg-avatar" style="background:${avatarColor};font-size:${initials.length>2?'10px':'12px'}">${initials}</div><div class="reg-info"><div class="reg-nombre">OT ${r.ot||'—'} ${isAlta?'<span style="color:#DC2626">❗</span>':''}</div><div class="reg-sub">${r.cliente||'Sin cliente'} · 👤 ${r.nombre}</div><div style="margin-top:2px"><span class="estado-pill ${em.cls}">${em.icon} ${em.label}</span>${priBadge}${reinBadge}</div></div><div class="reg-meta"><div class="reg-fecha">${r.fecha}</div><div class="reg-hora">${r.hora||''}</div><div class="${hasGeo?'reg-gps':'reg-nogps'}">${hasGeo?'📍 GPS':'Sin GPS'}</div></div></div>`;
 }
 
 function renderList(data){
