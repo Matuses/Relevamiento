@@ -470,6 +470,10 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
       <div style="height:250px;position:relative;"><canvas id="chartPrioridades"></canvas></div>
     </div>
   </div>
+  <div style="background:white;border:1px solid var(--border);border-radius:12px;padding:16px;box-shadow:var(--shadow);margin-bottom:20px;">
+    <div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:10px;text-align:center;">TIEMPOS PROMEDIO DE RESOLUCIÓN (SLA)</div>
+    <div style="height:250px;position:relative;"><canvas id="chartTiempos"></canvas></div>
+  </div>
 
   <div style="background:white;border:1px solid var(--border);border-radius:12px;padding:16px;box-shadow:var(--shadow);">
     <div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:10px;text-align:center;">TOP 10 PDVs CRÍTICOS</div>
@@ -1314,7 +1318,7 @@ function renderLogs() {
   
   container.innerHTML = html;
 }
-let chartEstadosInstance, chartMarcasInstance, chartTecnicosInstance, chartPrioridadesInstance;
+let chartEstadosInstance, chartMarcasInstance, chartTecnicosInstance, chartPrioridadesInstance, chartTiemposInstance;
 
 function renderDashboard() {
   if (currentRole !== 'auditor') return;
@@ -1325,7 +1329,6 @@ function renderDashboard() {
   const unicos = [];
   const clientVisto = new Set();
   
-  // Ocultar obsoletos si ya hay resueltos más nuevos (Regla Hidra)
   const hidraMap = new Map();
   historialData.forEach(h => {
     if(!h.cliente) return;
@@ -1337,11 +1340,7 @@ function renderDashboard() {
   dataLimpia.forEach(r => {
     const cliKey = r.cliente ? r.cliente.toString().trim().toUpperCase() : '';
     const myTs = new Date(r.timestamp||0).getTime();
-    
-    // Si hay un historial de resuelto más nuevo que esta OT, es obsoleta
     if (cliKey && hidraMap.has(cliKey) && myTs < hidraMap.get(cliKey)) return;
-
-    // Solo guardar 1 activa por cliente
     if (!cliKey || !clientVisto.has(cliKey)) {
       if (cliKey) clientVisto.add(cliKey);
       unicos.push(r);
@@ -1349,13 +1348,34 @@ function renderDashboard() {
   });
   dataLimpia = unicos;
 
-  // 1. Calcular Datos Generales
-  let activas = 0, resueltas = 0, retiro = 0;
-  let marcasCount = {};
-  let pdvCount = {};
-  let prioridadesCount = {};
+  // 1. Recopilar Timelines de OTs para SLA
+  const timelinePorOT = {};
+  if(seguimientosRaw && seguimientosRaw.length > 1) {
+    const h = seguimientosRaw[0].map(s=>(s||'').toString().trim().toLowerCase());
+    const iOt = h.findIndex(x=>x.includes('ot'));
+    const iTs = h.findIndex(x=>x.includes('timestamp'));
+    const iEst = h.findIndex(x=>x.includes('estado'));
+    let idxPri = h.findIndex(x=>x==='prioridad_aprobada');
+    if(idxPri < 0) idxPri = h.findIndex(x=>x.includes('prioridad'));
 
-  // Fechas para Mes a Mes
+    if(iOt>=0 && iTs>=0 && iEst>=0) {
+      seguimientosRaw.slice(1).forEach(row => {
+        const ot = row[iOt];
+        if(!ot) return;
+        if(!timelinePorOT[ot]) timelinePorOT[ot] = [];
+        timelinePorOT[ot].push({
+          ts: new Date(row[iTs]).getTime(),
+          est: row[iEst].toString().toLowerCase().trim(),
+          pri: idxPri>=0 ? row[idxPri].toString().trim() : ''
+        });
+      });
+    }
+  }
+
+  // Variables
+  let activas = 0, resueltas = 0, retiro = 0;
+  let marcasCount = {}, pdvCount = {}, prioridadesCount = {};
+
   const now = new Date();
   const currentMonthStr = now.toISOString().slice(0, 7);
   const prevDate = new Date();
@@ -1365,13 +1385,45 @@ function renderDashboard() {
   let creadasEsteMes = 0, creadasMesPasado = 0;
   let resueltasEsteMes = 0, resueltasMesPasado = 0;
 
-  // Recorrer Activas/Pendientes/Retiros (Data Limpia)
+  let sumSuper = 0, countSuper = 0;
+  let sumTecnico = 0, countTecnico = 0;
+  let sumTotal = 0, countTotal = 0;
+
+  // Analizar Todas las OTs (Activas y Resueltas)
+  const otsConfiguradas = new Set();
+  const procesarTiempos = (otId, baseTs) => {
+    if(!otId || otsConfiguradas.has(otId)) return null;
+    otsConfiguradas.add(otId);
+    
+    const tl = timelinePorOT[otId] || [];
+    tl.sort((a,b) => a.ts - b.ts);
+    
+    let T0 = baseTs ? new Date(baseTs).getTime() : (tl.length > 0 ? tl[0].ts : null);
+    if(!T0 || isNaN(T0)) return null;
+
+    let T1 = null, T2 = null;
+    const priEvent = tl.find(ev => ev.pri !== '');
+    if(priEvent) T1 = priEvent.ts;
+
+    const resEvent = tl.find(ev => ev.est === 'resuelto' || ev.est.includes('retiro'));
+    if(resEvent) T2 = resEvent.ts;
+
+    const msToHs = (ms) => ms / (1000 * 60 * 60);
+
+    if (T1 && T1 >= T0) { sumSuper += msToHs(T1 - T0); countSuper++; }
+    if (T2 && T1 && T2 >= T1) { sumTecnico += msToHs(T2 - T1); countTecnico++; }
+    if (T2 && T0 && T2 >= T0) { sumTotal += msToHs(T2 - T0); countTotal++; }
+
+    return T2; // Retorna fecha de resolución real
+  };
+
+  // Recorrer Activas
   dataLimpia.forEach(r => {
     const seg = getSegByOt(r.ot, r.cliente);
     const estado = (seg && seg.estado) ? seg.estado.toLowerCase() : 'pendiente';
     
     if (estado.includes('retiro')) retiro++;
-    else if (estado === 'resuelto') resueltas++; // Podría pasar
+    else if (estado === 'resuelto') resueltas++;
     else activas++;
 
     const marca = (r.marca || 'Sin Marca').toUpperCase().trim();
@@ -1384,45 +1436,31 @@ function renderDashboard() {
     if (!pdvCount[pdv]) pdvCount[pdv] = { total: 0, loc: r.localidad || '-' };
     pdvCount[pdv].total++;
 
-    // Creadas (Fecha de OT)
     if(r.timestamp) {
       const tsStr = new Date(r.timestamp).toISOString().slice(0, 7);
       if(tsStr === currentMonthStr) creadasEsteMes++;
       else if(tsStr === prevMonthStr) creadasMesPasado++;
     }
+
+    procesarTiempos(r.ot, r.timestamp);
   });
 
-  // Recorrer Historial (Resueltas)
+  // Recorrer Historial
   historialData.forEach(r => {
     resueltas++;
-    
-    // Creadas (En caso de que ya no estén en allData)
     if(r.ts) {
       const tsStr = new Date(r.ts).toISOString().slice(0, 7);
       if(tsStr === currentMonthStr) creadasEsteMes++;
       else if(tsStr === prevMonthStr) creadasMesPasado++;
     }
     
-    // Resoluciones (Asumimos que si está en historial, se resolvió. Aproximamos fecha de resolución con seguimientosRaw o la fecha límite de hoy)
-    // Para simplificar, buscamos si hay un evento "resuelto" en seguimientosRaw para esta OT
-    let resTs = null;
-    if(seguimientosRaw && seguimientosRaw.length > 1) {
-       const h = seguimientosRaw[0].map(s=>(s||'').toString().trim().toLowerCase());
-       const iEst = h.findIndex(x=>x.includes('estado'));
-       const iTs = h.findIndex(x=>x.includes('timestamp'));
-       const iOt = h.findIndex(x=>x.includes('ot'));
-       if(iEst>=0 && iTs>=0 && iOt>=0) {
-         // buscar evento resuelto
-         const evs = seguimientosRaw.slice(1).filter(sr => sr[iOt]==r.ot && sr[iEst].toString().toLowerCase()==='resuelto');
-         if(evs.length > 0) resTs = new Date(evs[evs.length-1][iTs]);
-       }
-    }
-    if(resTs) {
-      const resStr = resTs.toISOString().slice(0, 7);
+    const T2 = procesarTiempos(r.ot, r.ts);
+    
+    if(T2) {
+      const resStr = new Date(T2).toISOString().slice(0, 7);
       if(resStr === currentMonthStr) resueltasEsteMes++;
       else if(resStr === prevMonthStr) resueltasMesPasado++;
     } else {
-      // Fallback
       if(r.ts) {
         const tsStr = new Date(r.ts).toISOString().slice(0, 7);
         if(tsStr === currentMonthStr) resueltasEsteMes++;
@@ -1431,7 +1469,11 @@ function renderDashboard() {
     }
   });
 
-  // 2. Render Charts con ChartDataLabels
+  const avgSuper = countSuper > 0 ? (sumSuper / countSuper) : 0;
+  const avgTecnico = countTecnico > 0 ? (sumTecnico / countTecnico) : 0;
+  const avgTotal = countTotal > 0 ? (sumTotal / countTotal) : 0;
+
+  // 2. Render Charts
   Chart.register(ChartDataLabels);
   const commonOptions = { 
     responsive: true, 
@@ -1457,13 +1499,7 @@ function renderDashboard() {
         borderWidth: 0
       }]
     },
-    options: { 
-      ...commonOptions, 
-      plugins: { 
-        ...commonOptions.plugins,
-        legend: { position: 'bottom' }
-      } 
-    }
+    options: { ...commonOptions, plugins: { ...commonOptions.plugins, legend: { position: 'bottom' } } }
   });
 
   if (chartMarcasInstance) chartMarcasInstance.destroy();
@@ -1484,12 +1520,7 @@ function renderDashboard() {
       plugins: { 
         ...commonOptions.plugins,
         legend: { display: false },
-        datalabels: {
-          color: '#fff',
-          anchor: 'center',
-          align: 'center',
-          font: { weight: 'bold' }
-        }
+        datalabels: { color: '#fff', anchor: 'center', align: 'center', font: { weight: 'bold' } }
       } 
     }
   });
@@ -1500,28 +1531,11 @@ function renderDashboard() {
     data: {
       labels: ['Mes Pasado', 'Este Mes'],
       datasets: [
-        {
-          label: 'OTs Creadas (Nuevas)',
-          data: [creadasMesPasado, creadasEsteMes],
-          backgroundColor: '#94A3B8',
-          borderRadius: 6
-        },
-        {
-          label: 'OTs Resueltas',
-          data: [resueltasMesPasado, resueltasEsteMes],
-          backgroundColor: '#10B981',
-          borderRadius: 6
-        }
+        { label: 'OTs Creadas', data: [creadasMesPasado, creadasEsteMes], backgroundColor: '#94A3B8', borderRadius: 6 },
+        { label: 'OTs Resueltas', data: [resueltasMesPasado, resueltasEsteMes], backgroundColor: '#10B981', borderRadius: 6 }
       ]
     },
-    options: { 
-      ...commonOptions, 
-      plugins: { 
-        ...commonOptions.plugins,
-        legend: { position: 'bottom' },
-        datalabels: { color: '#fff', anchor: 'center', align: 'center', font: { weight: 'bold' } }
-      } 
-    }
+    options: { ...commonOptions, plugins: { ...commonOptions.plugins, legend: { position: 'bottom' }, datalabels: { color: '#fff', anchor: 'center', align: 'center', font: { weight: 'bold' } } } }
   });
 
   if (chartPrioridadesInstance) chartPrioridadesInstance.destroy();
@@ -1535,26 +1549,45 @@ function renderDashboard() {
         borderWidth: 1
       }]
     },
+    options: { ...commonOptions, plugins: { ...commonOptions.plugins, legend: { position: 'right' }, datalabels: { color: '#0F2A4A', font: { weight: 'bold' } } } }
+  });
+
+  if (chartTiemposInstance) chartTiemposInstance.destroy();
+  chartTiemposInstance = new Chart(document.getElementById('chartTiempos'), {
+    type: 'bar',
+    data: {
+      labels: ['Demora Supervisor (Creación a Prioridad)', 'Demora Técnico (Prioridad a Resolución)', 'Demora Total (Creación a Resolución)'],
+      datasets: [{
+        label: 'Promedio',
+        data: [avgSuper, avgTecnico, avgTotal],
+        backgroundColor: ['#6366F1', '#14B8A6', '#F59E0B'],
+        borderRadius: 6
+      }]
+    },
     options: { 
-      ...commonOptions, 
+      ...commonOptions,
+      indexAxis: 'y',
       plugins: { 
-        ...commonOptions.plugins,
-        legend: { position: 'right' },
-        datalabels: { color: '#0F2A4A', font: { weight: 'bold' } }
+        ...commonOptions.plugins, 
+        legend: { display: false }, 
+        datalabels: { 
+          color: '#fff', 
+          anchor: 'center', 
+          align: 'center', 
+          font: { weight: 'bold', size: 12 },
+          formatter: function(value) {
+            if(!value || value===0) return '';
+            if(value >= 72) return (value/24).toFixed(1) + ' días';
+            return Math.round(value) + ' hs';
+          }
+        } 
       } 
     }
   });
 
-  const topPdvs = Object.keys(pdvCount).map(k => ({ nombre: k, ...pdvCount[k] }))
-    .sort((a, b) => b.total - a.total).slice(0, 10);
+  const topPdvs = Object.keys(pdvCount).map(k => ({ nombre: k, ...pdvCount[k] })).sort((a, b) => b.total - a.total).slice(0, 10);
   const tbodyPDVs = document.getElementById('tablaPDVs');
-  tbodyPDVs.innerHTML = topPdvs.map(p => `
-    <tr>
-      <td style="font-weight:600;font-size:12px;">${p.nombre}</td>
-      <td style="font-size:11px;">${p.loc}</td>
-      <td style="font-weight:bold;color:var(--red);text-align:center;">${p.total}</td>
-    </tr>
-  `).join('');
+  tbodyPDVs.innerHTML = topPdvs.map(p => `<tr><td style="font-weight:600;font-size:12px;">${p.nombre}</td><td style="font-size:11px;">${p.loc}</td><td style="font-weight:bold;color:var(--red);text-align:center;">${p.total}</td></tr>`).join('');
 }
 
 let usuariosEnMemoria = [];
