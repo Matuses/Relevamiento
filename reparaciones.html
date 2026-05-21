@@ -204,7 +204,19 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
   .notif-item .notif-count{font-size:14px}
   .notif-item .notif-label{font-size:10px}
 }
-#vistaTabla,#vistaRetiro,#vistaHistorial{position:absolute !important;top:90px !important;left:0;right:0;bottom:0;background:var(--bg);z-index:50;overflow-y:auto}
+#vistaTabla,#vistaRetiro,#vistaHistorial,#vistaLogs{position:absolute !important;top:90px !important;left:0;right:0;bottom:0;background:var(--bg);z-index:50;overflow-y:auto}
+/* Timeline styles for Logs */
+.timeline{position:relative;max-width:800px;margin:0 auto;padding:20px 0;}
+.timeline::before{content:'';position:absolute;top:0;bottom:0;left:24px;width:2px;background:var(--border);}
+.timeline-item{position:relative;padding-left:60px;margin-bottom:24px;}
+.timeline-item:last-child{margin-bottom:0;}
+.timeline-icon{position:absolute;left:11px;top:0;width:28px;height:28px;border-radius:50%;background:var(--bg);border:2px solid var(--blue);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--blue);font-weight:bold;z-index:1;}
+.timeline-icon.form{border-color:var(--success);color:var(--success);}
+.timeline-icon.seg{border-color:var(--warn);color:var(--warn);}
+.timeline-content{background:white;border:1px solid var(--border);border-radius:12px;padding:12px 16px;box-shadow:var(--shadow);}
+.timeline-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:11px;color:var(--muted);}
+.timeline-header strong{color:var(--navy);font-size:13px;}
+.timeline-body{font-size:13px;color:var(--text);line-height:1.4;}
 </style>
 </head>
 <body>
@@ -222,6 +234,7 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
     <button class="tab-btn active" id="tabMapa" onclick="switchTab('mapa')">SOLICITUDES</button>
     <button class="tab-btn" id="tabHistorial" onclick="switchTab('historial')" style="display:none;">HISTORIAL</button>
     <button class="tab-btn" id="tabRetiro" onclick="switchTab('retiro')" style="display:none;">RETIRO / ENTREGA</button>
+    <button class="tab-btn" id="tabLogs" onclick="switchTab('logs')" style="display:none;">LOGS</button>
     <button class="tab-btn" onclick="doLogout()">SALIR</button>
 </div>
 
@@ -414,6 +427,19 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
   </div>
 </div>
 
+<div id="vistaLogs" style="display:none;padding:16px 24px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;max-width:800px;margin-left:auto;margin-right:auto;">
+    <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);">Auditoría del Sistema</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <input type="text" id="lFiltBusqueda" placeholder="🔍 Buscar OT o nombre..." oninput="renderLogs()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;color:var(--text);">
+      <input type="date" id="lFiltFecha" onchange="renderLogs()" style="padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;color:var(--text);">
+    </div>
+  </div>
+  <div class="timeline" id="logsTimeline">
+    <!-- Logs will be injected here -->
+  </div>
+</div>
+
 <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
   <div class="modal">
     <div class="modal-head">
@@ -499,7 +525,7 @@ const TOKEN_ESCRITURA='CLAVE_SECRETA_QUILMES_2026';
 function formatFechaAR(d){if(!d||isNaN(d))return '';return d.toLocaleDateString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',day:'2-digit',month:'2-digit',year:'numeric'})+' '+d.toLocaleTimeString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',hour:'2-digit',minute:'2-digit'});}
 
 const ESTADO_META={'resuelto':{label:'Resuelto',cls:'resuelto',icon:'✅'},'pendiente':{label:'Pendiente',cls:'pendiente',icon:'⏳'},'retiro':{label:'Retiro',cls:'retiro',icon:'📦'},'cliente-cerrado':{label:'Cliente Cerrado',cls:'retiro',icon:'🔴'},'':{label:'Pendiente',cls:'pendiente',icon:'⏳'}};
-let allData=[],seguimientos={},chatData={},historialData=[],filtered=[],leafMap=null,markers=[],modalLeaf=null;
+let allData=[],seguimientos={},seguimientosRaw=[],chatData={},historialData=[],filtered=[],leafMap=null,markers=[],modalLeaf=null;
 let diasCargados=30,ordenDescendente=true;
 
 function fixCoord(val){if(!val)return '';let s=val.toString().replace(/,/g,'.');let dotCount=(s.match(/\./g)||[]).length;if(dotCount>1)s=s.replace(/\./g,'');let n=parseFloat(s);if(isNaN(n))return '';if(Math.abs(n)>1000)n=n/1000000;return n.toString();}
@@ -594,13 +620,18 @@ function switchTab(tab){
   document.getElementById('tabMapa').classList.toggle('active',tab==='mapa');
   document.getElementById('tabHistorial').classList.toggle('active',tab==='historial');
   document.getElementById('tabRetiro').classList.toggle('active',tab==='retiro');
+  if(document.getElementById('tabLogs')) document.getElementById('tabLogs').classList.toggle('active',tab==='logs');
+  
   document.querySelector('.filters-bar').style.display=tab==='mapa'?'':'none';
   document.querySelector('.main').style.display=tab==='mapa'?'':'none';
   document.getElementById('vistaTabla').style.display='none';
   document.getElementById('vistaHistorial').style.display=tab==='historial'?'block':'none';
   document.getElementById('vistaRetiro').style.display=tab==='retiro'?'block':'none';
+  if(document.getElementById('vistaLogs')) document.getElementById('vistaLogs').style.display=tab==='logs'?'block':'none';
+  
   if(tab==='historial')renderHistorial();
   if(tab==='retiro')renderTablaRetiro();
+  if(tab==='logs')renderLogs();
   if(leafMap)setTimeout(()=>leafMap.invalidateSize(),50);
 }
 
@@ -669,6 +700,7 @@ async function loadData(){
     const data=await response.json();
     if(!data.ok){document.getElementById('registrosList').innerHTML=`<div class="empty-state"><div class="ico">🚨</div><p style="color:#DC2626;font-weight:bold;">Error de autorización.</p></div>`;return;}
     allData=parseRegistros(data.registros);
+    seguimientosRaw = data.seguimientos || [];
     seguimientos=parseSeguimientos(data.seguimientos);
     chatData=parseChat(data.chat||[]);
     historialData=parseHistorial(data.historial||[]);
@@ -785,7 +817,7 @@ function populateFilter(){
   const tp=document.getElementById('tFiltPromotor');if(tp)tp.innerHTML='<option value="">Todos</option>'+names.map(n=>`<option value="${n}">${n}</option>`).join('');
   const localidades=[...new Set(allData.map(r=>r.localidad).filter(Boolean))].sort();
   const ddLoc=document.getElementById('mfLocalidadDropdown');if(ddLoc)ddLoc.innerHTML=localidades.map(l=>`<label class="multi-filter-option"><input type="checkbox" value="${l}" onchange="applyFilters()"> ${l}</label>`).join('');
-  if(currentRole==='trade'||currentRole==='supervisor'){document.getElementById('tabBar').style.display='flex';document.getElementById('tabHistorial').style.display='';document.getElementById('tabRetiro').style.display='';}
+  if(currentRole==='trade'||currentRole==='supervisor'){document.getElementById('tabBar').style.display='flex';document.getElementById('tabHistorial').style.display='';document.getElementById('tabRetiro').style.display='';document.getElementById('tabLogs').style.display='';}
   if(currentRole==='tecnico'){document.getElementById('tabBar').style.display='flex';document.getElementById('tabHistorial').style.display='';}
   if(currentRole==='tecnico'&&window.innerWidth<=900){document.querySelectorAll('.filters-bar .filter-field').forEach((f,i)=>{if(i>0)f.style.display='none';});document.querySelectorAll('.filter-sep').forEach(s=>s.style.display='none');const btnClear=document.querySelector('.btn-clear');if(btnClear)btnClear.style.display='none';}
 }
@@ -819,6 +851,20 @@ function applyFilters(ordenInteligente){
     const eKey=getEstadoKey(r.ot,r.cliente);
     if(estadosSeleccionados.length>0){if(!estadosSeleccionados.includes(eKey))return false;}
     else{if(eKey==='resuelto'||eKey==='retiro'||eKey==='cliente-cerrado')return false;}
+
+    // Anti-duplicados: Ocultar OTs obsoletas (creadas ANTES de que el técnico resolviera otra OT del mismo cliente)
+    if(eKey !== 'resuelto' && eKey !== 'retiro' && eKey !== 'cliente-cerrado' && r.cliente) {
+      const cliKey = r.cliente.toString().trim();
+      const currTs = r.timestamp ? new Date(r.timestamp) : new Date(0);
+      const segVals = Object.values(seguimientos);
+      for(let i=0; i<segVals.length; i++){
+        if(segVals[i].cli === cliKey && (segVals[i].estado||'').toLowerCase() === 'resuelto') {
+          const resTs = segVals[i].ts ? new Date(segVals[i].ts) : new Date(0);
+          if(resTs > currTs) return false; // Es obsoleta, ya fue cubierta por una visita posterior
+        }
+      }
+    }
+
     if(prioridadesSeleccionadas.length>0){const priA=getPrioridadAprobada(r.ot,r.cliente),priS=getPrioridadSugerida(r.ot,r.cliente),priActual=priA||priS||'sin-prioridad';if(!prioridadesSeleccionadas.includes(priActual))return false;}
     if(currentRole==='tecnico'&&!getPrioridadAprobada(r.ot,r.cliente))return false;
     if((desde||hasta)&&r.ts){const d=new Date(r.ts);if(desde&&d<new Date(desde))return false;if(hasta&&d>new Date(hasta+'T23:59:59'))return false;}
@@ -870,10 +916,15 @@ function buildRegItem(r,onclickAttr){
   if(r.cliente) {
     const cliKey = r.cliente.toString().trim();
     const currOt = r.ot ? r.ot.toString().trim() : '';
+    const currTs = r.timestamp ? new Date(r.timestamp) : new Date(0);
     const segVals = Object.values(seguimientos);
     for(let i=0; i<segVals.length; i++){
       if(segVals[i].cli === cliKey && segVals[i].ot !== currOt && (segVals[i].estado||'').toLowerCase() === 'resuelto') {
-        esReincidencia = true; break;
+        const resTs = segVals[i].ts ? new Date(segVals[i].ts) : new Date(0);
+        // Sólo es reincidencia si la nueva OT se cargó DESPUÉS de haber resuelto la anterior
+        if(currTs > resTs) {
+          esReincidencia = true; break;
+        }
       }
     }
   }
@@ -1042,6 +1093,117 @@ function centrarEnUbicacion() {
       weight: 3, fillOpacity: 1
     }).addTo(leafMap).bindPopup('📍 Tu ubicación').openPopup();
   }, null, {enableHighAccuracy: true, timeout: 10000});
+}
+
+function generarLogs() {
+  const eventos = [];
+  
+  // 1. Creaciones de OT (desde allData)
+  allData.forEach(r => {
+    if(!r.timestamp) return;
+    eventos.push({
+      tipo: 'form',
+      ts: new Date(r.timestamp),
+      fechaFormato: r.fecha || formatFechaAR(new Date(r.timestamp)),
+      ot: r.ot || '—',
+      cliente: r.cliente || '—',
+      autor: r.nombre || 'Desconocido',
+      msg: `Cargó una nueva OT para el cliente: <strong>${r.cliente || '—'}</strong>`
+    });
+  });
+
+  // 2. Eventos de Seguimientos (desde seguimientosRaw)
+  if(seguimientosRaw && seguimientosRaw.length > 1) {
+    const h = seguimientosRaw[0].map(s=>(s||'').toString().trim().toLowerCase());
+    const col=n=>h.findIndex(s=>s.includes(n));
+    const iTs=col('timestamp'),iOt=col('ot'),iCli=col('cliente'),iEst=col('estado'),iCom=col('comentario'),iTec=col('tecnico'),iPriApr=col('prioridad_aprobada'),iAprPor=col('aprobado_por');
+    
+    seguimientosRaw.slice(1).forEach(c => {
+      const tsRaw = (c[iTs]||'').toString();
+      if(!tsRaw) return;
+      const ts = new Date(tsRaw);
+      if(isNaN(ts)) return;
+      
+      const estado = (c[iEst]||'').toString().trim();
+      const pri = (c[iPriApr]||'').toString().trim();
+      const tecnico = (c[iTec]||'').toString().trim();
+      const aprobadoPor = (c[iAprPor]||'').toString().trim();
+      const comentario = (c[iCom]||'').toString().trim();
+      
+      let autor = '';
+      let msg = '';
+      
+      if(estado) {
+        autor = tecnico || 'Técnico';
+        msg = `Cambió el estado a <strong>${estado}</strong>`;
+        if(comentario) msg += `<br><small style="color:var(--muted)">Comentario: ${comentario}</small>`;
+      } else if (pri) {
+        autor = aprobadoPor || 'Supervisor/Trade';
+        msg = `Asignó <strong>Prioridad ${pri}</strong>`;
+      } else {
+        return; // Ignore empty updates
+      }
+      
+      eventos.push({
+        tipo: 'seg',
+        ts: ts,
+        fechaFormato: formatFechaAR(ts),
+        ot: (c[iOt]||'').toString().trim() || '—',
+        cliente: (c[iCli]||'').toString().trim() || '—',
+        autor: autor,
+        msg: msg
+      });
+    });
+  }
+  
+  // Sort descending
+  eventos.sort((a,b) => b.ts - a.ts);
+  return eventos;
+}
+
+function renderLogs() {
+  const container = document.getElementById('logsTimeline');
+  if(!container) return;
+  
+  const q = (document.getElementById('lFiltBusqueda').value || '').toLowerCase();
+  const dFiltro = document.getElementById('lFiltFecha').value; // YYYY-MM-DD
+  
+  const eventos = generarLogs();
+  
+  let html = '';
+  let count = 0;
+  
+  for(let ev of eventos) {
+    if(q && !ev.ot.toLowerCase().includes(q) && !ev.cliente.toLowerCase().includes(q) && !ev.autor.toLowerCase().includes(q)) continue;
+    if(dFiltro) {
+      const evDate = new Date(ev.ts.getTime() - (ev.ts.getTimezoneOffset() * 60000)).toISOString().slice(0,10);
+      if(evDate !== dFiltro) continue;
+    }
+    
+    const icon = ev.tipo === 'form' ? '📄' : '✏️';
+    
+    html += `
+    <div class="timeline-item">
+      <div class="timeline-icon ${ev.tipo}">${icon}</div>
+      <div class="timeline-content">
+        <div class="timeline-header">
+          <span><strong>${ev.autor}</strong> &bull; OT ${ev.ot}</span>
+          <span>${ev.fechaFormato}</span>
+        </div>
+        <div class="timeline-body">
+          ${ev.msg}
+        </div>
+      </div>
+    </div>`;
+    count++;
+    if(count > 200) break; // Limit to 200 items for performance
+  }
+  
+  if(count === 0) {
+    html = `<div style="text-align:center;color:var(--muted);padding:30px;">No se encontraron eventos.</div>`;
+  }
+  
+  container.innerHTML = html;
 }
 </script>
 </body>
