@@ -711,7 +711,7 @@ function filtrarDiaHoy(){
   if(filtroHoyActivo){
     ['mfFrecuencia','mfPrioridad'].forEach(id=>{const dd=document.getElementById(id+'Dropdown');if(dd)dd.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.checked=false);});
     const ddFrec=document.getElementById('mfFrecuenciaDropdown');if(ddFrec)ddFrec.querySelectorAll('input[type=checkbox]').forEach(cb=>{if(freqs.includes(cb.value.toUpperCase()))cb.checked=true;});
-    const ddPri=document.getElementById('mfPrioridadDropdown');if(ddPri)ddPri.querySelectorAll('input[type=checkbox]').forEach(cb=>{if(cb.value==='1'||cb.value==='2')cb.checked=true;});
+    // Ya no forzamos que sea solo prioridad 1 o 2, para que vea todas las visitas del dia
     if(btn)btn.classList.add('activo-hoy');applyFilters(true);
   }else{
     ['mfFrecuencia','mfPrioridad'].forEach(id=>{const dd=document.getElementById(id+'Dropdown');if(dd)dd.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.checked=false);});
@@ -726,20 +726,53 @@ function ordenarPorLocalidadYCercania(data){
   return resultado;
 }
 
+function checkFrecuenciaDia(frec, dia) {
+  if(!frec) return false;
+  const str = frec.toUpperCase().replace(/É/g, 'E').replace(/Á/g, 'A').replace(/Í/g, 'I');
+  if(dia===1 && (str.includes('LU')||str.includes('LUN'))) return true;
+  if(dia===2 && (str.includes('MA')||str.includes('MAR'))) return true;
+  if(dia===3 && (str.includes('MI')||str.includes('MIE'))) return true;
+  if(dia===4 && (str.includes('JU')||str.includes('JUE'))) return true;
+  if(dia===5 && (str.includes('VI')||str.includes('VIE'))) return true;
+  if(dia===6 && (str.includes('SA')||str.includes('SAB'))) return true;
+  return false;
+}
+
 function updateNotificaciones(){
   const panel=document.getElementById('notifPanel');if(!panel)return;panel.style.display='flex';
   const dia=new Date().getDay(),freqsHoy=FREQ_DIA[dia]||[];
   let countVerde;
-  if(currentRole==='tecnico'&&freqsHoy.length){countVerde=filtered.filter(r=>{const eKey=getEstadoKey(r.ot,r.cliente);if(eKey==='resuelto'||eKey==='retiro'||eKey==='cliente-cerrado')return false;const pri=getPrioridadAprobada(r.ot,r.cliente)||getPrioridadSugerida(r.ot,r.cliente),frec=(r.frecuencia||'').toUpperCase().trim();return(pri==='1'||pri==='2')&&freqsHoy.includes(frec);}).length;}
-  else{countVerde=filtered.filter(r=>{const eKey=getEstadoKey(r.ot,r.cliente);if(eKey==='resuelto'||eKey==='retiro'||eKey==='cliente-cerrado')return false;const pri=getPrioridadAprobada(r.ot,r.cliente)||getPrioridadSugerida(r.ot,r.cliente);return pri==='1'||pri==='2';}).length;}
+  if(currentRole==='tecnico'&&freqsHoy.length){
+    countVerde=filtered.filter(r=>{
+      const eKey=getEstadoKey(r.ot,r.cliente);
+      if(eKey==='resuelto'||eKey==='retiro'||eKey==='cliente-cerrado')return false;
+      return checkFrecuenciaDia(r.frecuencia, dia);
+    }).length;
+  } else {
+    countVerde=filtered.filter(r=>{
+      const eKey=getEstadoKey(r.ot,r.cliente);
+      if(eKey==='resuelto'||eKey==='retiro'||eKey==='cliente-cerrado')return false;
+      const pri=getPrioridadAprobada(r.ot,r.cliente)||getPrioridadSugerida(r.ot,r.cliente);
+      return pri==='1'||pri==='2';
+    }).length;
+  }
   const boxAlta=document.getElementById('notifPrioridadAlta');if(boxAlta)boxAlta.textContent=countVerde;
   let countAmarillo=0;const labelAmarillo=document.querySelector('.notif-yellow .notif-label'),boxSin=document.getElementById('notifSinPrioridad');
-  if(currentRole==='tecnico'||currentRole==='trade'){if(labelAmarillo)labelAmarillo.textContent='Pendientes (Totales)';countAmarillo=filtered.filter(r=>{const eKey=getEstadoKey(r.ot,r.cliente);return eKey!=='resuelto'&&eKey!=='retiro'&&eKey!=='cliente-cerrado';}).length;}
-  else{if(labelAmarillo)labelAmarillo.textContent='Sin prioridad asignada';countAmarillo=filtered.filter(r=>{const eKey=getEstadoKey(r.ot,r.cliente);if(eKey==='resuelto'||eKey==='retiro'||eKey==='cliente-cerrado')return false;return !getPrioridadAprobada(r.ot,r.cliente)&&!getPrioridadSugerida(r.ot,r.cliente);}).length;}
+  if(currentRole==='tecnico'||currentRole==='trade'){
+    if(labelAmarillo)labelAmarillo.textContent='Pendientes (Totales)';
+    countAmarillo=filtered.filter(r=>{const eKey=getEstadoKey(r.ot,r.cliente);return eKey!=='resuelto'&&eKey!=='retiro'&&eKey!=='cliente-cerrado';}).length;
+  } else {
+    if(labelAmarillo)labelAmarillo.textContent='Sin prioridad asignada';
+    countAmarillo=filtered.filter(r=>{const eKey=getEstadoKey(r.ot,r.cliente);if(eKey==='resuelto'||eKey==='retiro'||eKey==='cliente-cerrado')return false;return !getPrioridadAprobada(r.ot,r.cliente)&&!getPrioridadSugerida(r.ot,r.cliente);}).length;
+  }
   if(boxSin)boxSin.textContent=countAmarillo;
   const vencidos=filtered.filter(r=>{const eKey=getEstadoKey(r.ot,r.cliente);if(eKey==='resuelto'||eKey==='retiro'||eKey==='cliente-cerrado')return false;if(!r.ts)return false;return(Date.now()-new Date(r.ts))/86400000>21;}).length;
   const boxVenc=document.getElementById('notifVencidos');if(boxVenc)boxVenc.textContent=vencidos;
-  if(currentRole==='tecnico'){const label=document.getElementById('notifBtnLabel'),diaLabel=DIA_LABEL[dia];if(label&&freqsHoy.length)label.textContent=`${countVerde} OT${countVerde!==1?'s':''} · Frecuencia ${diaLabel}`;else if(label)label.textContent=dia===0?'Sin visitas hoy (Domingo)':'OTs activas (P1 y P2)';}
+  if(currentRole==='tecnico'){
+    const label=document.getElementById('notifBtnLabel'),diaLabel=DIA_LABEL[dia];
+    if(label&&freqsHoy.length)label.textContent=`${countVerde} OT${countVerde!==1?'s':''} · Frecuencia ${diaLabel}`;
+    else if(label)label.textContent=dia===0?'Sin visitas hoy (Domingo)':'OTs activas';
+  }
 }
 
 function toggleSortRegistros(){ordenDescendente=!ordenDescendente;const btn=document.getElementById('btnSortRegistros');if(btn)btn.innerHTML=ordenDescendente?'🔽 Más recientes':'🔼 Más antiguos';renderList(filtered);}
