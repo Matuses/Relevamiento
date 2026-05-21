@@ -204,7 +204,7 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
   .notif-item .notif-count{font-size:14px}
   .notif-item .notif-label{font-size:10px}
 }
-#vistaTabla,#vistaRetiro,#vistaHistorial,#vistaLogs{position:absolute !important;top:90px !important;left:0;right:0;bottom:0;background:var(--bg);z-index:50;overflow-y:auto}
+#vistaTabla,#vistaRetiro,#vistaHistorial,#vistaLogs,#vistaDashboard,#vistaUsuarios{position:absolute !important;top:90px !important;left:0;right:0;bottom:0;background:var(--bg);z-index:50;overflow-y:auto}
 /* Timeline styles for Logs */
 .timeline{position:relative;max-width:800px;margin:0 auto;padding:20px 0;}
 .timeline::before{content:'';position:absolute;top:0;bottom:0;left:24px;width:2px;background:var(--border);}
@@ -218,6 +218,7 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
 .timeline-header strong{color:var(--navy);font-size:13px;}
 .timeline-body{font-size:13px;color:var(--text);line-height:1.4;}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -231,10 +232,12 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
   </div>
 
   <div class="tabbar-wrap" id="tabBar" style="display:none;">
+    <button class="tab-btn" id="tabDashboard" onclick="switchTab('dashboard')" style="display:none;">DASHBOARD</button>
     <button class="tab-btn active" id="tabMapa" onclick="switchTab('mapa')">SOLICITUDES</button>
     <button class="tab-btn" id="tabHistorial" onclick="switchTab('historial')" style="display:none;">HISTORIAL</button>
     <button class="tab-btn" id="tabRetiro" onclick="switchTab('retiro')" style="display:none;">RETIRO / ENTREGA</button>
     <button class="tab-btn" id="tabLogs" onclick="switchTab('logs')" style="display:none;">LOGS</button>
+    <button class="tab-btn" id="tabUsuarios" onclick="switchTab('usuarios')" style="display:none;">USUARIOS</button>
     <button class="tab-btn" onclick="doLogout()">SALIR</button>
 </div>
 
@@ -440,6 +443,104 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
   </div>
 </div>
 
+<div id="vistaDashboard" style="display:none;padding:16px 24px;background:#F8FAFC;">
+  <div style="font-size:16px;font-weight:800;color:var(--navy);margin-bottom:20px;text-transform:uppercase;letter-spacing:0.05em;">Panel de Auditoría y KPIs</div>
+  
+  <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));gap:20px;margin-bottom:20px;">
+    <div style="background:white;border:1px solid var(--border);border-radius:12px;padding:16px;box-shadow:var(--shadow);">
+      <div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:10px;text-align:center;">ESTADO DE SOLICITUDES</div>
+      <div style="height:250px;position:relative;"><canvas id="chartEstados"></canvas></div>
+    </div>
+    
+    <div style="background:white;border:1px solid var(--border);border-radius:12px;padding:16px;box-shadow:var(--shadow);">
+      <div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:10px;text-align:center;">VOLUMEN POR MARCA</div>
+      <div style="height:250px;position:relative;"><canvas id="chartMarcas"></canvas></div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));gap:20px;margin-bottom:20px;">
+    <div style="background:white;border:1px solid var(--border);border-radius:12px;padding:16px;box-shadow:var(--shadow);">
+      <div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:10px;text-align:center;">PRODUCTIVIDAD POR TÉCNICO</div>
+      <div style="height:250px;position:relative;"><canvas id="chartTecnicos"></canvas></div>
+    </div>
+    
+    <div style="background:white;border:1px solid var(--border);border-radius:12px;padding:16px;box-shadow:var(--shadow);">
+      <div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:10px;text-align:center;">INCIDENCIAS POR PRIORIDAD</div>
+      <div style="height:250px;position:relative;"><canvas id="chartPrioridades"></canvas></div>
+    </div>
+  </div>
+
+  <div style="background:white;border:1px solid var(--border);border-radius:12px;padding:16px;box-shadow:var(--shadow);">
+    <div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:10px;text-align:center;">TOP 10 PDVs CRÍTICOS</div>
+    <div style="overflow-x:auto;">
+      <table class="excel-table" style="width:100%;">
+        <thead><tr><th>PDV / Cliente</th><th>Localidad</th><th>Total Reportes</th></tr></thead>
+        <tbody id="tablaPDVs"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div id="vistaUsuarios" style="display:none;padding:16px 24px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <div style="font-size:16px;font-weight:800;color:var(--navy);text-transform:uppercase;letter-spacing:0.05em;">Gestión de Usuarios</div>
+    <button onclick="abrirModalABM()" style="background:var(--success);color:white;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">+ Nuevo Usuario</button>
+  </div>
+  
+  <div style="background:white;border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;">
+    <div style="overflow-x:auto;">
+      <table class="excel-table" style="width:100%;">
+        <thead><tr><th>Usuario</th><th>Rol</th><th>Promotores Asociados</th><th>Estado</th><th>Acciones</th></tr></thead>
+        <tbody id="tablaUsuariosBody">
+          <tr><td colspan="5" style="text-align:center;padding:30px;color:var(--muted);">Cargando usuarios...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal ABM Usuario -->
+<div class="modal-overlay" id="modalUserOverlay" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="modal" style="max-width:400px;padding:24px;">
+    <div style="font-size:18px;font-weight:800;color:var(--navy);margin-bottom:16px;" id="abmTitle">Nuevo Usuario</div>
+    <input type="hidden" id="abmIsEdit" value="0">
+    
+    <div style="margin-bottom:12px;">
+      <label style="display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:4px;">USUARIO</label>
+      <input type="text" id="abmUsuario" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;text-transform:uppercase;">
+    </div>
+    <div style="margin-bottom:12px;">
+      <label style="display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:4px;">CONTRASEÑA (Dejar vacío para no cambiar)</label>
+      <input type="password" id="abmPassword" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;">
+    </div>
+    <div style="margin-bottom:12px;">
+      <label style="display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:4px;">ROL</label>
+      <select id="abmRol" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;">
+        <option value="tecnico">Técnico</option>
+        <option value="supervisor">Supervisor</option>
+        <option value="trade">Trade</option>
+        <option value="auditor">Auditor (Jefe Ventas)</option>
+      </select>
+    </div>
+    <div style="margin-bottom:12px;">
+      <label style="display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:4px;">PROMOTORES (Solo Supervisor)</label>
+      <input type="text" id="abmPromotores" placeholder="Ej: JUAN PEREZ, LUIS GOMEZ" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;text-transform:uppercase;">
+    </div>
+    <div style="margin-bottom:20px;">
+      <label style="display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:4px;">ESTADO</label>
+      <select id="abmActivo" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;">
+        <option value="SI">ACTIVO</option>
+        <option value="NO">INACTIVO</option>
+      </select>
+    </div>
+    
+    <div style="display:flex;gap:10px;">
+      <button onclick="document.getElementById('modalUserOverlay').classList.remove('show')" style="flex:1;padding:12px;border:1px solid var(--border);background:white;border-radius:8px;font-weight:700;cursor:pointer;">Cancelar</button>
+      <button onclick="guardarUsuario()" id="abmBtnSave" style="flex:1;padding:12px;border:none;background:var(--blue);color:white;border-radius:8px;font-weight:700;cursor:pointer;">Guardar</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
   <div class="modal">
     <div class="modal-head">
@@ -621,6 +722,8 @@ function switchTab(tab){
   document.getElementById('tabHistorial').classList.toggle('active',tab==='historial');
   document.getElementById('tabRetiro').classList.toggle('active',tab==='retiro');
   if(document.getElementById('tabLogs')) document.getElementById('tabLogs').classList.toggle('active',tab==='logs');
+  if(document.getElementById('tabDashboard')) document.getElementById('tabDashboard').classList.toggle('active',tab==='dashboard');
+  if(document.getElementById('tabUsuarios')) document.getElementById('tabUsuarios').classList.toggle('active',tab==='usuarios');
   
   document.querySelector('.filters-bar').style.display=tab==='mapa'?'':'none';
   document.querySelector('.main').style.display=tab==='mapa'?'':'none';
@@ -628,10 +731,14 @@ function switchTab(tab){
   document.getElementById('vistaHistorial').style.display=tab==='historial'?'block':'none';
   document.getElementById('vistaRetiro').style.display=tab==='retiro'?'block':'none';
   if(document.getElementById('vistaLogs')) document.getElementById('vistaLogs').style.display=tab==='logs'?'block':'none';
+  if(document.getElementById('vistaDashboard')) document.getElementById('vistaDashboard').style.display=tab==='dashboard'?'block':'none';
+  if(document.getElementById('vistaUsuarios')) document.getElementById('vistaUsuarios').style.display=tab==='usuarios'?'block':'none';
   
   if(tab==='historial')renderHistorial();
   if(tab==='retiro')renderTablaRetiro();
   if(tab==='logs')renderLogs();
+  if(tab==='dashboard')renderDashboard();
+  if(tab==='usuarios')cargarUsuarios();
   if(leafMap)setTimeout(()=>leafMap.invalidateSize(),50);
 }
 
@@ -819,6 +926,7 @@ function populateFilter(){
   const ddLoc=document.getElementById('mfLocalidadDropdown');if(ddLoc)ddLoc.innerHTML=localidades.map(l=>`<label class="multi-filter-option"><input type="checkbox" value="${l}" onchange="applyFilters()"> ${l}</label>`).join('');
   if(currentRole==='trade'||currentRole==='supervisor'){document.getElementById('tabBar').style.display='flex';document.getElementById('tabHistorial').style.display='';document.getElementById('tabRetiro').style.display='';document.getElementById('tabLogs').style.display='';}
   if(currentRole==='tecnico'){document.getElementById('tabBar').style.display='flex';document.getElementById('tabHistorial').style.display='';}
+  if(currentRole==='auditor'){document.getElementById('tabBar').style.display='flex';document.getElementById('tabDashboard').style.display='';document.getElementById('tabUsuarios').style.display='';document.getElementById('tabLogs').style.display='';document.getElementById('tabHistorial').style.display='';document.getElementById('tabRetiro').style.display='';switchTab('dashboard');}
   if(currentRole==='tecnico'&&window.innerWidth<=900){document.querySelectorAll('.filters-bar .filter-field').forEach((f,i)=>{if(i>0)f.style.display='none';});document.querySelectorAll('.filter-sep').forEach(s=>s.style.display='none');const btnClear=document.querySelector('.btn-clear');if(btnClear)btnClear.style.display='none';}
 }
 
@@ -1204,6 +1312,228 @@ function renderLogs() {
   }
   
   container.innerHTML = html;
+}
+let chartEstadosInstance, chartMarcasInstance, chartTecnicosInstance, chartPrioridadesInstance;
+
+function renderDashboard() {
+  if (currentRole !== 'auditor') return;
+
+  // 1. Calculate Data
+  let activas = 0, resueltas = 0, retiro = 0;
+  let marcasCount = {};
+  let tecnicosCount = {};
+  let pdvCount = {};
+  let prioridadesCount = {};
+
+  // For Activas, Marcas, Prioridades, Top PDVs
+  allData.forEach(r => {
+    // Determine status from seguimientos or default to pendiente
+    const seg = getSegByOt(r.ot, r.cliente);
+    const estado = (seg && seg.estado) ? seg.estado.toLowerCase() : 'pendiente';
+    
+    if (estado.includes('retiro')) retiro++;
+    else if (estado === 'resuelto') resueltas++;
+    else activas++;
+
+    // Marca
+    const marca = (r.marca || 'Sin Marca').toUpperCase().trim();
+    marcasCount[marca] = (marcasCount[marca] || 0) + 1;
+
+    // Prioridad
+    const pri = (seg && seg.prioridad_aprobada) ? seg.prioridad_aprobada.toString().trim() : 'Sin Asignar';
+    prioridadesCount[pri] = (prioridadesCount[pri] || 0) + 1;
+
+    // Top PDV (solo de OTs reportadas)
+    const pdv = r.cliente || 'Desconocido';
+    if (!pdvCount[pdv]) pdvCount[pdv] = { total: 0, loc: r.localidad || '-' };
+    pdvCount[pdv].total++;
+  });
+
+  // Calculate Productivity (Técnicos) from historialData (which contains resolved items)
+  historialData.forEach(r => {
+    const tec = (r.tecnico || 'Desconocido').toUpperCase().trim();
+    tecnicosCount[tec] = (tecnicosCount[tec] || 0) + 1;
+    resueltas++; // Ensure historial counts towards resolved if not in allData anymore
+  });
+
+  // 2. Render Charts
+  const commonOptions = { responsive: true, maintainAspectRatio: false };
+
+  // Chart Estados
+  if (chartEstadosInstance) chartEstadosInstance.destroy();
+  chartEstadosInstance = new Chart(document.getElementById('chartEstados'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Activas/Pendientes', 'Resueltas', 'En Retiro'],
+      datasets: [{
+        data: [activas, resueltas, retiro],
+        backgroundColor: ['#EAB308', '#22C55E', '#8B5CF6'],
+        borderWidth: 0
+      }]
+    },
+    options: { ...commonOptions, plugins: { legend: { position: 'bottom' } } }
+  });
+
+  // Chart Marcas
+  if (chartMarcasInstance) chartMarcasInstance.destroy();
+  const marcasLabels = Object.keys(marcasCount).sort((a,b) => marcasCount[b] - marcasCount[a]).slice(0, 10);
+  chartMarcasInstance = new Chart(document.getElementById('chartMarcas'), {
+    type: 'bar',
+    data: {
+      labels: marcasLabels,
+      datasets: [{
+        label: 'OTs Reportadas',
+        data: marcasLabels.map(l => marcasCount[l]),
+        backgroundColor: '#3B82F6'
+      }]
+    },
+    options: { ...commonOptions, plugins: { legend: { display: false } } }
+  });
+
+  // Chart Tecnicos
+  if (chartTecnicosInstance) chartTecnicosInstance.destroy();
+  const tecLabels = Object.keys(tecnicosCount).sort((a,b) => tecnicosCount[b] - tecnicosCount[a]).slice(0, 10);
+  chartTecnicosInstance = new Chart(document.getElementById('chartTecnicos'), {
+    type: 'bar',
+    data: {
+      labels: tecLabels,
+      datasets: [{
+        label: 'OTs Resueltas',
+        data: tecLabels.map(l => tecnicosCount[l]),
+        backgroundColor: '#10B981'
+      }]
+    },
+    options: { ...commonOptions, indexAxis: 'y', plugins: { legend: { display: false } } }
+  });
+
+  // Chart Prioridades
+  if (chartPrioridadesInstance) chartPrioridadesInstance.destroy();
+  chartPrioridadesInstance = new Chart(document.getElementById('chartPrioridades'), {
+    type: 'pie',
+    data: {
+      labels: Object.keys(prioridadesCount),
+      datasets: [{
+        data: Object.values(prioridadesCount),
+        backgroundColor: ['#CBD5E1', '#F87171', '#FCA5A5', '#FECACA', '#FEF2F2', '#64748B']
+      }]
+    },
+    options: { ...commonOptions, plugins: { legend: { position: 'right' } } }
+  });
+
+  // Render Top PDVs Table
+  const topPdvs = Object.keys(pdvCount).map(k => ({ nombre: k, ...pdvCount[k] }))
+    .sort((a, b) => b.total - a.total).slice(0, 10);
+  
+  const tbodyPDVs = document.getElementById('tablaPDVs');
+  tbodyPDVs.innerHTML = topPdvs.map(p => `
+    <tr>
+      <td style="font-weight:600;font-size:12px;">${p.nombre}</td>
+      <td style="font-size:11px;">${p.loc}</td>
+      <td style="font-weight:bold;color:var(--red);text-align:center;">${p.total}</td>
+    </tr>
+  `).join('');
+}
+
+let usuariosEnMemoria = [];
+function cargarUsuarios() {
+  const tbody = document.getElementById('tablaUsuariosBody');
+  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--muted);">Cargando usuarios...</td></tr>';
+  
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'get_usuarios', usuario: currentUser, userHash: currentUserHash })
+  })
+  .then(r => r.json())
+  .then(res => {
+    if (!res.ok) { tbody.innerHTML = `<tr><td colspan="5" style="color:red;text-align:center;">Error: ${res.error}</td></tr>`; return; }
+    usuariosEnMemoria = res.usuarios;
+    renderTablaUsuarios();
+  })
+  .catch(e => { tbody.innerHTML = `<tr><td colspan="5" style="color:red;text-align:center;">Error de red</td></tr>`; });
+}
+
+function renderTablaUsuarios() {
+  const tbody = document.getElementById('tablaUsuariosBody');
+  if (!usuariosEnMemoria.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--muted);">No hay usuarios registrados</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = usuariosEnMemoria.map((u, idx) => `
+    <tr>
+      <td style="font-weight:700;">${u.usuario}</td>
+      <td style="text-transform:uppercase;font-size:11px;">${u.rol}</td>
+      <td style="font-size:11px;color:var(--muted);">${u.promotores || '-'}</td>
+      <td>
+        <span style="display:inline-block;padding:4px 8px;border-radius:4px;font-size:10px;font-weight:bold;background:${u.activo==='SI'?'var(--success)':'var(--red)'};color:white;">
+          ${u.activo==='SI'?'ACTIVO':'INACTIVO'}
+        </span>
+      </td>
+      <td>
+        <button onclick="editUsuario(${idx})" style="background:var(--blue);color:white;border:none;padding:6px 12px;border-radius:6px;font-size:11px;font-weight:bold;cursor:pointer;">Editar</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function abrirModalABM() {
+  document.getElementById('abmTitle').textContent = 'Nuevo Usuario';
+  document.getElementById('abmIsEdit').value = '0';
+  document.getElementById('abmUsuario').value = '';
+  document.getElementById('abmUsuario').disabled = false; // Allow editing user name on creation
+  document.getElementById('abmPassword').value = '';
+  document.getElementById('abmRol').value = 'tecnico';
+  document.getElementById('abmActivo').value = 'SI';
+  document.getElementById('abmPromotores').value = '';
+  document.getElementById('modalUserOverlay').classList.add('show');
+}
+
+function editUsuario(idx) {
+  const u = usuariosEnMemoria[idx];
+  document.getElementById('abmTitle').textContent = 'Editar Usuario';
+  document.getElementById('abmIsEdit').value = '1';
+  document.getElementById('abmUsuario').value = u.usuario;
+  document.getElementById('abmUsuario').disabled = true; // Block renaming to avoid key issues
+  document.getElementById('abmPassword').value = '';
+  document.getElementById('abmRol').value = u.rol;
+  document.getElementById('abmActivo').value = u.activo;
+  document.getElementById('abmPromotores').value = u.promotores || '';
+  document.getElementById('modalUserOverlay').classList.add('show');
+}
+
+function guardarUsuario() {
+  const btn = document.getElementById('abmBtnSave');
+  btn.textContent = 'Guardando...';
+  btn.disabled = true;
+  
+  const payload = {
+    action: 'save_usuario',
+    usuario: currentUser,
+    userHash: currentUserHash,
+    targetUser: document.getElementById('abmUsuario').value.toUpperCase().trim(),
+    targetPass: document.getElementById('abmPassword').value,
+    targetRol: document.getElementById('abmRol').value,
+    targetActivo: document.getElementById('abmActivo').value,
+    targetPromotores: document.getElementById('abmPromotores').value.toUpperCase().trim()
+  };
+  
+  fetch(SCRIPT_URL, { method:'POST', body:JSON.stringify(payload) })
+  .then(r=>r.json())
+  .then(res => {
+    btn.textContent = 'Guardar';
+    btn.disabled = false;
+    if(res.ok) {
+      document.getElementById('modalUserOverlay').classList.remove('show');
+      cargarUsuarios(); // Refresh table
+    } else {
+      alert("Error: " + res.error);
+    }
+  })
+  .catch(e => {
+    btn.textContent = 'Guardar';
+    btn.disabled = false;
+    alert("Error de conexión");
+  });
 }
 </script>
 </body>
