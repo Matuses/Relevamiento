@@ -803,7 +803,19 @@ function applyFilters(ordenInteligente){
     if(busqueda){const hayMatch=(r.ot||'').toLowerCase().includes(busqueda)||(r.cliente||'').toLowerCase().includes(busqueda)||(r.nombre||'').toLowerCase().includes(busqueda)||(r.localidad||'').toLowerCase().includes(busqueda)||(r.edf||'').toLowerCase().includes(busqueda);if(!hayMatch)return false;}
     if(promotoresSeleccionados.length>0&&!promotoresSeleccionados.map(x=>x.toUpperCase()).includes((r.nombre||'').toUpperCase()))return false;
     if(localidadesSeleccionadas.length>0&&!localidadesSeleccionadas.includes(r.localidad))return false;
-    if(frecuenciasSeleccionadas.length>0&&!frecuenciasSeleccionadas.includes((r.frecuencia||'').toUpperCase().trim()))return false;
+    if(frecuenciasSeleccionadas.length>0){
+      const fStr=(r.frecuencia||'').toUpperCase().replace(/É/g,'E').replace(/Á/g,'A').replace(/Í/g,'I');
+      const match=frecuenciasSeleccionadas.some(sel=>{
+        if(sel==='LU'||sel==='LUJU') return fStr.includes('LU')||fStr.includes('LUN');
+        if(sel==='MA'||sel==='MAVI') return fStr.includes('MA')||fStr.includes('MAR');
+        if(sel==='MI'||sel==='MISA') return fStr.includes('MI')||fStr.includes('MIE');
+        if(sel==='JU'||sel==='LUJU') return fStr.includes('JU')||fStr.includes('JUE');
+        if(sel==='VI'||sel==='MAVI') return fStr.includes('VI')||fStr.includes('VIE');
+        if(sel==='SA'||sel==='MISA') return fStr.includes('SA')||fStr.includes('SAB');
+        return fStr.includes(sel);
+      });
+      if(!match) return false;
+    }
     const eKey=getEstadoKey(r.ot,r.cliente);
     if(estadosSeleccionados.length>0){if(!estadosSeleccionados.includes(eKey))return false;}
     else{if(eKey==='resuelto'||eKey==='retiro'||eKey==='cliente-cerrado')return false;}
