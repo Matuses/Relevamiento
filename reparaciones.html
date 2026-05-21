@@ -1323,7 +1323,6 @@ let chartEstadosInstance, chartMarcasInstance, chartTecnicosInstance, chartPrior
 function renderDashboard() {
   if (currentRole !== 'auditor') return;
 
-  // 0. Aplicar Filtro Anti-Duplicados a allData para no sumar spam
   let dataLimpia = [...allData];
   dataLimpia.sort((a,b)=> new Date(b.timestamp||0) - new Date(a.timestamp||0));
   const unicos = [];
@@ -1348,12 +1347,12 @@ function renderDashboard() {
   });
   dataLimpia = unicos;
 
-  // 1. Recopilar Timelines de OTs para SLA
   const timelinePorOT = {};
   if(seguimientosRaw && seguimientosRaw.length > 1) {
     const h = seguimientosRaw[0].map(s=>(s||'').toString().trim().toLowerCase());
     const iOt = h.findIndex(x=>x.includes('ot'));
-    const iTs = h.findIndex(x=>x.includes('timestamp'));
+    const iTs = h.findIndex(x=>x === 'timestamp'); // Columna A
+    const iTecTs = h.findIndex(x=>x === 'tec_timestamp'); // Columna M
     const iEst = h.findIndex(x=>x.includes('estado'));
     let idxPri = h.findIndex(x=>x==='prioridad_aprobada');
     if(idxPri < 0) idxPri = h.findIndex(x=>x.includes('prioridad'));
@@ -1365,6 +1364,7 @@ function renderDashboard() {
         if(!timelinePorOT[ot]) timelinePorOT[ot] = [];
         timelinePorOT[ot].push({
           ts: new Date(row[iTs]).getTime(),
+          tecTs: (iTecTs >= 0 && row[iTecTs]) ? new Date(row[iTecTs]).getTime() : null,
           est: row[iEst].toString().toLowerCase().trim(),
           pri: idxPri>=0 ? row[idxPri].toString().trim() : ''
         });
@@ -1372,7 +1372,6 @@ function renderDashboard() {
     }
   }
 
-  // Variables
   let activas = 0, resueltas = 0, retiro = 0;
   let marcasCount = {}, pdvCount = {}, prioridadesCount = {};
 
@@ -1385,11 +1384,15 @@ function renderDashboard() {
   let creadasEsteMes = 0, creadasMesPasado = 0;
   let resueltasEsteMes = 0, resueltasMesPasado = 0;
 
-  let sumSuper = 0, countSuper = 0;
-  let sumTecnico = 0, countTecnico = 0;
-  let sumTotal = 0, countTotal = 0;
+  // SLA Stats Mes a Mes
+  let sumSuperEste = 0, countSuperEste = 0;
+  let sumTecnicoEste = 0, countTecnicoEste = 0;
+  let sumTotalEste = 0, countTotalEste = 0;
 
-  // Analizar Todas las OTs (Activas y Resueltas)
+  let sumSuperPasado = 0, countSuperPasado = 0;
+  let sumTecnicoPasado = 0, countTecnicoPasado = 0;
+  let sumTotalPasado = 0, countTotalPasado = 0;
+
   const otsConfiguradas = new Set();
   const procesarTiempos = (otId, baseTs) => {
     if(!otId || otsConfiguradas.has(otId)) return null;
@@ -1406,18 +1409,27 @@ function renderDashboard() {
     if(priEvent) T1 = priEvent.ts;
 
     const resEvent = tl.find(ev => ev.est === 'resuelto' || ev.est.includes('retiro'));
-    if(resEvent) T2 = resEvent.ts;
+    if(resEvent) T2 = resEvent.tecTs || resEvent.ts; // Usa Columna M si existe, sino Columna A
 
     const msToHs = (ms) => ms / (1000 * 60 * 60);
 
-    if (T1 && T1 >= T0) { sumSuper += msToHs(T1 - T0); countSuper++; }
-    if (T2 && T1 && T2 >= T1) { sumTecnico += msToHs(T2 - T1); countTecnico++; }
-    if (T2 && T0 && T2 >= T0) { sumTotal += msToHs(T2 - T0); countTotal++; }
+    // Solo calculamos promedios si existen TODOS los pasos y es coherente
+    if (T0 && T1 && T2 && T1 >= T0 && T2 >= T1) {
+      const resStr = new Date(T2).toISOString().slice(0, 7);
+      if (resStr === currentMonthStr) {
+        sumSuperEste += msToHs(T1 - T0); countSuperEste++;
+        sumTecnicoEste += msToHs(T2 - T1); countTecnicoEste++;
+        sumTotalEste += msToHs(T2 - T0); countTotalEste++;
+      } else if (resStr === prevMonthStr) {
+        sumSuperPasado += msToHs(T1 - T0); countSuperPasado++;
+        sumTecnicoPasado += msToHs(T2 - T1); countTecnicoPasado++;
+        sumTotalPasado += msToHs(T2 - T0); countTotalPasado++;
+      }
+    }
 
-    return T2; // Retorna fecha de resolución real
+    return T2; 
   };
 
-  // Recorrer Activas
   dataLimpia.forEach(r => {
     const seg = getSegByOt(r.ot, r.cliente);
     const estado = (seg && seg.estado) ? seg.estado.toLowerCase() : 'pendiente';
@@ -1445,7 +1457,6 @@ function renderDashboard() {
     procesarTiempos(r.ot, r.timestamp);
   });
 
-  // Recorrer Historial
   historialData.forEach(r => {
     resueltas++;
     if(r.ts) {
@@ -1456,24 +1467,24 @@ function renderDashboard() {
     
     const T2 = procesarTiempos(r.ot, r.ts);
     
+    // Si la OT tiene evento de resolución en seguimientos, usamos esa fecha para "Resueltas este mes"
+    // Ya NO hacemos un "else" usando r.ts (fecha de creación) porque eso inflaba la productividad al 100%
     if(T2) {
       const resStr = new Date(T2).toISOString().slice(0, 7);
       if(resStr === currentMonthStr) resueltasEsteMes++;
       else if(resStr === prevMonthStr) resueltasMesPasado++;
-    } else {
-      if(r.ts) {
-        const tsStr = new Date(r.ts).toISOString().slice(0, 7);
-        if(tsStr === currentMonthStr) resueltasEsteMes++;
-        else if(tsStr === prevMonthStr) resueltasMesPasado++;
-      }
     }
   });
 
-  const avgSuper = countSuper > 0 ? (sumSuper / countSuper) : 0;
-  const avgTecnico = countTecnico > 0 ? (sumTecnico / countTecnico) : 0;
-  const avgTotal = countTotal > 0 ? (sumTotal / countTotal) : 0;
+  // Calculate SLA Averages
+  const avgSuperEste = countSuperEste > 0 ? (sumSuperEste / countSuperEste) : 0;
+  const avgTecnicoEste = countTecnicoEste > 0 ? (sumTecnicoEste / countTecnicoEste) : 0;
+  const avgTotalEste = countTotalEste > 0 ? (sumTotalEste / countTotalEste) : 0;
 
-  // 2. Render Charts
+  const avgSuperPasado = countSuperPasado > 0 ? (sumSuperPasado / countSuperPasado) : 0;
+  const avgTecnicoPasado = countTecnicoPasado > 0 ? (sumTecnicoPasado / countTecnicoPasado) : 0;
+  const avgTotalPasado = countTotalPasado > 0 ? (sumTotalPasado / countTotalPasado) : 0;
+
   Chart.register(ChartDataLabels);
   const commonOptions = { 
     responsive: true, 
@@ -1556,20 +1567,28 @@ function renderDashboard() {
   chartTiemposInstance = new Chart(document.getElementById('chartTiempos'), {
     type: 'bar',
     data: {
-      labels: ['Demora Supervisor (Creación a Prioridad)', 'Demora Técnico (Prioridad a Resolución)', 'Demora Total (Creación a Resolución)'],
-      datasets: [{
-        label: 'Promedio',
-        data: [avgSuper, avgTecnico, avgTotal],
-        backgroundColor: ['#6366F1', '#14B8A6', '#F59E0B'],
-        borderRadius: 6
-      }]
+      labels: ['Supervisor (Aprobación)', 'Técnico (Resolución)', 'Demora Total'],
+      datasets: [
+        {
+          label: 'Mes Pasado',
+          data: [avgSuperPasado, avgTecnicoPasado, avgTotalPasado],
+          backgroundColor: '#94A3B8',
+          borderRadius: 6
+        },
+        {
+          label: 'Este Mes',
+          data: [avgSuperEste, avgTecnicoEste, avgTotalEste],
+          backgroundColor: '#6366F1',
+          borderRadius: 6
+        }
+      ]
     },
     options: { 
       ...commonOptions,
       indexAxis: 'y',
       plugins: { 
         ...commonOptions.plugins, 
-        legend: { display: false }, 
+        legend: { position: 'bottom' }, 
         datalabels: { 
           color: '#fff', 
           anchor: 'center', 
