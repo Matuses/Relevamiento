@@ -219,6 +219,7 @@ input,select,textarea,button{-webkit-tap-highlight-color:transparent;touch-actio
 .timeline-body{font-size:13px;color:var(--text);line-height:1.4;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
 </head>
 <body>
 
@@ -1318,48 +1319,133 @@ let chartEstadosInstance, chartMarcasInstance, chartTecnicosInstance, chartPrior
 function renderDashboard() {
   if (currentRole !== 'auditor') return;
 
-  // 1. Calculate Data
+  // 0. Aplicar Filtro Anti-Duplicados a allData para no sumar spam
+  let dataLimpia = [...allData];
+  dataLimpia.sort((a,b)=> new Date(b.timestamp||0) - new Date(a.timestamp||0));
+  const unicos = [];
+  const clientVisto = new Set();
+  
+  // Ocultar obsoletos si ya hay resueltos más nuevos (Regla Hidra)
+  const hidraMap = new Map();
+  historialData.forEach(h => {
+    if(!h.cliente) return;
+    const c = h.cliente.toString().trim().toUpperCase();
+    const hTs = new Date(h.ts||0).getTime();
+    if(!hidraMap.has(c) || hidraMap.get(c) < hTs) hidraMap.set(c, hTs);
+  });
+
+  dataLimpia.forEach(r => {
+    const cliKey = r.cliente ? r.cliente.toString().trim().toUpperCase() : '';
+    const myTs = new Date(r.timestamp||0).getTime();
+    
+    // Si hay un historial de resuelto más nuevo que esta OT, es obsoleta
+    if (cliKey && hidraMap.has(cliKey) && myTs < hidraMap.get(cliKey)) return;
+
+    // Solo guardar 1 activa por cliente
+    if (!cliKey || !clientVisto.has(cliKey)) {
+      if (cliKey) clientVisto.add(cliKey);
+      unicos.push(r);
+    }
+  });
+  dataLimpia = unicos;
+
+  // 1. Calcular Datos Generales
   let activas = 0, resueltas = 0, retiro = 0;
   let marcasCount = {};
-  let tecnicosCount = {};
   let pdvCount = {};
   let prioridadesCount = {};
 
-  // For Activas, Marcas, Prioridades, Top PDVs
-  allData.forEach(r => {
-    // Determine status from seguimientos or default to pendiente
+  // Fechas para Mes a Mes
+  const now = new Date();
+  const currentMonthStr = now.toISOString().slice(0, 7);
+  const prevDate = new Date();
+  prevDate.setMonth(prevDate.getMonth() - 1);
+  const prevMonthStr = prevDate.toISOString().slice(0, 7);
+
+  let creadasEsteMes = 0, creadasMesPasado = 0;
+  let resueltasEsteMes = 0, resueltasMesPasado = 0;
+
+  // Recorrer Activas/Pendientes/Retiros (Data Limpia)
+  dataLimpia.forEach(r => {
     const seg = getSegByOt(r.ot, r.cliente);
     const estado = (seg && seg.estado) ? seg.estado.toLowerCase() : 'pendiente';
     
     if (estado.includes('retiro')) retiro++;
-    else if (estado === 'resuelto') resueltas++;
+    else if (estado === 'resuelto') resueltas++; // Podría pasar
     else activas++;
 
-    // Marca
     const marca = (r.marca || 'Sin Marca').toUpperCase().trim();
     marcasCount[marca] = (marcasCount[marca] || 0) + 1;
 
-    // Prioridad
     const pri = (seg && seg.prioridad_aprobada) ? seg.prioridad_aprobada.toString().trim() : 'Sin Asignar';
     prioridadesCount[pri] = (prioridadesCount[pri] || 0) + 1;
 
-    // Top PDV (solo de OTs reportadas)
     const pdv = r.cliente || 'Desconocido';
     if (!pdvCount[pdv]) pdvCount[pdv] = { total: 0, loc: r.localidad || '-' };
     pdvCount[pdv].total++;
+
+    // Creadas (Fecha de OT)
+    if(r.timestamp) {
+      const tsStr = new Date(r.timestamp).toISOString().slice(0, 7);
+      if(tsStr === currentMonthStr) creadasEsteMes++;
+      else if(tsStr === prevMonthStr) creadasMesPasado++;
+    }
   });
 
-  // Calculate Productivity (Técnicos) from historialData (which contains resolved items)
+  // Recorrer Historial (Resueltas)
   historialData.forEach(r => {
-    const tec = (r.tecnico || 'Desconocido').toUpperCase().trim();
-    tecnicosCount[tec] = (tecnicosCount[tec] || 0) + 1;
-    resueltas++; // Ensure historial counts towards resolved if not in allData anymore
+    resueltas++;
+    
+    // Creadas (En caso de que ya no estén en allData)
+    if(r.ts) {
+      const tsStr = new Date(r.ts).toISOString().slice(0, 7);
+      if(tsStr === currentMonthStr) creadasEsteMes++;
+      else if(tsStr === prevMonthStr) creadasMesPasado++;
+    }
+    
+    // Resoluciones (Asumimos que si está en historial, se resolvió. Aproximamos fecha de resolución con seguimientosRaw o la fecha límite de hoy)
+    // Para simplificar, buscamos si hay un evento "resuelto" en seguimientosRaw para esta OT
+    let resTs = null;
+    if(seguimientosRaw && seguimientosRaw.length > 1) {
+       const h = seguimientosRaw[0].map(s=>(s||'').toString().trim().toLowerCase());
+       const iEst = h.findIndex(x=>x.includes('estado'));
+       const iTs = h.findIndex(x=>x.includes('timestamp'));
+       const iOt = h.findIndex(x=>x.includes('ot'));
+       if(iEst>=0 && iTs>=0 && iOt>=0) {
+         // buscar evento resuelto
+         const evs = seguimientosRaw.slice(1).filter(sr => sr[iOt]==r.ot && sr[iEst].toString().toLowerCase()==='resuelto');
+         if(evs.length > 0) resTs = new Date(evs[evs.length-1][iTs]);
+       }
+    }
+    if(resTs) {
+      const resStr = resTs.toISOString().slice(0, 7);
+      if(resStr === currentMonthStr) resueltasEsteMes++;
+      else if(resStr === prevMonthStr) resueltasMesPasado++;
+    } else {
+      // Fallback
+      if(r.ts) {
+        const tsStr = new Date(r.ts).toISOString().slice(0, 7);
+        if(tsStr === currentMonthStr) resueltasEsteMes++;
+        else if(tsStr === prevMonthStr) resueltasMesPasado++;
+      }
+    }
   });
 
-  // 2. Render Charts
-  const commonOptions = { responsive: true, maintainAspectRatio: false };
+  // 2. Render Charts con ChartDataLabels
+  Chart.register(ChartDataLabels);
+  const commonOptions = { 
+    responsive: true, 
+    maintainAspectRatio: false,
+    plugins: {
+      datalabels: {
+        color: '#fff',
+        font: { weight: 'bold', size: 14 },
+        formatter: Math.round,
+        display: function(context) { return context.dataset.data[context.dataIndex] > 0; }
+      }
+    }
+  };
 
-  // Chart Estados
   if (chartEstadosInstance) chartEstadosInstance.destroy();
   chartEstadosInstance = new Chart(document.getElementById('chartEstados'), {
     type: 'doughnut',
@@ -1371,10 +1457,15 @@ function renderDashboard() {
         borderWidth: 0
       }]
     },
-    options: { ...commonOptions, plugins: { legend: { position: 'bottom' } } }
+    options: { 
+      ...commonOptions, 
+      plugins: { 
+        ...commonOptions.plugins,
+        legend: { position: 'bottom' }
+      } 
+    }
   });
 
-  // Chart Marcas
   if (chartMarcasInstance) chartMarcasInstance.destroy();
   const marcasLabels = Object.keys(marcasCount).sort((a,b) => marcasCount[b] - marcasCount[a]).slice(0, 10);
   chartMarcasInstance = new Chart(document.getElementById('chartMarcas'), {
@@ -1382,31 +1473,57 @@ function renderDashboard() {
     data: {
       labels: marcasLabels,
       datasets: [{
-        label: 'OTs Reportadas',
+        label: 'OTs Activas',
         data: marcasLabels.map(l => marcasCount[l]),
-        backgroundColor: '#3B82F6'
+        backgroundColor: '#3B82F6',
+        borderRadius: 6
       }]
     },
-    options: { ...commonOptions, plugins: { legend: { display: false } } }
+    options: { 
+      ...commonOptions, 
+      plugins: { 
+        ...commonOptions.plugins,
+        legend: { display: false },
+        datalabels: {
+          color: '#fff',
+          anchor: 'center',
+          align: 'center',
+          font: { weight: 'bold' }
+        }
+      } 
+    }
   });
 
-  // Chart Tecnicos
   if (chartTecnicosInstance) chartTecnicosInstance.destroy();
-  const tecLabels = Object.keys(tecnicosCount).sort((a,b) => tecnicosCount[b] - tecnicosCount[a]).slice(0, 10);
   chartTecnicosInstance = new Chart(document.getElementById('chartTecnicos'), {
     type: 'bar',
     data: {
-      labels: tecLabels,
-      datasets: [{
-        label: 'OTs Resueltas',
-        data: tecLabels.map(l => tecnicosCount[l]),
-        backgroundColor: '#10B981'
-      }]
+      labels: ['Mes Pasado', 'Este Mes'],
+      datasets: [
+        {
+          label: 'OTs Creadas (Nuevas)',
+          data: [creadasMesPasado, creadasEsteMes],
+          backgroundColor: '#94A3B8',
+          borderRadius: 6
+        },
+        {
+          label: 'OTs Resueltas',
+          data: [resueltasMesPasado, resueltasEsteMes],
+          backgroundColor: '#10B981',
+          borderRadius: 6
+        }
+      ]
     },
-    options: { ...commonOptions, indexAxis: 'y', plugins: { legend: { display: false } } }
+    options: { 
+      ...commonOptions, 
+      plugins: { 
+        ...commonOptions.plugins,
+        legend: { position: 'bottom' },
+        datalabels: { color: '#fff', anchor: 'center', align: 'center', font: { weight: 'bold' } }
+      } 
+    }
   });
 
-  // Chart Prioridades
   if (chartPrioridadesInstance) chartPrioridadesInstance.destroy();
   chartPrioridadesInstance = new Chart(document.getElementById('chartPrioridades'), {
     type: 'pie',
@@ -1414,16 +1531,22 @@ function renderDashboard() {
       labels: Object.keys(prioridadesCount),
       datasets: [{
         data: Object.values(prioridadesCount),
-        backgroundColor: ['#CBD5E1', '#F87171', '#FCA5A5', '#FECACA', '#FEF2F2', '#64748B']
+        backgroundColor: ['#CBD5E1', '#EF4444', '#F87171', '#FCA5A5', '#FECACA', '#FEF2F2'],
+        borderWidth: 1
       }]
     },
-    options: { ...commonOptions, plugins: { legend: { position: 'right' } } }
+    options: { 
+      ...commonOptions, 
+      plugins: { 
+        ...commonOptions.plugins,
+        legend: { position: 'right' },
+        datalabels: { color: '#0F2A4A', font: { weight: 'bold' } }
+      } 
+    }
   });
 
-  // Render Top PDVs Table
   const topPdvs = Object.keys(pdvCount).map(k => ({ nombre: k, ...pdvCount[k] }))
     .sort((a, b) => b.total - a.total).slice(0, 10);
-  
   const tbodyPDVs = document.getElementById('tablaPDVs');
   tbodyPDVs.innerHTML = topPdvs.map(p => `
     <tr>
