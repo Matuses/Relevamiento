@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Gestión de Cuentas - EMCALA</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#F5F7FA;--card:#FFFFFF;--border:#E2E8F0;--navy:#0F2A4A;--blue:#1B5FA8;--accent:#0EA5E9;--text:#0F2A4A;--muted:#64748B;--success:#16A34A;--warn:#D97706;--danger:#DC2626;--radius:14px;--shadow:0 1px 4px rgba(15,42,74,0.08),0 4px 16px rgba(15,42,74,0.06);--shadow-lg:0 8px 32px rgba(15,42,74,0.13)}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+    
+    .topbar{background:var(--navy);color:white;padding:0 28px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:1000;box-shadow:0 2px 12px rgba(15,42,74,0.2)}
+    .topbar-left{display:flex;align-items:center;gap:12px}
+    .topbar-title{font-size:16px;font-weight:700}
+    .topbar-right{display:flex;align-items:center;gap:12px}
+    .role-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px;letter-spacing:0.06em;background:rgba(255,255,255,0.2);color:#fff}
+    
+    .tabbar-wrap{display:flex;background:rgba(11,37,89,0.85);border-bottom:1px solid rgba(255,255,255,0.12);padding:0 24px;gap:0;align-items:stretch;justify-content:flex-start;position:sticky;top:52px;z-index:999}
+    .tab-btn{background:transparent;border:none;border-bottom:3px solid transparent;color:white;font-size:13px;font-weight:700;padding:8px 20px;cursor:pointer;transition:all 0.18s;white-space:nowrap;letter-spacing:0.02em}
+    .tab-btn:hover{background:white;color:#0F2A4A;border-radius:6px 6px 0 0}
+    
+    .main-container { padding: 24px; max-width: 1200px; margin: 0 auto; }
+    
+    .excel-table{width:100%;border-collapse:collapse;font-size:13px;background:white;border-radius:12px;overflow:hidden;box-shadow:var(--shadow);}
+    .excel-table thead{background:#F8FAFC;border-bottom:1.5px solid var(--border)}
+    .excel-table th{padding:12px 14px;text-align:left;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;font-size:11px}
+    .excel-table td{padding:12px 14px;border-bottom:1px solid var(--border);color:var(--navy)}
+    .excel-table tbody tr:hover{background:#F8FAFC}
+    .excel-table tbody tr:last-child td{border-bottom:none}
+    
+    /* Modals */
+    .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,42,74,0.6);backdrop-filter:blur(4px);z-index:9999;display:none;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s}
+    .modal-overlay.show{display:flex;opacity:1}
+    .modal{background:white;border-radius:20px;width:90%;max-width:500px;box-shadow:var(--shadow-lg);transform:translateY(20px);transition:transform 0.3s cubic-bezier(0.175,0.885,0.32,1.275);overflow:hidden;display:flex;flex-direction:column;max-height:90vh}
+    .modal-overlay.show .modal{transform:translateY(0)}
+    
+    input,select{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-family:'Bricolage Grotesque',sans-serif;font-size:14px;color:var(--text);outline:none;transition:border-color 0.2s}
+    input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(27,95,168,0.1)}
+    
+    @media(max-width:900px){
+      .modal{border-radius:16px 16px 0 0;max-height:95vh;position:fixed;bottom:0;left:0;right:0;width:100%;max-width:100%}
+      .modal-overlay{align-items:flex-end;padding:0}
+      .main-container{padding: 16px;}
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="topbar-left"><div class="topbar-title">EMCALA - Gestión de Cuentas</div></div>
+    <div class="topbar-right">
+      <span class="role-badge" id="roleBadge"></span>
+    </div>
+  </div>
+
+  <div class="tabbar-wrap">
+    <button class="tab-btn" onclick="window.location.href='https://matuses.github.io/emcala-login/'">VOLVER AL PORTAL</button>
+    <button class="tab-btn" onclick="window.location.href='reparaciones.html'">IR A REPARACIONES</button>
+    <button class="tab-btn" onclick="doLogout()" style="margin-left:auto;">SALIR</button>
+  </div>
+
+  <div class="main-container">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <div style="font-size:18px;font-weight:800;color:var(--navy);text-transform:uppercase;letter-spacing:0.05em;">Gestión de Usuarios</div>
+      <button onclick="abrirModalABM()" style="background:var(--success);color:white;border:none;padding:10px 18px;border-radius:8px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;box-shadow:var(--shadow);">+ Nuevo Usuario</button>
+    </div>
+    
+    <div style="overflow-x:auto; border-radius:12px; box-shadow:var(--shadow);">
+      <table class="excel-table">
+        <thead>
+          <tr>
+            <th>Usuario</th>
+            <th>Rol</th>
+            <th>Promotores Asociados</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tablaUsuariosBody">
+          <tr><td colspan="5" style="text-align:center;padding:30px;color:var(--muted);">Cargando usuarios...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal ABM Usuario -->
+  <div class="modal-overlay" id="modalUserOverlay" onclick="if(event.target===this)this.classList.remove('show')">
+    <div class="modal" style="max-width:400px;padding:24px;">
+      <div style="font-size:18px;font-weight:800;color:var(--navy);margin-bottom:16px;" id="abmTitle">Nuevo Usuario</div>
+      <input type="hidden" id="abmIsEdit" value="0">
+      
+      <div style="margin-bottom:12px;">
+        <label style="display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:4px;">USUARIO</label>
+        <input type="text" id="abmUsuario" style="text-transform:uppercase;">
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:4px;">CONTRASEÑA (Dejar vacío para no cambiar)</label>
+        <input type="password" id="abmPassword">
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:4px;">ROL</label>
+        <select id="abmRol">
+          <option value="tecnico">Técnico</option>
+          <option value="supervisor">Supervisor</option>
+          <option value="trade">Trade</option>
+          <option value="auditor">Auditor (Jefe Ventas)</option>
+        </select>
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:4px;">PROMOTORES (Solo Supervisor)</label>
+        <input type="text" id="abmPromotores" placeholder="Ej: JUAN PEREZ, LUIS GOMEZ" style="text-transform:uppercase;">
+      </div>
+      <div style="margin-bottom:20px;">
+        <label style="display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:4px;">ESTADO</label>
+        <select id="abmActivo">
+          <option value="SI">ACTIVO</option>
+          <option value="NO">INACTIVO</option>
+        </select>
+      </div>
+      
+      <div style="display:flex;gap:10px;">
+        <button onclick="document.getElementById('modalUserOverlay').classList.remove('show')" style="flex:1;padding:12px;border:1px solid var(--border);background:white;border-radius:8px;font-family:inherit;font-weight:700;cursor:pointer;">Cancelar</button>
+        <button onclick="guardarUsuario()" id="abmBtnSave" style="flex:1;padding:12px;border:none;background:var(--blue);color:white;border-radius:8px;font-family:inherit;font-weight:700;cursor:pointer;">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwreokQunVau5zi-QN-NzPz14IOfk11p4As3PYRqvSh1zqgbPosHJ9nX2RAfotacKxN/exec';
+    let currentUser = '';
+    let currentUserHash = '';
+    let currentRole = '';
+    let usuariosEnMemoria = [];
+
+    function checkSession() {
+      const sessStr = localStorage.getItem('user_session');
+      if (!sessStr) {
+        window.location.replace('https://matuses.github.io/emcala-login/');
+        return;
+      }
+      const session = JSON.parse(sessStr);
+      if (Date.now() - session.lastActivity > 24*60*60*1000) {
+        localStorage.removeItem('user_session');
+        window.location.replace('https://matuses.github.io/emcala-login/');
+        return;
+      }
+
+      if (session.rol !== 'auditor') {
+        alert('Acceso denegado. Solo los auditores pueden gestionar cuentas.');
+        window.location.replace('portal.html');
+        return;
+      }
+
+      session.lastActivity = Date.now();
+      localStorage.setItem('user_session', JSON.stringify(session));
+
+      currentUser = session.usuario;
+      currentUserHash = session.userHash;
+      currentRole = session.rol;
+
+      document.getElementById('roleBadge').textContent = currentRole.toUpperCase();
+
+      cargarUsuarios();
+    }
+
+    function doLogout() {
+      localStorage.removeItem('user_session');
+      window.location.href = 'https://matuses.github.io/emcala-login/index.html';
+    }
+
+    function cargarUsuarios() {
+      const tbody = document.getElementById('tablaUsuariosBody');
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--muted);">Cargando usuarios...</td></tr>';
+      
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'get_usuarios', usuario: currentUser, userHash: currentUserHash })
+      })
+      .then(r => r.json())
+      .then(res => {
+        if (!res.ok) { tbody.innerHTML = `<tr><td colspan="5" style="color:red;text-align:center;">Error: ${res.error}</td></tr>`; return; }
+        usuariosEnMemoria = res.usuarios;
+        renderTablaUsuarios();
+      })
+      .catch(e => { tbody.innerHTML = `<tr><td colspan="5" style="color:red;text-align:center;">Error de conexión</td></tr>`; });
+    }
+    
+    function renderTablaUsuarios() {
+      const tbody = document.getElementById('tablaUsuariosBody');
+      if (!usuariosEnMemoria.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--muted);">No hay usuarios registrados</td></tr>';
+        return;
+      }
+      
+      tbody.innerHTML = usuariosEnMemoria.map((u, idx) => `
+        <tr>
+          <td style="font-weight:700;">${u.usuario}</td>
+          <td style="text-transform:uppercase;font-size:11px;">${u.rol}</td>
+          <td style="font-size:11px;color:var(--muted);">${u.promotores || '-'}</td>
+          <td>
+            <span style="display:inline-block;padding:4px 8px;border-radius:4px;font-size:10px;font-weight:bold;background:${u.activo==='SI'?'var(--success)':'var(--danger)'};color:white;">
+              ${u.activo==='SI'?'ACTIVO':'INACTIVO'}
+            </span>
+          </td>
+          <td>
+            <button onclick="editUsuario(${idx})" style="background:var(--blue);color:white;border:none;padding:6px 12px;border-radius:6px;font-size:11px;font-family:inherit;font-weight:bold;cursor:pointer;">Editar</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+    
+    function abrirModalABM() {
+      document.getElementById('abmTitle').textContent = 'Nuevo Usuario';
+      document.getElementById('abmIsEdit').value = '0';
+      document.getElementById('abmUsuario').value = '';
+      document.getElementById('abmUsuario').disabled = false;
+      document.getElementById('abmPassword').value = '';
+      document.getElementById('abmRol').value = 'tecnico';
+      document.getElementById('abmActivo').value = 'SI';
+      document.getElementById('abmPromotores').value = '';
+      document.getElementById('modalUserOverlay').classList.add('show');
+    }
+    
+    function editUsuario(idx) {
+      const u = usuariosEnMemoria[idx];
+      document.getElementById('abmTitle').textContent = 'Editar Usuario';
+      document.getElementById('abmIsEdit').value = '1';
+      document.getElementById('abmUsuario').value = u.usuario;
+      document.getElementById('abmUsuario').disabled = true;
+      document.getElementById('abmPassword').value = '';
+      document.getElementById('abmRol').value = u.rol;
+      document.getElementById('abmActivo').value = u.activo;
+      document.getElementById('abmPromotores').value = u.promotores || '';
+      document.getElementById('modalUserOverlay').classList.add('show');
+    }
+    
+    function guardarUsuario() {
+      const btn = document.getElementById('abmBtnSave');
+      btn.textContent = 'Guardando...';
+      btn.disabled = true;
+      
+      const payload = {
+        action: 'save_usuario',
+        usuario: currentUser,
+        userHash: currentUserHash,
+        targetUser: document.getElementById('abmUsuario').value.toUpperCase().trim(),
+        targetPass: document.getElementById('abmPassword').value,
+        targetRol: document.getElementById('abmRol').value,
+        targetActivo: document.getElementById('abmActivo').value,
+        targetPromotores: document.getElementById('abmPromotores').value.toUpperCase().trim()
+      };
+      
+      fetch(SCRIPT_URL, { method:'POST', body:JSON.stringify(payload) })
+      .then(r=>r.json())
+      .then(res => {
+        btn.textContent = 'Guardar';
+        btn.disabled = false;
+        if(res.ok) {
+          document.getElementById('modalUserOverlay').classList.remove('show');
+          cargarUsuarios(); 
+        } else {
+          alert("Error: " + res.error);
+        }
+      })
+      .catch(e => {
+        btn.textContent = 'Guardar';
+        btn.disabled = false;
+        alert("Error de conexión");
+      });
+    }
+
+    window.onload = checkSession;
+  </script>
+</body>
+</html>
